@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -8,6 +10,12 @@ const confirmSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
+
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
   const body = await request.json();
   const parsed = confirmSchema.safeParse(body);
 
@@ -83,6 +91,7 @@ export async function POST(request: Request) {
     .from("orders")
     .insert({
       customer_id: customerId,
+      seller_user_id: authResult.auth.profile.id,
       sales_channel: "public_form",
       quantity_boxes: publicRequest.quantity_boxes,
       unit_price: unitPrice,

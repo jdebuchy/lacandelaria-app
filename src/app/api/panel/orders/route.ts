@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -19,6 +21,12 @@ const createManualOrderSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
+
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
   const body = await request.json();
   const parsed = createManualOrderSchema.safeParse(body);
 
@@ -108,6 +116,7 @@ export async function POST(request: Request) {
 
   const { error: orderInsertError } = await supabase.from("orders").insert({
     customer_id: customerId,
+    seller_user_id: authResult.auth.profile.id,
     sales_channel: "internal",
     quantity_boxes: parsed.data.quantityBoxes,
     unit_price: unitPrice,

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,6 +31,12 @@ const importSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
+
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
   const body = await request.json();
   const parsed = importSchema.safeParse(body);
 

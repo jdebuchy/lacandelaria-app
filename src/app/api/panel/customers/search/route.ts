@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
+import { requireApiRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(request: Request) {
+  const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
+
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").trim();
 

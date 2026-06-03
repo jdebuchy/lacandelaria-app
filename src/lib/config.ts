@@ -1,13 +1,9 @@
-function getEnv(name: string) {
-  return process.env[name];
-}
-
 export const appConfig = {
-  name: getEnv("NEXT_PUBLIC_APP_NAME") ?? "Paltas La Candelaria",
-  appUrl: getEnv("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000",
-  supabaseUrl: getEnv("NEXT_PUBLIC_SUPABASE_URL") ?? "",
-  supabaseAnonKey: getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? "",
-  supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  name: process.env.NEXT_PUBLIC_APP_NAME ?? "Paltas La Candelaria",
+  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
 };
 
 export function hasSupabaseEnv() {

@@ -4,11 +4,14 @@ import { CustomerSearch } from "@/components/customer-search";
 import { CustomerRecords } from "@/components/customer-records";
 import { CsvImportButton } from "@/components/csv-import-button";
 import { AddCustomerButton } from "@/components/add-customer-button";
+import { requirePageRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type SearchParams = Promise<{ q?: string }>;
 
 export default async function CustomersPage({ searchParams }: { searchParams: SearchParams }) {
+  await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/customers");
   const { q } = await searchParams;
   const supabase = createAdminClient();
 

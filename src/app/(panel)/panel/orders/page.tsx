@@ -1,4 +1,6 @@
 import { formatWhatsAppPhone } from "@/lib/contact";
+import { requirePageRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 
@@ -83,6 +85,7 @@ function getPaymentStatusLabel(status: string) {
 }
 
 export default async function OrdersPage() {
+  await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/orders");
   const supabase = createAdminClient();
   const [
     { count: totalOrders },

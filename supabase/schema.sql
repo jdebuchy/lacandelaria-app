@@ -19,6 +19,7 @@ create type public.commission_status as enum ('pending', 'liquidated');
 create table if not exists public.profiles (
   id uuid primary key default gen_random_uuid(),
   auth_user_id uuid unique,
+  email text unique,
   full_name text not null,
   phone text,
   role public.user_role not null default 'seller',

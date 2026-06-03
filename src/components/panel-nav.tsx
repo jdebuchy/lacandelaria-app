@@ -2,16 +2,38 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getRoleLabel } from "@/lib/auth-shared";
+import type { UserRole } from "@/lib/types";
 
-const links = [
-  { href: "/panel", label: "Resumen" },
-  { href: "/panel/orders", label: "Pedidos" },
-  { href: "/panel/customers", label: "Clientes" },
-  { href: "/driver", label: "Reparto" }
-];
+type PanelNavProps = {
+  role: UserRole;
+  userEmail: string | null;
+  userName: string;
+};
 
-export function PanelNav() {
+const linksByRole: Record<UserRole, { href: string; label: string }[]> = {
+  admin: [
+    { href: "/panel", label: "Resumen" },
+    { href: "/panel/orders", label: "Pedidos" },
+    { href: "/panel/customers", label: "Clientes" },
+    { href: "/driver", label: "Reparto" }
+  ],
+  seller: [
+    { href: "/panel", label: "Resumen" },
+    { href: "/panel/orders", label: "Pedidos" },
+    { href: "/panel/customers", label: "Clientes" }
+  ],
+  collector: [
+    { href: "/panel", label: "Resumen" },
+    { href: "/panel/orders", label: "Pedidos" },
+    { href: "/panel/customers", label: "Clientes" }
+  ],
+  driver: [{ href: "/driver", label: "Reparto" }]
+};
+
+export function PanelNav({ role, userEmail, userName }: PanelNavProps) {
   const pathname = usePathname();
+  const links = linksByRole[role];
 
   return (
     <header className="sticky top-0 z-30 border-b border-stone-800/60 bg-stone-950/95 backdrop-blur">
@@ -31,24 +53,43 @@ export function PanelNav() {
           </div>
         </div>
 
-        <nav className="flex items-center gap-1">
-          {links.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-full border px-4 py-2 text-sm transition ${
-                  isActive
-                    ? "border-sky-400/40 bg-sky-500/10 text-sky-200"
-                    : "border-transparent text-stone-400 hover:border-stone-800 hover:text-stone-100"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-1">
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded-full border px-4 py-2 text-sm transition ${
+                    isActive
+                      ? "border-sky-400/40 bg-sky-500/10 text-sky-200"
+                      : "border-transparent text-stone-400 hover:border-stone-800 hover:text-stone-100"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="hidden rounded-2xl border border-stone-800 bg-stone-900/80 px-3 py-2 text-right sm:block">
+            <p className="text-sm text-stone-100">{userName}</p>
+            <p className="text-xs text-stone-500">
+              {getRoleLabel(role)}
+              {userEmail ? ` · ${userEmail}` : ""}
+            </p>
+          </div>
+
+          <form action="/api/auth/signout" method="post">
+            <button
+              type="submit"
+              className="rounded-full border border-stone-800 bg-stone-900/70 px-4 py-2 text-sm text-stone-300 transition hover:border-stone-700 hover:text-stone-100"
+            >
+              Salir
+            </button>
+          </form>
+        </div>
       </div>
     </header>
   );

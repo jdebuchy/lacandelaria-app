@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiRole } from "@/lib/auth";
+import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const updateDeliverySchema = z.object({
@@ -12,6 +14,12 @@ function currentDate() {
 }
 
 export async function POST(request: Request) {
+  const authResult = await requireApiRole(DRIVER_ALLOWED_ROLES);
+
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
   const body = await request.json();
   const parsed = updateDeliverySchema.safeParse(body);
 
@@ -54,7 +62,8 @@ export async function POST(request: Request) {
   const deliveryPayload = {
     assigned_date: currentDate(),
     delivered_at: parsed.data.status === "delivered" ? new Date().toISOString() : null,
-    delivery_status: parsed.data.status
+    delivery_status: parsed.data.status,
+    driver_user_id: authResult.auth.profile.id
   };
 
   if (existingDelivery?.id) {

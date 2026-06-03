@@ -1,4 +1,6 @@
 import { DriverRouteBoard } from "@/components/driver-route-board";
+import { requirePageRole } from "@/lib/auth";
+import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getLogisticsFlowGuidance,
@@ -52,6 +54,7 @@ function routePriority(flow: "capital_federal" | "reseller" | "standard") {
 }
 
 export default async function DriverPage() {
+  await requirePageRole(DRIVER_ALLOWED_ROLES, "/driver");
   const supabase = createAdminClient();
   const { data: orders } = await supabase
     .from("orders")

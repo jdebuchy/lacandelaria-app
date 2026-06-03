@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -17,6 +19,12 @@ const updateCustomerSchema = z.object({
 type Params = Promise<{ customerId: string }>;
 
 export async function PATCH(request: Request, context: { params: Params }) {
+  const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
+
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
   const { customerId } = await context.params;
   const body = await request.json();
   const parsed = updateCustomerSchema.safeParse(body);

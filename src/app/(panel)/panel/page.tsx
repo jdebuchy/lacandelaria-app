@@ -1,4 +1,6 @@
 import { ConfirmRequestButton } from "@/components/confirm-request-button";
+import { requirePageRole } from "@/lib/auth";
+import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { formatWhatsAppPhone } from "@/lib/contact";
@@ -37,6 +39,7 @@ function takeSingleRelation<T>(value: T | T[] | null): T | null {
 }
 
 export default async function BackofficePage() {
+  await requirePageRole(PANEL_ALLOWED_ROLES, "/panel");
   const supabase = createAdminClient();
   const [
     { data: requests },

@@ -3,6 +3,12 @@ import { createServerClient } from "@supabase/ssr";
 import { sanitizeRedirectPath } from "@/lib/auth-shared";
 import { appConfig } from "@/lib/config";
 
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: Parameters<NextResponse["cookies"]["set"]>[2];
+};
+
 function isProtectedPath(pathname: string) {
   return (
     pathname.startsWith("/panel") ||
@@ -54,7 +60,7 @@ export async function middleware(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: CookieToSet[]) {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });

@@ -10,14 +10,9 @@ export async function createClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(cookiesToSet) {
-        // In Server Components, Next.js exposes a read-only cookie store.
-        // Session refresh writes are handled by middleware and route handlers.
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        } catch {}
+      setAll() {
+        // Server Components must not write cookies.
+        // Middleware and route handlers are responsible for session refresh writes.
       }
     }
   });

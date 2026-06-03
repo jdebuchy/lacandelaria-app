@@ -140,7 +140,7 @@ export function formatStructuredAddressLine(input: Partial<StructuredAddress>) {
   return [line1, line2].filter(Boolean).join(", ");
 }
 
-export function splitFullName(fullName: string) {
+export function splitFullName(fullName?: string | null) {
   const trimmed = clean(fullName);
   const parts = trimmed.split(/\s+/).filter(Boolean);
 

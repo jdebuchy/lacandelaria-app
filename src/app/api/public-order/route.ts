@@ -1,21 +1,42 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { structuredAddressSchema, toStructuredAddressColumns } from "@/lib/address";
+import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import {
+  buildPublicOrderRequestItems,
+  calculateItemsCount,
+  mapProductRow,
+  orderItemsInputSchema,
+  productSchema
+} from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { composeFullName, normalizeArgentinaPhoneInput } from "@/lib/contact";
 
-const publicOrderSchema = z.object({
-  firstName: z.string().min(2, "Ingresa un nombre valido."),
-  lastName: z.string().min(2, "Ingresa un apellido valido."),
-  phone: z.string().min(8, "Ingresa un WhatsApp valido."),
-  address: z.string().min(5, "Ingresa una direccion."),
-  neighborhood: z.string().min(2, "Ingresa un barrio o zona."),
-  quantityBoxes: z.coerce.number().int().min(1).max(50),
-  paymentMethodExpected: z.enum(["cash", "transfer"]),
-  notes: z.string().max(500).optional().or(z.literal("")),
-  leadSource: z.enum(["instagram", "whatsapp", "direct_link", "reseller"]).default("direct_link"),
-  website: z.string().optional().or(z.literal("")),
-  startedAt: z.coerce.number().int().positive()
-});
+const publicOrderSchema = structuredAddressSchema
+  .extend({
+    firstName: z.string().optional().or(z.literal("")),
+    lastName: z.string().optional().or(z.literal("")),
+    phone: z.string().min(8, "Ingresa un WhatsApp valido."),
+    instagram: z.string().max(100).optional().or(z.literal("")),
+    addressLine1: z.string().min(5, "Ingresa una dirección."),
+    locality: z.string().min(2, "Ingresa una localidad."),
+    administrativeAreaLevel1: z.string().min(2, "Ingresa una provincia."),
+    postalCode: z.string().min(3, "Ingresa un código postal."),
+    items: orderItemsInputSchema,
+    paymentMethodExpected: z.enum(["cash", "transfer"]),
+    notes: z.string().max(500).optional().or(z.literal("")),
+    leadSource: z.enum(["instagram", "whatsapp", "direct_link", "reseller"]).default("direct_link"),
+    website: z.string().optional().or(z.literal("")),
+    startedAt: z.coerce.number().int().positive()
+  })
+  .superRefine((data, ctx) => {
+    if (!data.firstName?.trim() && !data.lastName?.trim() && !data.instagram?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Ingresa nombre, apellido o Instagram.",
+        path: ["firstName"]
+      });
+    }
+  });
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -38,8 +59,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const submittedAt = Date.now();
-  const elapsedMs = submittedAt - parsed.data.startedAt;
+  const elapsedMs = Date.now() - parsed.data.startedAt;
 
   if (elapsedMs < 2500 || elapsedMs > 1000 * 60 * 60 * 12) {
     return NextResponse.json(
@@ -48,8 +68,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const fullName = composeFullName(parsed.data.firstName, parsed.data.lastName);
   const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
+  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const addressColumns = toStructuredAddressColumns(parsed.data);
+  const fallbackFirstName = parsed.data.firstName?.trim() || instagram || "Cliente";
+  const fallbackLastName = parsed.data.lastName?.trim() || null;
 
   if (normalizedPhone.length < 11 || normalizedPhone.length > 14) {
     return NextResponse.json(
@@ -59,22 +82,84 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { error } = await supabase.from("public_order_requests").insert({
-    full_name: fullName,
-    phone: normalizedPhone,
-    address: parsed.data.address,
-    neighborhood: parsed.data.neighborhood,
-    zone: parsed.data.neighborhood,
-    quantity_boxes: parsed.data.quantityBoxes,
-    payment_method_expected: parsed.data.paymentMethodExpected,
-    lead_source: parsed.data.leadSource,
-    notes: parsed.data.notes || null
-  });
+  const { data: productRows, error: productsError } = await supabase
+    .from("products")
+    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
+    .in(
+      "id",
+      parsed.data.items.map((item) => item.productId)
+    );
 
-  if (error) {
+  if (productsError) {
+    console.error("products fetch failed", productsError);
+    return NextResponse.json(
+      { success: false, message: "No se pudieron validar los productos del pedido." },
+      { status: 500 }
+    );
+  }
+
+  const productsById = new Map(
+    (productRows ?? []).map((row) => {
+      const parsedProduct = productSchema.parse(row);
+      return [parsedProduct.id, mapProductRow(parsedProduct)] as const;
+    })
+  );
+
+  let requestItems;
+
+  try {
+    requestItems = buildPublicOrderRequestItems(
+      productsById,
+      parsed.data.items,
+      parsed.data.paymentMethodExpected
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "No se pudo validar el pedido."
+      },
+      { status: 400 }
+    );
+  }
+
+  const { data: newRequest, error } = await supabase
+    .from("public_order_requests")
+    .insert({
+      first_name: fallbackFirstName,
+      last_name: fallbackLastName,
+      phone: normalizedPhone,
+      instagram,
+      ...addressColumns,
+      items_count: calculateItemsCount(requestItems),
+      payment_method_expected: parsed.data.paymentMethodExpected,
+      lead_source: parsed.data.leadSource,
+      notes: parsed.data.notes || null
+    })
+    .select("id")
+    .single();
+
+  if (error || !newRequest) {
     console.error("public_order_requests insert failed", error);
     return NextResponse.json(
       { success: false, message: "No se pudo enviar el pedido. Intenta nuevamente." },
+      { status: 500 }
+    );
+  }
+
+  const { error: itemsError } = await supabase.from("public_order_request_items").insert(
+    requestItems.map((item) => ({
+      public_order_request_id: newRequest.id,
+      ...item
+    }))
+  );
+
+  if (itemsError) {
+    console.error("public_order_request_items insert failed", itemsError);
+    await supabase.from("public_order_requests").delete().eq("id", newRequest.id);
+
+    return NextResponse.json(
+      { success: false, message: "No se pudo guardar el detalle del pedido. Intenta nuevamente." },
       { status: 500 }
     );
   }

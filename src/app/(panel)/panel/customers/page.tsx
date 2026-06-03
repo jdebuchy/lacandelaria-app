@@ -18,14 +18,14 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
   let query = supabase
     .from("customers")
     .select(
-      "id, full_name, phone, alternate_phone, address, neighborhood, zone, delivery_notes, source, created_at"
+      "id, first_name, last_name, phone, instagram, address_kind, address_line_1, address_line_2, gated_community_name, locality, administrative_area_level_1, postal_code, google_place_id, google_place_label, address_source, delivery_area, delivery_notes, source, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(100);
 
   if (q) {
     const safeQ = q.replace(/[,()]/g, "");
-    query = query.or(`full_name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%`);
+    query = query.or(`first_name.ilike.%${safeQ}%,last_name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%,instagram.ilike.%${safeQ}%`);
   }
 
   const { data: customers, error } = await query;

@@ -22,14 +22,31 @@ function digitsOnly(v: string) {
   return v.replace(/\D/g, "");
 }
 
+function splitArgentinaPhone(rest: string) {
+  const national = rest.startsWith("9") && rest.length === 11 ? rest.slice(1) : rest;
+
+  if (national.startsWith("11")) {
+    return { area: national.slice(0, 2), local: national.slice(2) };
+  }
+
+  if (national.length === 10) {
+    return { area: national.slice(0, 4), local: national.slice(4) };
+  }
+
+  if (national.length === 9) {
+    return { area: national.slice(0, 3), local: national.slice(3) };
+  }
+
+  return { area: national.slice(0, 2), local: national.slice(2) };
+}
+
 function parsePhone(stored: string): { country: string; area: string; local: string } {
   const d = digitsOnly(stored);
 
   if (d.startsWith(AR_CODE)) {
-    let rest = d.slice(AR_CODE.length);
-    // Strip leading 9 if present (WhatsApp format: 549XXXXXXXXXX = 11 digits after "54")
-    if (rest.startsWith("9") && rest.length === 11) rest = rest.slice(1);
-    return { country: AR_CODE, area: rest.slice(0, 2), local: rest.slice(2) };
+    const rest = d.slice(AR_CODE.length);
+    const parsed = splitArgentinaPhone(rest);
+    return { country: AR_CODE, area: parsed.area, local: parsed.local };
   }
 
   for (const { code } of COUNTRIES) {
@@ -38,7 +55,8 @@ function parsePhone(stored: string): { country: string; area: string; local: str
     }
   }
 
-  return { country: AR_CODE, area: d.slice(0, 2), local: d.slice(2) };
+  const parsed = splitArgentinaPhone(d);
+  return { country: AR_CODE, area: parsed.area, local: parsed.local };
 }
 
 type PhoneInputProps = {
@@ -47,13 +65,29 @@ type PhoneInputProps = {
   required?: boolean;
   label?: string;
   className?: string;
+  name?: string;
 };
 
-export function PhoneInput({ value, onChange, required, label = "WhatsApp", className }: PhoneInputProps) {
+function formatLocalDisplay(area: string, local: string) {
+  if (!local) return "";
+
+  if (area.length <= 2) {
+    return local.length <= 4 ? local : `${local.slice(0, 4)} ${local.slice(4, 8)}`;
+  }
+
+  if (area.length === 3) {
+    return local.length <= 3 ? local : `${local.slice(0, 3)} ${local.slice(3, 7)}`;
+  }
+
+  return local.length <= 2 ? local : `${local.slice(0, 2)} ${local.slice(2, 6)}`;
+}
+
+export function PhoneInput({ value, onChange, required, label = "WhatsApp", className, name }: PhoneInputProps) {
   const { country: c0, area: a0, local: l0 } = parsePhone(value);
   const [country, setCountry] = useState(c0);
   const [area, setArea] = useState(a0);
   const [local, setLocal] = useState(l0);
+  const [triedLeadingNine, setTriedLeadingNine] = useState(false);
 
   const prevValueRef = useRef(value);
   const localRef = useRef<HTMLInputElement>(null);
@@ -65,6 +99,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
       setCountry(p.country);
       setArea(p.area);
       setLocal(p.local);
+      setTriedLeadingNine(false);
     }
   }, [value]);
 
@@ -72,12 +107,13 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
   const localMax = isAR ? AR_TOTAL - area.length : 15;
 
   function emit(c: string, a: string, l: string) {
-    const v = `${c}${a}${l}`;
+    const v = c === AR_CODE ? `549${a}${l}` : `${c}${a}${l}`;
     prevValueRef.current = v;
     onChange(v);
   }
 
   function handleCountryChange(newCode: string) {
+    setTriedLeadingNine(false);
     setCountry(newCode);
     setArea("");
     setLocal("");
@@ -86,11 +122,13 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
 
   function handleAreaChange(raw: string) {
     const digits = digitsOnly(raw).slice(0, 4);
-    const newLocalMax = AR_TOTAL - digits.length;
+    const sanitizedArea = digits.startsWith("9") ? digits.slice(1) : digits;
+    setTriedLeadingNine(digits.startsWith("9"));
+    const newLocalMax = AR_TOTAL - sanitizedArea.length;
     const trimmedLocal = local.slice(0, newLocalMax);
-    setArea(digits);
+    setArea(sanitizedArea);
     if (trimmedLocal !== local) setLocal(trimmedLocal);
-    emit(country, digits, trimmedLocal);
+    emit(country, sanitizedArea, trimmedLocal);
   }
 
   function handleAreaKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -102,6 +140,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
   }
 
   function handleLocalChange(raw: string) {
+    setTriedLeadingNine(false);
     const digits = digitsOnly(raw).slice(0, Math.max(0, localMax));
     setLocal(digits);
     emit(country, area, digits);
@@ -119,6 +158,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
   return (
     <label className={`grid gap-2 text-sm text-stone-300${className ? ` ${className}` : ""}`}>
       {label}
+      {name ? <input type="hidden" name={name} value={value} /> : null}
       <div className="flex gap-2">
         <div className="relative shrink-0">
           <select
@@ -150,16 +190,16 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
               maxLength={4}
               required={required}
               aria-label="Código de área"
-              className={`${base} w-16 text-center`}
+              className={`${base} w-16 text-center${triedLeadingNine ? " border-rose-500 focus:border-rose-400" : ""}`}
             />
             <input
               ref={localRef}
               type="text"
               inputMode="numeric"
               placeholder={localPlaceholder}
-              value={local}
+              value={formatLocalDisplay(area, local)}
               onChange={(e) => handleLocalChange(e.target.value)}
-              maxLength={Math.max(0, localMax)}
+              maxLength={Math.max(0, localMax) + 1}
               required={required}
               aria-label="Número local"
               className={`${base} flex-1`}
@@ -182,6 +222,13 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
           />
         )}
       </div>
+      {isAR ? (
+        <p className={`text-xs ${triedLeadingNine ? "text-rose-300" : "text-stone-500"}`}>
+          {triedLeadingNine
+            ? "El código de área no puede empezar con 9. No lo escribas: lo agregamos automáticamente al guardar."
+            : "No escribas el 9. Lo agregamos automáticamente al guardar en WhatsApp."}
+        </p>
+      ) : null}
     </label>
   );
 }

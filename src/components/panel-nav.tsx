@@ -16,6 +16,7 @@ const linksByRole: Record<UserRole, { href: string; label: string }[]> = {
     { href: "/panel", label: "Resumen" },
     { href: "/panel/orders", label: "Pedidos" },
     { href: "/panel/customers", label: "Clientes" },
+    { href: "/panel/products", label: "Catálogo" },
     { href: "/driver", label: "Reparto" }
   ],
   seller: [

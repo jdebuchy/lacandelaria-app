@@ -1,7 +1,14 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { formatWhatsAppPhone } from "@/lib/contact";
+import { AddressInput } from "@/components/address-input";
+import { AutofillDecoy } from "@/components/autofill-decoy";
+import {
+  StructuredAddress,
+  formatStructuredAddressLine,
+  formatStructuredAddressSummary
+} from "@/lib/address";
+import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
 import { PhoneInput } from "@/components/phone-input";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -20,14 +27,21 @@ const SOURCE_OPTIONS = [
 
 export type CustomerRecord = {
   id: string;
-  full_name: string;
-  first_name?: string;
+  first_name?: string | null;
   last_name?: string | null;
-  phone: string;
-  alternate_phone: string | null;
-  address: string | null;
-  neighborhood: string | null;
-  zone: string | null;
+  phone?: string | null;
+  instagram?: string | null;
+  address_kind: StructuredAddress["addressKind"];
+  address_line_1: string | null;
+  address_line_2: string | null;
+  gated_community_name: string | null;
+  locality: string | null;
+  administrative_area_level_1: string | null;
+  postal_code: string | null;
+  google_place_id: string | null;
+  google_place_label: string | null;
+  address_source: StructuredAddress["addressSource"] | null;
+  delivery_area: string | null;
   delivery_notes: string | null;
   source: string;
   created_at: string;
@@ -45,27 +59,29 @@ const initialState: FormState = {
 
 function CustomerEditForm({
   customer,
-  onCancel,
-  onSaved
+  onCancel
 }: {
   customer: CustomerRecord;
   onCancel: () => void;
-  onSaved: () => void;
 }) {
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<FormState>(initialState);
-  const parsedFirst = customer.first_name ?? (customer.full_name.includes(" ")
-    ? customer.full_name.replace(/ [^ ]+$/, "")
-    : customer.full_name);
-  const parsedLast = customer.last_name ?? (customer.full_name.includes(" ")
-    ? customer.full_name.replace(/^.* /, "")
-    : "");
-  const [firstName, setFirstName] = useState(parsedFirst);
-  const [lastName, setLastName] = useState(parsedLast);
-  const [phone, setPhone] = useState(customer.phone);
-  const [address, setAddress] = useState(customer.address ?? "");
-  const [neighborhood, setNeighborhood] = useState(customer.neighborhood ?? "");
-  const [zone, setZone] = useState(customer.zone ?? "");
+  const [firstName, setFirstName] = useState(customer.first_name ?? "");
+  const [lastName, setLastName] = useState(customer.last_name ?? "");
+  const [phone, setPhone] = useState(customer.phone ?? "");
+  const [instagram, setInstagram] = useState(customer.instagram ?? "");
+  const [address, setAddress] = useState<StructuredAddress>({
+    addressKind: customer.address_kind ?? "standard",
+    addressLine1: customer.address_line_1 ?? "",
+    addressLine2: customer.address_line_2 ?? "",
+    gatedCommunityName: customer.gated_community_name ?? "",
+    locality: customer.locality ?? "",
+    administrativeAreaLevel1: customer.administrative_area_level_1 ?? "",
+    postalCode: customer.postal_code ?? "",
+    googlePlaceId: customer.google_place_id ?? "",
+    googlePlaceLabel: customer.google_place_label ?? "",
+    addressSource: customer.address_source ?? "manual"
+  });
   const [deliveryNotes, setDeliveryNotes] = useState(customer.delivery_notes ?? "");
   const [source, setSource] = useState(customer.source);
   const sourceOptions = useMemo(() => {
@@ -90,9 +106,8 @@ function CustomerEditForm({
         firstName,
         lastName,
         phone,
-        address,
-        neighborhood,
-        zone,
+        instagram,
+        ...address,
         deliveryNotes,
         source
       })
@@ -110,12 +125,12 @@ function CustomerEditForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 rounded-2xl border border-emerald-500/20 bg-stone-950/70 p-4">
+    <form onSubmit={handleSubmit} autoComplete="off" className="mt-4 rounded-2xl border border-emerald-500/20 bg-stone-950/70 p-4">
+      <AutofillDecoy />
       <div className="grid gap-3 md:grid-cols-2">
         <label className="grid gap-2 text-sm text-stone-300">
           Nombre
           <input
-            required
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
             className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
@@ -125,41 +140,24 @@ function CustomerEditForm({
         <label className="grid gap-2 text-sm text-stone-300">
           Apellido
           <input
-            required
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
             className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
           />
         </label>
 
-        <PhoneInput required value={phone} onChange={setPhone} className="md:col-span-2" />
+        <PhoneInput value={phone} onChange={setPhone} className="md:col-span-2" />
 
         <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
-          Dirección
+          Instagram
           <input
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
+            value={instagram}
+            onChange={(event) => setInstagram(event.target.value)}
             className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+            placeholder="usuario"
           />
         </label>
-
-        <label className="grid gap-2 text-sm text-stone-300">
-          Barrio
-          <input
-            value={neighborhood}
-            onChange={(event) => setNeighborhood(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
-          />
-        </label>
-
-        <label className="grid gap-2 text-sm text-stone-300">
-          Zona
-          <input
-            value={zone}
-            onChange={(event) => setZone(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
-          />
-        </label>
+        <AddressInput required value={address} onChange={setAddress} className="md:col-span-2" />
 
         <label className="grid gap-2 text-sm text-stone-300">
           Origen
@@ -227,6 +225,11 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
         {rows.length ? (
           rows.map((customer) => {
             const isEditing = editingId === customer.id;
+            const displayName = formatPersonName(
+              customer.first_name,
+              customer.last_name,
+              customer.instagram
+            );
 
             return (
               <article
@@ -235,10 +238,13 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-base font-semibold text-stone-50">{customer.full_name}</p>
+                    <p className="text-base font-semibold text-stone-50">{displayName}</p>
                     <p className="mt-1 text-sm text-stone-400">
                       {formatWhatsAppPhone(customer.phone)}
                     </p>
+                    {customer.instagram ? (
+                      <p className="mt-1 text-xs text-stone-500">{customer.instagram}</p>
+                    ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-stone-300">
@@ -253,17 +259,36 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
                     </button>
                   </div>
                 </div>
-                {(customer.neighborhood || customer.zone) ? (
+                {customer.delivery_area ? (
                   <p className="mt-3 text-sm text-stone-400">
-                    {[customer.neighborhood, customer.zone].filter(Boolean).join(" · ")}
+                    Área logística: {customer.delivery_area}
                   </p>
                 ) : null}
-                {customer.address ? <p className="mt-2 text-sm text-stone-500">{customer.address}</p> : null}
+                <p className="mt-2 text-sm text-stone-500">
+                  {formatStructuredAddressSummary({
+                    addressKind: customer.address_kind,
+                    addressLine1: customer.address_line_1 ?? "",
+                    gatedCommunityName: customer.gated_community_name ?? "",
+                    locality: customer.locality ?? ""
+                  })}
+                </p>
+                {formatStructuredAddressLine({
+                  addressKind: customer.address_kind,
+                  addressLine1: customer.address_line_1 ?? "",
+                  addressLine2: customer.address_line_2 ?? "",
+                  gatedCommunityName: customer.gated_community_name ?? ""
+                }) ? (
+                  <p className="mt-1 text-xs text-stone-600">{formatStructuredAddressLine({
+                    addressKind: customer.address_kind,
+                    addressLine1: customer.address_line_1 ?? "",
+                    addressLine2: customer.address_line_2 ?? "",
+                    gatedCommunityName: customer.gated_community_name ?? ""
+                  })}</p>
+                ) : null}
                 {isEditing ? (
                   <CustomerEditForm
                     customer={customer}
                     onCancel={() => setEditingId(null)}
-                    onSaved={() => setEditingId(null)}
                   />
                 ) : null}
               </article>
@@ -278,20 +303,38 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
 
       <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 md:block">
         <div className="grid grid-cols-[1.6fr_1.1fr_1.4fr_1fr_0.9fr_0.8fr] border-b border-stone-800 bg-stone-900 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
-          {["Cliente", "Teléfono", "Zona", "Origen", "Alta", "Acción"].map((col) => (
+          {["Cliente", "Teléfono", "Dirección", "Origen", "Alta", "Acción"].map((col) => (
             <div key={col}>{col}</div>
           ))}
         </div>
         {rows.length ? (
           rows.map((customer) => {
             const isEditing = editingId === customer.id;
+            const displayName = formatPersonName(
+              customer.first_name,
+              customer.last_name,
+              customer.instagram
+            );
 
             return (
               <div key={customer.id} className="border-b border-stone-800 last:border-b-0">
                 <div className="grid grid-cols-[1.6fr_1.1fr_1.4fr_1fr_0.9fr_0.8fr] px-6 py-4 text-sm text-stone-300 hover:bg-stone-900/50">
-                  <div className="font-medium text-stone-100">{customer.full_name}</div>
-                  <div>{formatWhatsAppPhone(customer.phone)}</div>
-                  <div>{[customer.neighborhood, customer.zone].filter(Boolean).join(" · ") || "-"}</div>
+                  <div className="font-medium text-stone-100">{displayName}</div>
+                  <div>
+                    <div>{formatWhatsAppPhone(customer.phone)}</div>
+                    {customer.instagram ? (
+                      <div className="mt-1 text-xs text-stone-500">{customer.instagram}</div>
+                    ) : null}
+                  </div>
+                  <div>
+                    <div>{formatStructuredAddressSummary({
+                      addressKind: customer.address_kind,
+                      addressLine1: customer.address_line_1 ?? "",
+                      gatedCommunityName: customer.gated_community_name ?? "",
+                      locality: customer.locality ?? ""
+                    })}</div>
+                    <div className="mt-1 text-xs text-stone-500">{customer.delivery_area || "-"}</div>
+                  </div>
                   <div>{SOURCE_LABELS[customer.source] ?? customer.source}</div>
                   <div>
                     {new Date(customer.created_at).toLocaleDateString("es-AR", {
@@ -316,7 +359,6 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
                     <CustomerEditForm
                       customer={customer}
                       onCancel={() => setEditingId(null)}
-                      onSaved={() => setEditingId(null)}
                     />
                   </div>
                 ) : null}

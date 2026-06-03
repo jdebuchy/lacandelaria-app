@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { DeliveryStatus } from "@/lib/types";
 
 type DriverStop = {
+  addressSummary: string;
   customerName: string;
   customerPhone: string;
   deliveryDate: string | null;
@@ -17,10 +18,11 @@ type DriverStop = {
   orderStatus: string;
   paymentMethodExpected: string;
   paymentStatus: string;
-  quantityBoxes: number;
+  itemsCount: number;
+  itemsSummary: string;
   resellerName: string | null;
   sequenceNumber: number;
-  zone: string;
+  deliveryArea: string;
 };
 
 type DriverRouteBoardProps = {
@@ -128,12 +130,12 @@ export function DriverRouteBoard({ stops }: DriverRouteBoardProps) {
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-2xl bg-stone-950/80 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Zona</p>
-                    <p className="mt-1 text-sm text-stone-200">{stop.zone}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Área</p>
+                    <p className="mt-1 text-sm text-stone-200">{stop.deliveryArea}</p>
                   </div>
                   <div className="rounded-2xl bg-stone-950/80 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Cajas</p>
-                    <p className="mt-1 text-sm text-stone-200">{stop.quantityBoxes}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
+                    <p className="mt-1 text-sm text-stone-200">{stop.itemsCount}</p>
                   </div>
                   <div className="rounded-2xl bg-stone-950/80 p-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pago</p>
@@ -148,6 +150,8 @@ export function DriverRouteBoard({ stops }: DriverRouteBoardProps) {
                 </div>
 
                 <p className="text-sm leading-6 text-stone-300">{stop.flowGuidance}</p>
+                <p className="text-sm text-emerald-300">{stop.itemsSummary}</p>
+                <p className="text-sm text-stone-500">{stop.addressSummary}</p>
 
                 {stop.resellerName ? (
                   <p className="text-sm text-sky-300">Punto revendedora: {stop.resellerName}</p>

@@ -1,10 +1,7 @@
-export const APP_NAME = "Paltas La Candelaria";
+export const APP_NAME = "La Candelaria";
 
 export const BUSINESS_RULES = {
-  cashPrice: 25000,
-  transferPrice: 30000,
-  resellerCommissionRate: 0.15,
-  salesUnit: "Caja de 4 kg"
+  resellerCommissionRate: 0.15
 } as const;
 
 export const ORDER_STATUSES = [

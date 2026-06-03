@@ -1,21 +1,31 @@
-import { formatWhatsAppPhone } from "@/lib/contact";
+import Link from "next/link";
+import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import { formatItemsSummary } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
-import Link from "next/link";
 
 type RelatedCustomer = {
-  full_name?: string | null;
-  neighborhood?: string | null;
+  address_kind?: "standard" | "gated" | null;
+  address_line_1?: string | null;
+  delivery_area?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  gated_community_name?: string | null;
+  locality?: string | null;
   phone?: string | null;
-  zone?: string | null;
 };
 
 type RelatedReseller = {
   full_name?: string | null;
-  neighborhood?: string | null;
   phone?: string | null;
-  zone?: string | null;
+};
+
+type RelatedOrderItem = {
+  product_name_snapshot: string;
+  sales_unit_label_snapshot: string;
+  quantity: number;
 };
 
 function takeSingleRelation<T>(value: T | T[] | null): T | null {
@@ -105,26 +115,33 @@ export default async function OrdersPage() {
         `
           id,
           sales_channel,
-          quantity_boxes,
-          unit_price,
+          items_count,
+          total_amount,
           payment_method_expected,
           payment_status,
           status,
           delivery_date,
-          zone,
+          delivery_area,
           notes,
           created_at,
           customers (
-            full_name,
+            first_name,
+            last_name,
             phone,
-            neighborhood,
-            zone
+            address_kind,
+            address_line_1,
+            gated_community_name,
+            locality,
+            delivery_area
           ),
           resellers (
             full_name,
-            phone,
-            neighborhood,
-            zone
+            phone
+          ),
+          order_items (
+            product_name_snapshot,
+            sales_unit_label_snapshot,
+            quantity
           )
         `
       )
@@ -134,22 +151,33 @@ export default async function OrdersPage() {
   const orderRows = (orders ?? []).map((order) => {
     const customer = takeSingleRelation<RelatedCustomer>(order.customers ?? null);
     const reseller = takeSingleRelation<RelatedReseller>(order.resellers ?? null);
+    const items = (order.order_items ?? []) as RelatedOrderItem[];
 
     return {
       id: order.id,
       channel: order.sales_channel,
       created_at: order.created_at,
-      customerName: customer?.full_name || reseller?.full_name || "Cliente sin nombre",
+      customerName: customer
+        ? formatPersonName(customer.first_name, customer.last_name)
+        : reseller?.full_name || "Cliente sin nombre",
       customerPhone: customer?.phone || reseller?.phone || "-",
       deliveryDate: order.delivery_date,
-      neighborhood: customer?.neighborhood || reseller?.neighborhood || null,
       notes: order.notes,
       paymentMethodExpected: order.payment_method_expected,
       paymentStatus: order.payment_status,
-      quantityBoxes: order.quantity_boxes,
+      itemsCount: Number(order.items_count ?? 0),
+      itemsSummary: formatItemsSummary(items),
       status: order.status,
-      totalAmount: Number(order.unit_price) * Number(order.quantity_boxes),
-      zone: order.zone || customer?.zone || reseller?.zone || "-"
+      totalAmount: Number(order.total_amount ?? 0),
+      deliveryArea: order.delivery_area || customer?.delivery_area || "pending_review",
+      addressSummary: customer
+        ? formatStructuredAddressSummary({
+            addressKind: customer.address_kind ?? "standard",
+            addressLine1: customer.address_line_1 ?? "",
+            gatedCommunityName: customer.gated_community_name ?? "",
+            locality: customer.locality ?? ""
+          })
+        : "-"
     };
   });
 
@@ -189,6 +217,12 @@ export default async function OrdersPage() {
               {inRouteOrders ?? 0}
             </p>
           </article>
+          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
+            <p className="text-sm text-stone-400">Ítems cargados</p>
+            <p className="mt-2 text-2xl font-semibold text-rose-300 sm:text-3xl">
+              {orderRows.reduce((sum, order) => sum + order.itemsCount, 0)}
+            </p>
+          </article>
         </div>
 
         <section className="space-y-4">
@@ -198,13 +232,13 @@ export default async function OrdersPage() {
           </div>
 
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_0.9fr_0.8fr_0.9fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
               <div>Cliente</div>
               <div>Canal</div>
-              <div>Zona</div>
+              <div>Área</div>
               <div>Estado</div>
-              <div>Cobranza</div>
-              <div>Cajas</div>
+              <div>Ítems</div>
+              <div>Cant.</div>
               <div>Total</div>
               <div>Alta</div>
             </div>
@@ -212,7 +246,7 @@ export default async function OrdersPage() {
               orderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_0.9fr_0.8fr_0.9fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
                   <div>
                     <p className="font-medium text-stone-100">{order.customerName}</p>
@@ -221,15 +255,19 @@ export default async function OrdersPage() {
                     </p>
                   </div>
                   <div>{getChannelLabel(order.channel)}</div>
-                  <div>{[order.neighborhood, order.zone].filter(Boolean).join(" · ")}</div>
-                  <div>{getOrderStatusLabel(order.status)}</div>
                   <div>
-                    <p>{getPaymentStatusLabel(order.paymentStatus)}</p>
+                    <div>{order.deliveryArea}</div>
+                    <div className="mt-1 text-xs text-stone-500">{order.addressSummary}</div>
+                  </div>
+                  <div>
+                    <p>{getOrderStatusLabel(order.status)}</p>
                     <p className="mt-1 text-xs text-stone-500">
+                      {getPaymentStatusLabel(order.paymentStatus)} ·{" "}
                       {getPaymentMethodLabel(order.paymentMethodExpected)}
                     </p>
                   </div>
-                  <div>{order.quantityBoxes}</div>
+                  <div>{order.itemsSummary}</div>
+                  <div>{order.itemsCount}</div>
                   <div>${order.totalAmount.toLocaleString("es-AR")}</div>
                   <div>{formatDate(order.created_at)}</div>
                 </div>
@@ -241,13 +279,10 @@ export default async function OrdersPage() {
             )}
           </div>
 
-          <div className="space-y-3 lg:hidden">
+          <div className="grid gap-3 lg:hidden">
             {orderRows.length ? (
               orderRows.map((order) => (
-                <article
-                  key={order.id}
-                  className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4"
-                >
+                <article key={order.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-base font-semibold text-stone-50">{order.customerName}</p>
@@ -259,26 +294,18 @@ export default async function OrdersPage() {
                       {getChannelLabel(order.channel)}
                     </span>
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300">
-                    <div>
+                  <div className="mt-4 grid gap-3 text-sm">
+                    <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
                       <p className="mt-1 text-stone-200">{getOrderStatusLabel(order.status)}</p>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Cobranza</p>
-                      <p className="mt-1 text-stone-200">{getPaymentStatusLabel(order.paymentStatus)}</p>
+                    <div className="rounded-2xl bg-stone-950/80 p-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
+                      <p className="mt-1 text-stone-200">{order.itemsSummary}</p>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Zona</p>
-                      <p className="mt-1 text-stone-200">
-                        {[order.neighborhood, order.zone].filter(Boolean).join(" · ")}
-                      </p>
-                    </div>
-                    <div>
+                    <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Total</p>
-                      <p className="mt-1 text-stone-200">
-                        {order.quantityBoxes} caja(s) · ${order.totalAmount.toLocaleString("es-AR")}
-                      </p>
+                      <p className="mt-1 text-stone-200">${order.totalAmount.toLocaleString("es-AR")}</p>
                     </div>
                   </div>
                 </article>

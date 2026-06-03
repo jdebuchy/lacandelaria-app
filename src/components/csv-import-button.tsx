@@ -5,23 +5,68 @@ import { useRouter } from "next/navigation";
 
 type ParsedRow = Record<string, string>;
 
-const EXPECTED_HEADERS = ["nombre", "telefono"];
+const NAME_HEADERS = ["nombre", "apellido"];
 const OPTIONAL_HEADERS = [
-  "telefono_alternativo",
+  "apellido",
+  "instagram",
+  "telefono",
   "direccion",
+  "direccion_2",
+  "piso_depto",
+  "barrio_cerrado",
+  "nombre_barrio",
+  "localidad",
+  "provincia",
+  "codigo_postal",
   "barrio",
   "zona",
+  "tipo_direccion",
   "notas_entrega",
   "origen"
 ];
 
+function parseCSVLine(line: string) {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+
+    if (char === '"') {
+      if (inQuotes && line[index + 1] === '"') {
+        current += '"';
+        index += 1;
+        continue;
+      }
+
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
 function parseCSV(text: string): ParsedRow[] {
-  const lines = text.trim().split(/\r?\n/);
+  const lines = text
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .split(/\r?\n/);
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const headers = parseCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
   return lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.trim());
+    const values = parseCSVLine(line);
     const row: ParsedRow = {};
     headers.forEach((h, i) => {
       row[h] = values[i] ?? "";
@@ -58,9 +103,9 @@ export function CsvImportButton() {
       }
 
       const firstRow = parsed[0];
-      const missing = EXPECTED_HEADERS.filter((h) => !(h in firstRow));
-      if (missing.length > 0) {
-        setParseError(`Faltan columnas requeridas: ${missing.join(", ")}`);
+      const hasNameColumns = NAME_HEADERS.some((h) => h in firstRow);
+      if (!hasNameColumns) {
+        setParseError("El archivo debe incluir nombre o apellido.");
         return;
       }
 
@@ -103,7 +148,10 @@ export function CsvImportButton() {
 
   const previewRows = rows.slice(0, 5);
   const allHeaders = rows.length > 0
-    ? [...EXPECTED_HEADERS, ...OPTIONAL_HEADERS.filter((h) => h in rows[0])]
+    ? [
+      ...NAME_HEADERS.filter((h) => h in rows[0]),
+      ...OPTIONAL_HEADERS.filter((h) => h in rows[0] && !NAME_HEADERS.includes(h))
+    ]
     : [];
 
   return (
@@ -131,13 +179,21 @@ export function CsvImportButton() {
             </div>
 
             <p className="mt-2 text-sm text-stone-400">
-              El archivo debe tener encabezados:{" "}
-              <span className="font-mono text-stone-300">nombre</span>,{" "}
+              El archivo debe incluir{" "}
+              <span className="font-mono text-stone-300">nombre</span>
+              {" "}y/o{" "}
+              <span className="font-mono text-stone-300">apellido</span>.
+              {" "}Las demás columnas son opcionales, incluyendo{" "}
               <span className="font-mono text-stone-300">telefono</span>
-              {" "}(requeridos) y opcionalmente{" "}
+              {" "}e{" "}
+              <span className="font-mono text-stone-300">instagram</span>.
+              {" "}Opcionalmente puedes incluir{" "}
               <span className="font-mono text-stone-300">
                 {OPTIONAL_HEADERS.join(", ")}
               </span>.
+            </p>
+            <p className="mt-2 text-xs text-stone-500">
+              Se aceptan campos entre comillas para direcciones con comas.
             </p>
 
             <div className="mt-4">

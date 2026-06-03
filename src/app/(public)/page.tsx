@@ -1,8 +1,8 @@
 import { DashboardMetric } from "@/lib/types";
 
 const metrics: DashboardMetric[] = [
-  { label: "Precio efectivo", value: "$25.000", detail: "Valor por caja de 4 kg" },
-  { label: "Precio transferencia", value: "$30.000", detail: "Valor por caja de 4 kg" },
+  { label: "Catálogo", value: "Multi-producto", detail: "Pedidos con varios productos por orden" },
+  { label: "Precios", value: "Por producto", detail: "Efectivo y transferencia por separado" },
   { label: "Comision", value: "15%", detail: "Para revendedores de barrio" },
   { label: "Objetivo", value: "Esta semana", detail: "Salir con un MVP operativo" }
 ];
@@ -60,12 +60,12 @@ export default function HomePage() {
               Paltas La Candelaria
             </span>
             <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-stone-50 sm:text-5xl md:text-7xl">
-              Venta, reparto y cobranza de paltas en una sola aplicacion.
+              Venta, reparto y cobranza en una sola aplicación.
             </h1>
             <p className="max-w-2xl text-base leading-7 text-stone-300 sm:text-lg sm:leading-8">
-              La primera version debe resolver el flujo central: tomar pedidos, reservar cajas,
-              despachar por zona, registrar pagos y controlar comisiones sin depender de planillas
-              sueltas.
+              La primera versión resuelve el flujo central: tomar pedidos, vender distintos
+              productos, despachar por zona, registrar pagos y controlar comisiones sin depender de
+              planillas sueltas.
             </p>
           </div>
           <div className="rounded-3xl border border-stone-800 bg-stone-900/80 p-6 shadow-2xl shadow-black/20">

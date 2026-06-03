@@ -21,8 +21,10 @@ export async function GET(request: Request) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("customers")
-    .select("id, full_name, phone, address, neighborhood, zone, delivery_notes")
-    .or(`full_name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%`)
+    .select(
+      "id, first_name, last_name, phone, instagram, address_kind, address_line_1, address_line_2, gated_community_name, locality, administrative_area_level_1, postal_code, google_place_id, google_place_label, address_source, delivery_area, delivery_notes"
+    )
+    .or(`first_name.ilike.%${safeQ}%,last_name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%,instagram.ilike.%${safeQ}%`)
     .order("created_at", { ascending: false })
     .limit(8);
 

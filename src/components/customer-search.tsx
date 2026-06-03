@@ -33,7 +33,7 @@ export function CustomerSearch({ defaultValue = "" }: { defaultValue?: string })
         defaultValue={defaultValue}
         onChange={handleChange}
         aria-label="Buscar clientes"
-        placeholder="Buscar por nombre o teléfono..."
+        placeholder="Buscar por nombre, teléfono o Instagram..."
         className="w-full rounded-2xl border border-stone-700 bg-stone-900/80 px-4 py-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 sm:max-w-sm"
       />
       {isPending ? (

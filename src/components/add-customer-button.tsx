@@ -1,7 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { AddressInput } from "@/components/address-input";
+import { AutofillDecoy } from "@/components/autofill-decoy";
 import { PhoneInput } from "@/components/phone-input";
+import { EMPTY_STRUCTURED_ADDRESS, StructuredAddress } from "@/lib/address";
 
 const SOURCE_OPTIONS = [
   { value: "instagram", label: "Instagram" },
@@ -16,9 +19,8 @@ const EMPTY = {
   firstName: "",
   lastName: "",
   phone: "",
-  address: "",
-  neighborhood: "",
-  zone: "",
+  instagram: "",
+  address: EMPTY_STRUCTURED_ADDRESS,
   deliveryNotes: "",
   source: "instagram" as string
 };
@@ -29,8 +31,15 @@ export function AddCustomerButton() {
   const [state, setState] = useState<FormState>(null);
   const [fields, setFields] = useState(EMPTY);
 
-  function set(key: keyof typeof EMPTY, value: string) {
+  function set(
+    key: "firstName" | "lastName" | "phone" | "instagram" | "deliveryNotes" | "source",
+    value: string
+  ) {
     setFields((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function setAddress(address: StructuredAddress) {
+    setFields((prev) => ({ ...prev, address }));
   }
 
   function handleOpen() {
@@ -55,9 +64,8 @@ export function AddCustomerButton() {
         firstName: fields.firstName,
         lastName: fields.lastName,
         phone: fields.phone,
-        address: fields.address,
-        neighborhood: fields.neighborhood,
-        zone: fields.zone,
+        instagram: fields.instagram,
+        ...fields.address,
         deliveryNotes: fields.deliveryNotes,
         source: fields.source
       })
@@ -99,11 +107,11 @@ export function AddCustomerButton() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-5 grid gap-3 md:grid-cols-2">
+            <form onSubmit={handleSubmit} autoComplete="off" className="mt-5 grid gap-3 md:grid-cols-2">
+              <AutofillDecoy />
               <label className="grid gap-2 text-sm text-stone-300">
                 Nombre
                 <input
-                  required
                   value={fields.firstName}
                   onChange={(e) => set("firstName", e.target.value)}
                   className={inputClass}
@@ -114,7 +122,6 @@ export function AddCustomerButton() {
               <label className="grid gap-2 text-sm text-stone-300">
                 Apellido
                 <input
-                  required
                   value={fields.lastName}
                   onChange={(e) => set("lastName", e.target.value)}
                   className={inputClass}
@@ -123,41 +130,27 @@ export function AddCustomerButton() {
               </label>
 
               <PhoneInput
-                required
                 value={fields.phone}
                 onChange={(v) => set("phone", v)}
                 className="md:col-span-2"
               />
 
               <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
-                Dirección
+                Instagram
                 <input
-                  value={fields.address}
-                  onChange={(e) => set("address", e.target.value)}
+                  value={fields.instagram}
+                  onChange={(e) => set("instagram", e.target.value)}
                   className={inputClass}
-                  placeholder="Ej: Av. Corrientes 1234"
+                  placeholder="usuario"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm text-stone-300">
-                Barrio
-                <input
-                  value={fields.neighborhood}
-                  onChange={(e) => set("neighborhood", e.target.value)}
-                  className={inputClass}
-                  placeholder="Ej: Palermo"
-                />
-              </label>
-
-              <label className="grid gap-2 text-sm text-stone-300">
-                Zona
-                <input
-                  value={fields.zone}
-                  onChange={(e) => set("zone", e.target.value)}
-                  className={inputClass}
-                  placeholder="Ej: Norte"
-                />
-              </label>
+              <AddressInput
+                required
+                value={fields.address}
+                onChange={setAddress}
+                className="md:col-span-2"
+              />
 
               <label className="grid gap-2 text-sm text-stone-300">
                 Origen

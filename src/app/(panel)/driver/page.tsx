@@ -1,6 +1,9 @@
 import { DriverRouteBoard } from "@/components/driver-route-board";
+import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { formatPersonName } from "@/lib/contact";
+import { formatItemsSummary } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getLogisticsFlowGuidance,
@@ -10,12 +13,16 @@ import {
 } from "@/lib/logistics";
 
 type RelatedCustomer = {
-  address?: string | null;
+  address_kind?: "standard" | "gated" | null;
+  address_line_1?: string | null;
+  administrative_area_level_1?: string | null;
   delivery_notes?: string | null;
-  full_name?: string | null;
-  neighborhood?: string | null;
+  delivery_area?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  gated_community_name?: string | null;
+  locality?: string | null;
   phone?: string | null;
-  zone?: string | null;
 };
 
 type RelatedDelivery = {
@@ -29,9 +36,13 @@ type RelatedDelivery = {
 
 type RelatedReseller = {
   full_name?: string | null;
-  neighborhood?: string | null;
   phone?: string | null;
-  zone?: string | null;
+};
+
+type RelatedOrderItem = {
+  product_name_snapshot: string;
+  sales_unit_label_snapshot: string;
+  quantity: number;
 };
 
 function takeSingleRelation<T>(value: T | T[] | null): T | null {
@@ -63,27 +74,29 @@ export default async function DriverPage() {
         id,
         sales_channel,
         reseller_id,
-        quantity_boxes,
+        items_count,
         payment_method_expected,
         payment_status,
         status,
         delivery_date,
-        zone,
+        delivery_area,
         notes,
         created_at,
         customers (
-          full_name,
+          first_name,
+          last_name,
           phone,
-          address,
-          neighborhood,
-          zone,
+          address_kind,
+          address_line_1,
+          locality,
+          administrative_area_level_1,
+          gated_community_name,
+          delivery_area,
           delivery_notes
         ),
         resellers (
           full_name,
-          phone,
-          neighborhood,
-          zone
+          phone
         ),
         deliveries (
           id,
@@ -92,6 +105,11 @@ export default async function DriverPage() {
           delivery_status,
           delivered_at,
           proof_note
+        ),
+        order_items (
+          product_name_snapshot,
+          sales_unit_label_snapshot,
+          quantity
         )
       `
     )
@@ -105,16 +123,20 @@ export default async function DriverPage() {
       const customer = takeSingleRelation<RelatedCustomer>(order.customers ?? null);
       const reseller = takeSingleRelation<RelatedReseller>(order.resellers ?? null);
       const delivery = takeSingleRelation<RelatedDelivery>(order.deliveries ?? null);
+      const items = (order.order_items ?? []) as RelatedOrderItem[];
       const flow = inferLogisticsFlow({
-        address: customer?.address,
-        neighborhood: customer?.neighborhood,
+        addressLine1: customer?.address_line_1,
+        administrativeAreaLevel1: customer?.administrative_area_level_1,
+        deliveryArea: order.delivery_area || customer?.delivery_area,
+        locality: customer?.locality,
         resellerId: order.reseller_id,
-        salesChannel: order.sales_channel,
-        zone: order.zone || customer?.zone || reseller?.zone
+        salesChannel: order.sales_channel
       });
 
       return {
-        customerName: customer?.full_name || "Cliente sin nombre",
+        customerName: customer
+          ? formatPersonName(customer.first_name, customer.last_name)
+          : reseller?.full_name || "Cliente sin nombre",
         customerPhone: customer?.phone || reseller?.phone || "-",
         deliveryDate: order.delivery_date,
         deliveryStatus: delivery?.delivery_status || (order.status === "in_route" ? "in_route" : "pending"),
@@ -127,17 +149,20 @@ export default async function DriverPage() {
         orderStatus: order.status,
         paymentMethodExpected: order.payment_method_expected,
         paymentStatus: order.payment_status,
-        quantityBoxes: order.quantity_boxes,
+        itemsCount: Number(order.items_count ?? 0),
+        itemsSummary: formatItemsSummary(items, 3),
         resellerName: reseller?.full_name || null,
         routePriority: routePriority(flow),
         sequenceNumber: delivery?.sequence_number ?? null,
-        zone:
-          order.zone ||
-          customer?.zone ||
-          customer?.neighborhood ||
-          reseller?.zone ||
-          reseller?.neighborhood ||
-          "-"
+        deliveryArea: order.delivery_area || customer?.delivery_area || "pending_review",
+        addressSummary: customer
+          ? formatStructuredAddressSummary({
+              addressKind: customer.address_kind ?? "standard",
+              addressLine1: customer.address_line_1 ?? "",
+              gatedCommunityName: customer.gated_community_name ?? "",
+              locality: customer.locality ?? ""
+            })
+          : "-"
       };
     })
     .sort((left, right) => {
@@ -159,7 +184,7 @@ export default async function DriverPage() {
         return byPriority;
       }
 
-      return left.zone.localeCompare(right.zone, "es");
+      return left.deliveryArea.localeCompare(right.deliveryArea, "es");
     })
     .map((stop, index) => ({
       ...stop,
@@ -179,11 +204,11 @@ export default async function DriverPage() {
             Pantalla de repartidor
           </span>
           <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-            Ruta del dia y entregas en marcha
+            Ruta del día y entregas en marcha
           </h1>
           <p className="max-w-3xl text-base leading-7 text-stone-300">
-            Vista pensada para tu papa o para quien reparte: ver las paradas, priorizar la salida
-            y marcar rapido si cada pedido fue entregado o no.
+            Vista pensada para reparto: ver cada parada, los productos incluidos y marcar rápido si
+            el pedido fue entregado o no.
           </p>
         </div>
 
@@ -205,44 +230,6 @@ export default async function DriverPage() {
             <p className="mt-2 text-2xl font-semibold text-rose-300 sm:text-3xl">{failedStops}</p>
           </article>
         </div>
-
-        <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-          <article className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-            <p className="text-sm uppercase tracking-[0.18em] text-stone-400">Uso rapido</p>
-            <div className="mt-5 grid gap-4">
-              <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-                <p className="text-base font-semibold text-stone-50">1. Orden de salida</p>
-                <p className="mt-2 text-sm leading-6 text-stone-300">
-                  Si ya existe secuencia, se respeta. Si no, la pantalla arma una ruta base
-                  priorizando revendedoras, despues Capital Federal y despues el resto.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-                <p className="text-base font-semibold text-stone-50">2. Estado por parada</p>
-                <p className="mt-2 text-sm leading-6 text-stone-300">
-                  Cada pedido se puede pasar a `En reparto`, `Entregado` o `No entregado` sin
-                  salir de la lista.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-                <p className="text-base font-semibold text-stone-50">3. Casos sensibles</p>
-                <p className="mt-2 text-sm leading-6 text-stone-300">
-                  Capital Federal queda marcado como caso de contacto previo. Revendedora queda
-                  identificado como punto unico de entrega.
-                </p>
-              </div>
-            </div>
-          </article>
-
-          <article className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-            <p className="text-sm uppercase tracking-[0.18em] text-stone-400">Ruta</p>
-            <h2 className="mt-2 text-2xl font-semibold text-stone-50">Paradas operativas</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-300">
-              Esta es la primera version operativa. Todavia no calcula mapas reales, pero ya le da
-              al repartidor una lista clara, priorizada y accionable.
-            </p>
-          </article>
-        </section>
 
         <DriverRouteBoard stops={routeStops} />
       </section>

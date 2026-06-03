@@ -1,24 +1,48 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  splitFullName,
+  structuredAddressSchema,
+  toStructuredAddressColumns
+} from "@/lib/address";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { BUSINESS_RULES } from "@/lib/constants";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import {
+  buildOrderItems,
+  calculateItemsCount,
+  calculateOrderTotal,
+  mapProductRow,
+  orderItemsInputSchema,
+  productSchema
+} from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const createManualOrderSchema = z.object({
-  customerId: z.string().uuid().optional().or(z.literal("")),
-  fullName: z.string().min(3, "Ingresa el nombre completo."),
-  phone: z.string().min(8, "Ingresa un WhatsApp valido."),
-  address: z.string().min(5, "Ingresa una direccion."),
-  neighborhood: z.string().min(2, "Ingresa un barrio."),
-  zone: z.string().min(2, "Ingresa una zona."),
-  deliveryNotes: z.string().max(500).optional().or(z.literal("")),
-  quantityBoxes: z.coerce.number().int().min(1).max(50),
-  paymentMethodExpected: z.enum(["cash", "transfer"]),
-  deliveryDate: z.string().optional().or(z.literal("")),
-  notes: z.string().max(500).optional().or(z.literal(""))
-});
+const createManualOrderSchema = structuredAddressSchema
+  .extend({
+    customerId: z.string().uuid().optional().or(z.literal("")),
+    fullName: z.string().optional().or(z.literal("")),
+    phone: z.string().min(8, "Ingresa un WhatsApp valido."),
+    instagram: z.string().max(100).optional().or(z.literal("")),
+    addressLine1: z.string().min(5, "Ingresa una dirección."),
+    locality: z.string().min(2, "Ingresa una localidad."),
+    administrativeAreaLevel1: z.string().min(2, "Ingresa una provincia."),
+    postalCode: z.string().min(3, "Ingresa un código postal."),
+    deliveryNotes: z.string().max(500).optional().or(z.literal("")),
+    items: orderItemsInputSchema,
+    paymentMethodExpected: z.enum(["cash", "transfer"]),
+    deliveryDate: z.string().optional().or(z.literal("")),
+    notes: z.string().max(500).optional().or(z.literal(""))
+  })
+  .superRefine((data, ctx) => {
+    if (!data.fullName?.trim() && !data.instagram?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Ingresa nombre completo o Instagram.",
+        path: ["fullName"]
+      });
+    }
+  });
 
 export async function POST(request: Request) {
   const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
@@ -41,6 +65,10 @@ export async function POST(request: Request) {
   }
 
   const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
+  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const addressColumns = toStructuredAddressColumns(parsed.data);
+  const { firstName, lastName } = splitFullName(parsed.data.fullName);
+  const fallbackFirstName = firstName || instagram || "Cliente";
 
   if (normalizedPhone.length < 11 || normalizedPhone.length > 14) {
     return NextResponse.json(
@@ -67,11 +95,11 @@ export async function POST(request: Request) {
     const { error: customerUpdateError } = await supabase
       .from("customers")
       .update({
-        full_name: parsed.data.fullName,
+        first_name: fallbackFirstName,
+        last_name: lastName || null,
         phone: normalizedPhone,
-        address: parsed.data.address,
-        neighborhood: parsed.data.neighborhood,
-        zone: parsed.data.zone,
+        instagram,
+        ...addressColumns,
         delivery_notes: parsed.data.deliveryNotes || null
       })
       .eq("id", customerId);
@@ -87,11 +115,11 @@ export async function POST(request: Request) {
     const { data: newCustomer, error: customerInsertError } = await supabase
       .from("customers")
       .insert({
-        full_name: parsed.data.fullName,
+        first_name: fallbackFirstName,
+        last_name: lastName || null,
         phone: normalizedPhone,
-        address: parsed.data.address,
-        neighborhood: parsed.data.neighborhood,
-        zone: parsed.data.zone,
+        instagram,
+        ...addressColumns,
         delivery_notes: parsed.data.deliveryNotes || null,
         source: "repeat"
       })
@@ -109,29 +137,82 @@ export async function POST(request: Request) {
     customerId = newCustomer.id;
   }
 
-  const unitPrice =
-    parsed.data.paymentMethodExpected === "cash"
-      ? BUSINESS_RULES.cashPrice
-      : BUSINESS_RULES.transferPrice;
+  const { data: productRows, error: productsError } = await supabase
+    .from("products")
+    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
+    .in(
+      "id",
+      parsed.data.items.map((item) => item.productId)
+    );
 
-  const { error: orderInsertError } = await supabase.from("orders").insert({
-    customer_id: customerId,
-    seller_user_id: authResult.auth.profile.id,
-    sales_channel: "internal",
-    quantity_boxes: parsed.data.quantityBoxes,
-    unit_price: unitPrice,
-    payment_method_expected: parsed.data.paymentMethodExpected,
-    status: "confirmed",
-    payment_status: "pending",
-    delivery_date: parsed.data.deliveryDate || null,
-    zone: parsed.data.zone,
-    notes: parsed.data.notes || null
-  });
+  if (productsError) {
+    console.error("products fetch failed", productsError);
+    return NextResponse.json(
+      { success: false, message: "No se pudieron validar los productos del pedido." },
+      { status: 500 }
+    );
+  }
 
-  if (orderInsertError) {
+  const productsById = new Map(
+    (productRows ?? []).map((row) => {
+      const parsedProduct = productSchema.parse(row);
+      return [parsedProduct.id, mapProductRow(parsedProduct)] as const;
+    })
+  );
+
+  let orderItems;
+
+  try {
+    orderItems = buildOrderItems(productsById, parsed.data.items, parsed.data.paymentMethodExpected);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "No se pudo validar el pedido."
+      },
+      { status: 400 }
+    );
+  }
+
+  const { data: newOrder, error: orderInsertError } = await supabase
+    .from("orders")
+    .insert({
+      customer_id: customerId,
+      seller_user_id: authResult.auth.profile.id,
+      sales_channel: "internal",
+      items_count: calculateItemsCount(orderItems),
+      total_amount: calculateOrderTotal(orderItems),
+      payment_method_expected: parsed.data.paymentMethodExpected,
+      status: "confirmed",
+      payment_status: "pending",
+      delivery_date: parsed.data.deliveryDate || null,
+      delivery_area: addressColumns.delivery_area,
+      notes: parsed.data.notes || null
+    })
+    .select("id")
+    .single();
+
+  if (orderInsertError || !newOrder) {
     console.error("manual order insert failed", orderInsertError);
     return NextResponse.json(
       { success: false, message: "No se pudo crear el pedido." },
+      { status: 500 }
+    );
+  }
+
+  const { error: itemsInsertError } = await supabase.from("order_items").insert(
+    orderItems.map((item) => ({
+      order_id: newOrder.id,
+      ...item
+    }))
+  );
+
+  if (itemsInsertError) {
+    console.error("order_items insert failed", itemsInsertError);
+    await supabase.from("orders").delete().eq("id", newOrder.id);
+
+    return NextResponse.json(
+      { success: false, message: "No se pudo guardar el detalle del pedido." },
       { status: 500 }
     );
   }

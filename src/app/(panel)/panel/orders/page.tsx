@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
 import { formatItemsSummary } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -45,25 +46,6 @@ function formatDate(value: string) {
   });
 }
 
-function getOrderStatusLabel(status: string) {
-  switch (status) {
-    case "pending_confirmation":
-      return "Pendiente";
-    case "confirmed":
-      return "Confirmado";
-    case "assigned":
-      return "Asignado";
-    case "in_route":
-      return "En ruta";
-    case "delivered":
-      return "Entregado";
-    case "cancelled":
-      return "Cancelado";
-    default:
-      return status;
-  }
-}
-
 function getChannelLabel(channel: string) {
   switch (channel) {
     case "public_form":
@@ -101,7 +83,8 @@ export default async function OrdersPage() {
     { count: totalOrders },
     { count: pendingOrders },
     { count: inRouteOrders },
-    { data: orders }
+    { data: orders },
+    { data: activeTripOrders }
   ] = await Promise.all([
     supabase.from("orders").select("*", { count: "exact", head: true }),
     supabase
@@ -145,8 +128,14 @@ export default async function OrdersPage() {
           )
         `
       )
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("delivery_trip_orders")
+      .select("order_id, delivery_trip_id")
+      .is("released_at", null)
   ]);
+
+  const activeTripByOrderId = new Map((activeTripOrders ?? []).map((row) => [row.order_id, row.delivery_trip_id]));
 
   const orderRows = (orders ?? []).map((order) => {
     const customer = takeSingleRelation<RelatedCustomer>(order.customers ?? null);
@@ -168,6 +157,8 @@ export default async function OrdersPage() {
       itemsCount: Number(order.items_count ?? 0),
       itemsSummary: formatItemsSummary(items),
       status: order.status,
+      isEditable: canEditOrder(order.status, activeTripByOrderId.has(order.id)),
+      tripId: activeTripByOrderId.get(order.id) ?? null,
       totalAmount: Number(order.total_amount ?? 0),
       deliveryArea: order.delivery_area || customer?.delivery_area || "pending_review",
       addressSummary: customer
@@ -262,6 +253,9 @@ export default async function OrdersPage() {
                   </div>
                   <div>
                     <p>{getOrderStatusLabel(order.status)}</p>
+                    {order.tripId ? (
+                      <p className="mt-1 text-xs text-sky-300">Viaje {order.tripId.slice(0, 8)}</p>
+                    ) : null}
                     <p className="mt-1 text-xs text-stone-500">
                       {getPaymentStatusLabel(order.paymentStatus)} ·{" "}
                       {getPaymentMethodLabel(order.paymentMethodExpected)}
@@ -272,12 +266,18 @@ export default async function OrdersPage() {
                   <div>${order.totalAmount.toLocaleString("es-AR")}</div>
                   <div>{formatDate(order.created_at)}</div>
                   <div className="flex justify-end">
-                    <Link
-                      href={`/panel/orders/${order.id}/edit`}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
-                    >
-                      Editar
-                    </Link>
+                    {order.isEditable ? (
+                      <Link
+                        href={`/panel/orders/${order.id}/edit`}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                      >
+                        Editar
+                      </Link>
+                    ) : (
+                      <span className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-500">
+                        Bloqueado
+                      </span>
+                    )}
                   </div>
                 </div>
               ))
@@ -307,6 +307,7 @@ export default async function OrdersPage() {
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
                       <p className="mt-1 text-stone-200">{getOrderStatusLabel(order.status)}</p>
+                      {order.tripId ? <p className="mt-1 text-xs text-sky-300">Viaje {order.tripId.slice(0, 8)}</p> : null}
                     </div>
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
@@ -318,12 +319,18 @@ export default async function OrdersPage() {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Link
-                      href={`/panel/orders/${order.id}/edit`}
-                      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
-                    >
-                      Editar pedido
-                    </Link>
+                    {order.isEditable ? (
+                      <Link
+                        href={`/panel/orders/${order.id}/edit`}
+                        className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                      >
+                        Editar pedido
+                      </Link>
+                    ) : (
+                      <span className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-800 px-4 text-sm text-stone-500">
+                        Pedido bloqueado
+                      </span>
+                    )}
                   </div>
                 </article>
               ))

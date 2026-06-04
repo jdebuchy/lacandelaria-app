@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { buildWhatsAppHref } from "@/lib/contact";
+import { getDeliveryStatusLabel } from "@/lib/delivery-trips";
 import { DeliveryStatus } from "@/lib/types";
 
 type DriverStop = {
@@ -26,6 +29,7 @@ type DriverStop = {
 };
 
 type DriverRouteBoardProps = {
+  allowActions?: boolean;
   stops: DriverStop[];
 };
 
@@ -43,16 +47,7 @@ function toneClasses(tone: DriverStop["flowTone"]) {
 }
 
 function statusLabel(status: DeliveryStatus) {
-  switch (status) {
-    case "in_route":
-      return "En reparto";
-    case "delivered":
-      return "Entregado";
-    case "failed":
-      return "No entregado";
-    default:
-      return "Pendiente";
-  }
+  return getDeliveryStatusLabel(status);
 }
 
 async function updateStop(orderId: string, status: DeliveryStatus) {
@@ -70,7 +65,7 @@ async function updateStop(orderId: string, status: DeliveryStatus) {
   };
 }
 
-export function DriverRouteBoard({ stops }: DriverRouteBoardProps) {
+export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoardProps) {
   const router = useRouter();
   const [feedback, setFeedback] = useState<FeedbackByStop>({});
   const [pendingStopId, setPendingStopId] = useState<string | null>(null);
@@ -106,6 +101,10 @@ export function DriverRouteBoard({ stops }: DriverRouteBoardProps) {
     <div className="grid gap-4">
       {stops.map((stop) => {
         const isUpdating = pendingStopId === stop.id || isPending;
+        const whatsappHref = buildWhatsAppHref(
+          stop.customerPhone,
+          `Hola ${stop.customerName}, te escribimos por tu pedido de La Candelaria.`
+        );
 
         return (
           <article key={stop.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
@@ -169,30 +168,44 @@ export function DriverRouteBoard({ stops }: DriverRouteBoardProps) {
               </div>
 
               <div className="flex min-w-[240px] flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange(stop.id, "in_route")}
-                  disabled={isUpdating}
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isUpdating ? "Guardando..." : "Salir a entrega"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange(stop.id, "delivered")}
-                  disabled={isUpdating}
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isUpdating ? "Guardando..." : "Marcar entregado"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange(stop.id, "failed")}
-                  disabled={isUpdating}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isUpdating ? "Guardando..." : "No entregado"}
-                </button>
+                {whatsappHref ? (
+                  <Link
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20"
+                  >
+                    Escribir al cliente
+                  </Link>
+                ) : null}
+                {allowActions ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(stop.id, "in_route")}
+                      disabled={isUpdating}
+                      className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isUpdating ? "Guardando..." : "Salir a entrega"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(stop.id, "delivered")}
+                      disabled={isUpdating}
+                      className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isUpdating ? "Guardando..." : "Marcar entregado"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(stop.id, "failed")}
+                      disabled={isUpdating}
+                      className="inline-flex h-11 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isUpdating ? "Guardando..." : "No entregado"}
+                    </button>
+                  </>
+                ) : null}
 
                 <div className="rounded-2xl border border-stone-800 bg-stone-950/80 p-3 text-xs text-stone-400">
                   Estado pedido: {stop.orderStatus}

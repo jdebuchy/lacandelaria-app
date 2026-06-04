@@ -4,6 +4,7 @@ import { toStructuredAddressColumns, structuredAddressSchema } from "@/lib/addre
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { getActiveTripOrder } from "@/lib/delivery-trip-ops";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -84,7 +85,7 @@ export async function PATCH(request: Request, context: Params) {
   const supabase = createAdminClient();
   const { data: existingOrder, error: orderFetchError } = await supabase
     .from("orders")
-    .select("id, customer_id")
+    .select("id, customer_id, status")
     .eq("id", orderId)
     .single();
 
@@ -92,6 +93,22 @@ export async function PATCH(request: Request, context: Params) {
     return NextResponse.json(
       { success: false, message: "No se encontro el pedido." },
       { status: 404 }
+    );
+  }
+
+  const activeTripOrder = await getActiveTripOrder(supabase, orderId);
+
+  if (activeTripOrder) {
+    return NextResponse.json(
+      { success: false, message: "Ese pedido ya fue consolidado en un viaje y no se puede editar." },
+      { status: 409 }
+    );
+  }
+
+  if (existingOrder.status === "delivered" || existingOrder.status === "cancelled") {
+    return NextResponse.json(
+      { success: false, message: "Ese pedido ya no admite edicion." },
+      { status: 409 }
     );
   }
 

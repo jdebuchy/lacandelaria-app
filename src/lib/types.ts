@@ -18,6 +18,8 @@ export type PublicOrderRequestStatus = "new" | "reviewed" | "converted" | "rejec
 
 export type DeliveryStatus = "pending" | "in_route" | "delivered" | "failed";
 
+export type DeliveryTripStatus = "draft" | "assigned" | "in_route" | "completed" | "cancelled";
+
 export type ProductVariantVisibility = "sellable" | "internal";
 
 export type ProductVariantCompositionType = "simple" | "bundle";

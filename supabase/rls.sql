@@ -5,6 +5,8 @@ alter table public.inventory_batches enable row level security;
 alter table public.orders enable row level security;
 alter table public.public_order_requests enable row level security;
 alter table public.deliveries enable row level security;
+alter table public.delivery_trips enable row level security;
+alter table public.delivery_trip_orders enable row level security;
 alter table public.payments enable row level security;
 alter table public.commissions enable row level security;
 
@@ -57,6 +59,20 @@ with check (true);
 
 create policy "authenticated can manage deliveries"
 on public.deliveries
+for all
+to authenticated
+using (true)
+with check (true);
+
+create policy "authenticated can manage delivery trips"
+on public.delivery_trips
+for all
+to authenticated
+using (true)
+with check (true);
+
+create policy "authenticated can manage delivery trip orders"
+on public.delivery_trip_orders
 for all
 to authenticated
 using (true)

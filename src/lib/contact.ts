@@ -93,3 +93,16 @@ export function formatWhatsAppPhone(phone?: string | null) {
 
   return phone;
 }
+
+export function buildWhatsAppHref(phone?: string | null, message?: string | null) {
+  const normalized = normalizeArgentinaPhoneInput(phone ?? "");
+
+  if (!normalized) {
+    return null;
+  }
+
+  const text = message?.trim();
+  return text
+    ? `https://wa.me/${normalized}?text=${encodeURIComponent(text)}`
+    : `https://wa.me/${normalized}`;
+}

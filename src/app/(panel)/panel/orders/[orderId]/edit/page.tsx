@@ -3,6 +3,7 @@ import { ManualOrderForm, type CustomerMatch } from "@/components/manual-order-f
 import { EMPTY_STRUCTURED_ADDRESS } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { OrderItemInput } from "@/lib/types";
@@ -18,7 +19,7 @@ export default async function EditOrderPage(context: Params) {
   const { orderId } = await context.params;
   const supabase = createAdminClient();
 
-  const [{ data: products }, { data: order }] = await Promise.all([
+  const [{ data: products }, { data: order }, { data: activeTripOrder }] = await Promise.all([
     loadCatalog(supabase, {
       onlyActiveFamilies: true,
       onlySellableVariants: true,
@@ -29,6 +30,7 @@ export default async function EditOrderPage(context: Params) {
       .select(
         `
           id,
+          status,
           payment_method_expected,
           delivery_date,
           notes,
@@ -58,7 +60,23 @@ export default async function EditOrderPage(context: Params) {
         `
       )
       .eq("id", orderId)
-      .single()
+      .single(),
+    supabase
+      .from("delivery_trip_orders")
+      .select(
+        `
+          delivery_trip_id,
+          delivery_trips (
+            id,
+            scheduled_date,
+            status
+          )
+        `
+      )
+      .eq("order_id", orderId)
+      .is("released_at", null)
+      .limit(1)
+      .maybeSingle()
   ]);
 
   if (!order) {
@@ -111,6 +129,11 @@ export default async function EditOrderPage(context: Params) {
       }) satisfies OrderItemInput
   );
 
+  const tripRelation = Array.isArray(activeTripOrder?.delivery_trips)
+    ? activeTripOrder?.delivery_trips[0]
+    : activeTripOrder?.delivery_trips;
+  const orderIsEditable = canEditOrder(order.status, Boolean(activeTripOrder?.delivery_trip_id));
+
   return (
     <main>
       <section className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -120,37 +143,49 @@ export default async function EditOrderPage(context: Params) {
           </h1>
         </div>
 
-        <ManualOrderForm
-          mode="edit"
-          orderId={orderId}
-          products={products ?? []}
-          initialData={{
-            customer,
-            firstName: customer?.first_name ?? "",
-            lastName: customer?.last_name ?? "",
-            phone: customer?.phone ?? "",
-            instagram: customer?.instagram ?? "",
-            address: customer
-              ? {
-                  addressKind: customer.address_kind,
-                  addressLine1: customer.address_line_1 ?? "",
-                  addressLine2: customer.address_line_2 ?? "",
-                  gatedCommunityName: customer.gated_community_name ?? "",
-                  locality: customer.locality ?? "",
-                  administrativeAreaLevel1: customer.administrative_area_level_1 ?? "",
-                  postalCode: customer.postal_code ?? "",
-                  googlePlaceId: customer.google_place_id ?? "",
-                  googlePlaceLabel: customer.google_place_label ?? "",
-                  addressSource: customer.address_source ?? "manual"
-                }
-              : EMPTY_STRUCTURED_ADDRESS,
-            deliveryNotes: customer?.delivery_notes ?? "",
-            items,
-            paymentMethodExpected: order.payment_method_expected === "transfer" ? "transfer" : "cash",
-            deliveryDate: typeof order.delivery_date === "string" ? order.delivery_date : "",
-            notes: typeof order.notes === "string" ? order.notes : ""
-          }}
-        />
+        {!orderIsEditable ? (
+          <div className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-6 text-sm text-amber-100">
+            <p className="font-medium">Este pedido no se puede editar.</p>
+            <p className="mt-2 text-amber-200/90">
+              Estado actual: {getOrderStatusLabel(order.status)}.
+              {tripRelation
+                ? ` Está asignado al viaje del ${new Date(tripRelation.scheduled_date).toLocaleDateString("es-AR")}.`
+                : ""}
+            </p>
+          </div>
+        ) : (
+          <ManualOrderForm
+            mode="edit"
+            orderId={orderId}
+            products={products ?? []}
+            initialData={{
+              customer,
+              firstName: customer?.first_name ?? "",
+              lastName: customer?.last_name ?? "",
+              phone: customer?.phone ?? "",
+              instagram: customer?.instagram ?? "",
+              address: customer
+                ? {
+                    addressKind: customer.address_kind,
+                    addressLine1: customer.address_line_1 ?? "",
+                    addressLine2: customer.address_line_2 ?? "",
+                    gatedCommunityName: customer.gated_community_name ?? "",
+                    locality: customer.locality ?? "",
+                    administrativeAreaLevel1: customer.administrative_area_level_1 ?? "",
+                    postalCode: customer.postal_code ?? "",
+                    googlePlaceId: customer.google_place_id ?? "",
+                    googlePlaceLabel: customer.google_place_label ?? "",
+                    addressSource: customer.address_source ?? "manual"
+                  }
+                : EMPTY_STRUCTURED_ADDRESS,
+              deliveryNotes: customer?.delivery_notes ?? "",
+              items,
+              paymentMethodExpected: order.payment_method_expected === "transfer" ? "transfer" : "cash",
+              deliveryDate: typeof order.delivery_date === "string" ? order.delivery_date : "",
+              notes: typeof order.notes === "string" ? order.notes : ""
+            }}
+          />
+        )}
       </section>
     </main>
   );

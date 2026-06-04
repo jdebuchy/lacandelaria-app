@@ -15,18 +15,22 @@ const linksByRole: Record<UserRole, { href: string; label: string }[]> = {
   admin: [
     { href: "/panel", label: "Resumen" },
     { href: "/panel/orders", label: "Pedidos" },
+    { href: "/panel/logistics", label: "Logística" },
     { href: "/panel/customers", label: "Clientes" },
+    { href: "/panel/users", label: "Usuarios" },
     { href: "/panel/products", label: "Catálogo" },
     { href: "/driver", label: "Reparto" }
   ],
   seller: [
     { href: "/panel", label: "Resumen" },
     { href: "/panel/orders", label: "Pedidos" },
+    { href: "/panel/logistics", label: "Logística" },
     { href: "/panel/customers", label: "Clientes" }
   ],
   collector: [
     { href: "/panel", label: "Resumen" },
     { href: "/panel/orders", label: "Pedidos" },
+    { href: "/panel/logistics", label: "Logística" },
     { href: "/panel/customers", label: "Clientes" }
   ],
   driver: [{ href: "/driver", label: "Reparto" }]

@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { SiteNav } from "@/components/site-nav";
 import { CustomerSearch } from "@/components/customer-search";
 import { CustomerRecords } from "@/components/customer-records";
 import type { CustomerRecord } from "@/components/customer-records";
@@ -423,10 +422,6 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
     <main className="min-h-screen bg-stone-950 text-stone-100">
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-16">
         <div className="space-y-4">
-          <SiteNav />
-          <span className="inline-flex rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-sm text-sky-200">
-            Clientes
-          </span>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
@@ -442,13 +437,19 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
                 Mostrando {showingFrom} a {showingTo} de {totalCount}. Límite por página: {pageSize}.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <CsvImportButton />
+            <div className="flex items-center gap-2">
               <AddCustomerButton />
-              <Suspense>
-                <CustomerSearch defaultValue={normalizedQuery} defaultArea={areaFilter} defaultLimit={String(pageSize)} />
-              </Suspense>
             </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <CsvImportButton />
+            <Suspense>
+              <CustomerSearch
+                defaultValue={normalizedQuery}
+                defaultArea={areaFilter}
+                defaultLimit={String(pageSize)}
+              />
+            </Suspense>
           </div>
         </div>
 

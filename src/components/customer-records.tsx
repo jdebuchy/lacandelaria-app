@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
 import { AddressInput } from "@/components/address-input";
 import { AutofillDecoy } from "@/components/autofill-decoy";
 import {
@@ -45,12 +46,16 @@ export type CustomerRecord = {
   delivery_notes: string | null;
   source: string;
   created_at: string;
+  updated_at?: string | null;
 };
 
 type FormState = {
   success: boolean;
   message: string;
 };
+
+type SortKey = "updated_at" | "last_name" | "created_at";
+type SortDirection = "asc" | "desc";
 
 const initialState: FormState = {
   success: false,
@@ -146,9 +151,9 @@ function CustomerEditForm({
           />
         </label>
 
-        <PhoneInput value={phone} onChange={setPhone} className="md:col-span-2" />
+        <PhoneInput value={phone} onChange={setPhone} />
 
-        <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+        <label className="grid gap-2 text-sm text-stone-300">
           Instagram
           <input
             value={instagram}
@@ -156,23 +161,32 @@ function CustomerEditForm({
             className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
             placeholder="usuario"
           />
+          <span aria-hidden="true" className="text-xs text-transparent">
+            .
+          </span>
         </label>
-        <AddressInput required value={address} onChange={setAddress} className="md:col-span-2" />
-
-        <label className="grid gap-2 text-sm text-stone-300">
-          Origen
-          <select
-            value={source}
-            onChange={(event) => setSource(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
-          >
-            {sourceOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <AddressInput
+          required
+          value={address}
+          onChange={setAddress}
+          className="md:col-span-2"
+          afterPostalCode={
+            <>
+              Origen
+              <select
+                value={source}
+                onChange={(event) => setSource(event.target.value)}
+                className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+              >
+                {sourceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </>
+          }
+        />
 
         <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
           Notas de entrega
@@ -212,15 +226,94 @@ function CustomerEditForm({
   );
 }
 
-export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query: string }) {
+function SortHeader({
+  label,
+  href,
+  active,
+  direction
+}: {
+  label: string;
+  href?: string;
+  active?: boolean;
+  direction?: SortDirection;
+}) {
+  if (!href) {
+    return <div>{label}</div>;
+  }
+
+  return (
+    <Link
+      href={href}
+      className={`inline-flex items-center gap-2 transition hover:text-stone-200 ${active ? "text-stone-200" : ""}`}
+    >
+      <span>{label}</span>
+      {active ? <span className="text-[10px]">{direction === "asc" ? "↑" : "↓"}</span> : null}
+    </Link>
+  );
+}
+
+export function CustomerRecords({
+  rows,
+  query,
+  sort,
+  direction,
+  sortLinks
+}: {
+  rows: CustomerRecord[];
+  query: string;
+  sort: SortKey;
+  direction: SortDirection;
+  sortLinks: {
+    lastName: string;
+    createdAt: string;
+  };
+}) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FormState>(initialState);
 
   const emptyState = useMemo(() => {
     return query ? `No se encontraron clientes para "${query}".` : "Todavía no hay clientes registrados.";
   }, [query]);
 
+  async function handleDelete(customer: CustomerRecord) {
+    const displayName = formatPersonName(customer.first_name, customer.last_name, customer.instagram);
+    const confirmed = window.confirm(`¿Seguro que quieres borrar a ${displayName}?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(customer.id);
+    setFeedback(initialState);
+
+    const response = await fetch(`/api/panel/customers/${customer.id}`, {
+      method: "DELETE"
+    });
+
+    const result = (await response.json()) as FormState;
+    setDeletingId(null);
+    setFeedback(result);
+
+    if (!response.ok) {
+      return;
+    }
+
+    window.location.reload();
+  }
+
   return (
     <>
+      {feedback.message ? (
+        <div className={`rounded-2xl border px-4 py-3 text-sm ${
+          feedback.success
+            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+            : "border-rose-500/30 bg-rose-500/10 text-rose-200"
+        }`}>
+          {feedback.message}
+        </div>
+      ) : null}
+
       <div className="space-y-3 md:hidden">
         {rows.length ? (
           rows.map((customer) => {
@@ -250,13 +343,23 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
                     <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-stone-300">
                       {SOURCE_LABELS[customer.source] ?? customer.source}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setEditingId(isEditing ? null : customer.id)}
-                      className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-500/20"
-                    >
-                      {isEditing ? "Cerrar" : "Editar"}
-                    </button>
+                    <div className="flex flex-col items-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(isEditing ? null : customer.id)}
+                        className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-500/20"
+                      >
+                        {isEditing ? "Cerrar" : "Editar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(customer)}
+                        disabled={deletingId === customer.id}
+                        className="rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-200 transition hover:border-rose-300/50 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {deletingId === customer.id ? "Borrando..." : "Borrar"}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {customer.delivery_area ? (
@@ -302,29 +405,42 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
       </div>
 
       <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 md:block">
-        <div className="grid grid-cols-[1.6fr_1.1fr_1.4fr_1fr_0.9fr_0.8fr] border-b border-stone-800 bg-stone-900 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
-          {["Cliente", "Teléfono", "Dirección", "Origen", "Alta", "Acción"].map((col) => (
-            <div key={col}>{col}</div>
-          ))}
+        <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] border-b border-stone-800 bg-stone-900 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+          <div>Nombre</div>
+          <SortHeader
+            label="Apellido"
+            href={sortLinks.lastName}
+            active={sort === "last_name"}
+            direction={direction}
+          />
+          <div>Teléfono</div>
+          <div>Dirección</div>
+          <div>Origen</div>
+          <SortHeader
+            label="Alta"
+            href={sortLinks.createdAt}
+            active={sort === "created_at"}
+            direction={direction}
+          />
+          <div>Acción</div>
         </div>
         {rows.length ? (
           rows.map((customer) => {
             const isEditing = editingId === customer.id;
-            const displayName = formatPersonName(
-              customer.first_name,
-              customer.last_name,
-              customer.instagram
-            );
+            const fallbackName = !customer.first_name && !customer.last_name ? customer.instagram || "Cliente sin nombre" : "-";
 
             return (
               <div key={customer.id} className="border-b border-stone-800 last:border-b-0">
-                <div className="grid grid-cols-[1.6fr_1.1fr_1.4fr_1fr_0.9fr_0.8fr] px-6 py-4 text-sm text-stone-300 hover:bg-stone-900/50">
-                  <div className="font-medium text-stone-100">{displayName}</div>
-                  <div>
-                    <div>{formatWhatsAppPhone(customer.phone)}</div>
+                <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] px-6 py-4 text-sm text-stone-300 hover:bg-stone-900/50">
+                  <div className="font-medium text-stone-100">
+                    <div>{customer.first_name || fallbackName}</div>
                     {customer.instagram ? (
                       <div className="mt-1 text-xs text-stone-500">{customer.instagram}</div>
                     ) : null}
+                  </div>
+                  <div className="font-medium text-stone-100">{customer.last_name || "-"}</div>
+                  <div>
+                    <div>{formatWhatsAppPhone(customer.phone)}</div>
                   </div>
                   <div>
                     <div>{formatStructuredAddressSummary({
@@ -345,13 +461,23 @@ export function CustomerRecords({ rows, query }: { rows: CustomerRecord[]; query
                     })}
                   </div>
                   <div>
-                    <button
-                      type="button"
-                      onClick={() => setEditingId(isEditing ? null : customer.id)}
-                      className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-500/20"
-                    >
-                      {isEditing ? "Cerrar" : "Editar"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(isEditing ? null : customer.id)}
+                        className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-500/20"
+                      >
+                        {isEditing ? "Cerrar" : "Editar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(customer)}
+                        disabled={deletingId === customer.id}
+                        className="rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-200 transition hover:border-rose-300/50 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {deletingId === customer.id ? "Borrando..." : "Borrar"}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {isEditing ? (

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
-import { productMutationSchema } from "@/lib/products";
+import { getProductCatalogDbErrorMessage, productMutationSchema } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const ADMIN_ONLY = ["admin"] as const;
@@ -55,9 +55,12 @@ export async function PATCH(
     .eq("id", parsedParams.data.productId);
 
   if (error) {
+    console.error("product update failed", error);
+
+    const status = error.code === "23505" ? 409 : 500;
     return NextResponse.json(
-      { success: false, message: "No se pudo actualizar el producto." },
-      { status: 500 }
+      { success: false, message: getProductCatalogDbErrorMessage(error, "update") },
+      { status }
     );
   }
 

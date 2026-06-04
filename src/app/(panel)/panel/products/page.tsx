@@ -1,5 +1,6 @@
 import { ProductCatalogManager } from "@/components/product-catalog-manager";
 import { requirePageRole } from "@/lib/auth";
+import { getProductCatalogDbErrorMessage, PRODUCT_SELECT_COLUMNS } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Product } from "@/lib/types";
 
@@ -22,9 +23,9 @@ function mapProducts(rows: Array<Record<string, unknown>>): Product[] {
 export default async function ProductsPage() {
   await requirePageRole(ADMIN_ONLY, "/panel/products");
   const supabase = createAdminClient();
-  const { data: products } = await supabase
+  const { data: products, error } = await supabase
     .from("products")
-    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
+    .select(PRODUCT_SELECT_COLUMNS)
     .order("display_order", { ascending: true })
     .order("name", { ascending: true });
 
@@ -40,7 +41,10 @@ export default async function ProductsPage() {
           </p>
         </div>
 
-        <ProductCatalogManager initialProducts={mapProducts(products ?? [])} />
+        <ProductCatalogManager
+          initialProducts={mapProducts(products ?? [])}
+          initialMessage={error ? getProductCatalogDbErrorMessage(error, "load") : ""}
+        />
       </section>
     </main>
   );

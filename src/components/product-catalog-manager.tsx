@@ -5,6 +5,7 @@ import type { Product } from "@/lib/types";
 
 type ProductCatalogManagerProps = {
   initialProducts: Product[];
+  initialMessage?: string;
 };
 
 type FormState = {
@@ -42,11 +43,14 @@ function toPayload(form: FormState) {
   };
 }
 
-export function ProductCatalogManager({ initialProducts }: ProductCatalogManagerProps) {
+export function ProductCatalogManager({
+  initialProducts,
+  initialMessage = ""
+}: ProductCatalogManagerProps) {
   const [products, setProducts] = useState(initialProducts);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialMessage);
   const [isPending, startTransition] = useTransition();
 
   function resetForm() {
@@ -87,8 +91,11 @@ export function ProductCatalogManager({ initialProducts }: ProductCatalogManager
           displayOrder: product.displayOrder ?? 0
         }))
       );
+      setMessage("");
     } else if (result.message) {
       setMessage(result.message);
+    } else {
+      setMessage("No se pudo refrescar el catalogo.");
     }
   }
 

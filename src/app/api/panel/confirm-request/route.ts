@@ -155,14 +155,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const itemsCount = calculateItemsCount(orderItems);
+  const totalAmount = calculateOrderTotal(orderItems);
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
       customer_id: customerId,
       seller_user_id: authResult.auth.profile.id,
       sales_channel: "public_form",
-      items_count: calculateItemsCount(orderItems),
-      total_amount: calculateOrderTotal(orderItems),
+      items_count: itemsCount,
+      total_amount: totalAmount,
       payment_method_expected: publicRequest.payment_method_expected,
       status: "confirmed",
       payment_status: "pending",

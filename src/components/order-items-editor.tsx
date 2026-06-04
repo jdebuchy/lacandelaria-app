@@ -20,6 +20,7 @@ export function OrderItemsEditor({
   products
 }: OrderItemsEditorProps) {
   const activeProducts = products.filter((product) => product.active);
+  const selectedProductIds = new Set(items.map((item) => item.productId));
 
   function updateItem(index: number, nextItem: OrderItemInput) {
     onChange(items.map((item, itemIndex) => (itemIndex === index ? nextItem : item)));
@@ -34,7 +35,7 @@ export function OrderItemsEditor({
   }
 
   function addItem() {
-    const fallbackProduct = activeProducts[0];
+    const fallbackProduct = activeProducts.find((product) => !selectedProductIds.has(product.id));
 
     if (!fallbackProduct) {
       return;
@@ -49,6 +50,8 @@ export function OrderItemsEditor({
     ]);
   }
 
+  const hasAvailableProducts = activeProducts.some((product) => !selectedProductIds.has(product.id));
+
   const total = items.reduce((sum, item) => {
     const product = activeProducts.find((entry) => entry.id === item.productId);
 
@@ -62,16 +65,16 @@ export function OrderItemsEditor({
 
   return (
     <div className="grid gap-4 md:col-span-2">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3">
         <div>
-          <p className="text-sm text-stone-300">Productos del pedido</p>
-          <p className="text-xs text-stone-500">Cada línea define producto, unidad y cantidad.</p>
+          <p className="text-base font-semibold text-stone-100">Productos del pedido</p>
+          <p className="text-xs text-stone-500">Aquí armas el pedido y ves el total en el momento.</p>
         </div>
         <button
           type="button"
           onClick={addItem}
-          disabled={!activeProducts.length}
-          className="rounded-full border border-stone-700 px-4 py-2 text-sm text-stone-300 transition hover:border-stone-500 hover:text-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!activeProducts.length || !hasAvailableProducts}
+          className="rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Agregar línea
         </button>
@@ -85,6 +88,9 @@ export function OrderItemsEditor({
               ? product.cashPrice
               : product.transferPrice
             : 0;
+          const otherSelectedProductIds = new Set(
+            items.filter((_, itemIndex) => itemIndex !== index).map((entry) => entry.productId)
+          );
 
           return (
             <div
@@ -104,7 +110,11 @@ export function OrderItemsEditor({
                   className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
                 >
                   {activeProducts.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
+                    <option
+                      key={entry.id}
+                      value={entry.id}
+                      disabled={otherSelectedProductIds.has(entry.id)}
+                    >
                       {entry.name}
                     </option>
                   ))}
@@ -118,6 +128,7 @@ export function OrderItemsEditor({
                   min="1"
                   max="500"
                   value={item.quantity}
+                  onFocus={(event) => event.currentTarget.select()}
                   onChange={(event) =>
                     updateItem(index, {
                       ...item,

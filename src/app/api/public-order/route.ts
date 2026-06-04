@@ -123,6 +123,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const itemsCount = calculateItemsCount(requestItems);
+
   const { data: newRequest, error } = await supabase
     .from("public_order_requests")
     .insert({
@@ -131,7 +133,7 @@ export async function POST(request: Request) {
       phone: normalizedPhone,
       instagram,
       ...addressColumns,
-      items_count: calculateItemsCount(requestItems),
+      items_count: itemsCount,
       payment_method_expected: parsed.data.paymentMethodExpected,
       lead_source: parsed.data.leadSource,
       notes: parsed.data.notes || null

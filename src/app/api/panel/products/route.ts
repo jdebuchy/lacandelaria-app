@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireApiRole } from "@/lib/auth";
-import { mapProductRow, productMutationSchema, productSchema } from "@/lib/products";
+import {
+  getProductCatalogDbErrorMessage,
+  mapProductRow,
+  PRODUCT_SELECT_COLUMNS,
+  productMutationSchema,
+  productSchema
+} from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const ADMIN_ONLY = ["admin"] as const;
@@ -15,13 +21,14 @@ export async function GET() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order, created_at")
+    .select(`${PRODUCT_SELECT_COLUMNS}, created_at`)
     .order("display_order", { ascending: true })
     .order("name", { ascending: true });
 
   if (error) {
+    console.error("products load failed", error);
     return NextResponse.json(
-      { success: false, message: "No se pudo cargar el catalogo." },
+      { success: false, message: getProductCatalogDbErrorMessage(error, "load") },
       { status: 500 }
     );
   }
@@ -79,9 +86,14 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !data) {
+    if (error) {
+      console.error("product create failed", error);
+    }
+
+    const status = error?.code === "23505" ? 409 : 500;
     return NextResponse.json(
-      { success: false, message: "No se pudo crear el producto." },
-      { status: 500 }
+      { success: false, message: getProductCatalogDbErrorMessage(error, "create") },
+      { status }
     );
   }
 

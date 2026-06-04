@@ -1,6 +1,13 @@
 import { z } from "zod";
 import type { PaymentMethod } from "@/lib/types";
 
+type ProductCatalogDbError = {
+  code?: string;
+  details?: string;
+  hint?: string;
+  message?: string;
+};
+
 export const productSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -12,6 +19,9 @@ export const productSchema = z.object({
   active: z.boolean(),
   display_order: z.number().int()
 });
+
+export const PRODUCT_SELECT_COLUMNS =
+  "id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order";
 
 export const orderItemInputSchema = z.object({
   productId: z.string().uuid(),
@@ -78,6 +88,41 @@ export function mapProductRow(row: ProductRow): ProductForForm {
     transferPrice: Number(row.transfer_price),
     active: row.active
   };
+}
+
+export function getProductCatalogDbErrorMessage(
+  error: ProductCatalogDbError | null | undefined,
+  action: "load" | "create" | "update"
+) {
+  const fallbackByAction = {
+    load: "No se pudo cargar el catalogo.",
+    create: "No se pudo crear el producto.",
+    update: "No se pudo actualizar el producto."
+  } satisfies Record<typeof action, string>;
+
+  if (!error) {
+    return fallbackByAction[action];
+  }
+
+  const raw = `${error.message ?? ""} ${error.details ?? ""} ${error.hint ?? ""}`.toLowerCase();
+
+  if (error.code === "23505" && raw.includes("slug")) {
+    return "Ya existe un producto con ese slug.";
+  }
+
+  if (
+    raw.includes("sales_unit_label") ||
+    raw.includes("cash_price") ||
+    raw.includes("transfer_price") ||
+    raw.includes("display_order") ||
+    raw.includes("schema cache") ||
+    raw.includes("could not find the") ||
+    raw.includes("column")
+  ) {
+    return "La tabla products no tiene el esquema esperado. Ejecuta `supabase/schema.sql` o `supabase/products_catalog_upgrade.sql` en Supabase.";
+  }
+
+  return fallbackByAction[action];
 }
 
 export function getProductUnitPrice(product: ProductForForm, paymentMethod: PaymentMethod) {

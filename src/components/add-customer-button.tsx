@@ -95,7 +95,7 @@ export function AddCustomerButton() {
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
-          <div className="my-8 w-full max-w-xl rounded-3xl border border-stone-800 bg-stone-950 p-6 shadow-2xl">
+          <div className="my-8 w-full max-w-3xl rounded-3xl border border-stone-800 bg-stone-950 p-7 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-stone-50">Nuevo cliente</h2>
               <button
@@ -107,7 +107,7 @@ export function AddCustomerButton() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} autoComplete="off" className="mt-5 grid gap-3 md:grid-cols-2">
+            <form onSubmit={handleSubmit} autoComplete="off" className="mt-6 grid gap-4 md:grid-cols-2">
               <AutofillDecoy />
               <label className="grid gap-2 text-sm text-stone-300">
                 Nombre
@@ -132,10 +132,9 @@ export function AddCustomerButton() {
               <PhoneInput
                 value={fields.phone}
                 onChange={(v) => set("phone", v)}
-                className="md:col-span-2"
               />
 
-              <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+              <label className="grid gap-2 text-sm text-stone-300">
                 Instagram
                 <input
                   value={fields.instagram}
@@ -143,6 +142,9 @@ export function AddCustomerButton() {
                   className={inputClass}
                   placeholder="usuario"
                 />
+                <span aria-hidden="true" className="text-xs text-transparent">
+                  .
+                </span>
               </label>
 
               <AddressInput
@@ -150,22 +152,23 @@ export function AddCustomerButton() {
                 value={fields.address}
                 onChange={setAddress}
                 className="md:col-span-2"
+                afterPostalCode={
+                  <>
+                    Origen
+                    <select
+                      value={fields.source}
+                      onChange={(e) => set("source", e.target.value)}
+                      className={inputClass}
+                    >
+                      {SOURCE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                }
               />
-
-              <label className="grid gap-2 text-sm text-stone-300">
-                Origen
-                <select
-                  value={fields.source}
-                  onChange={(e) => set("source", e.target.value)}
-                  className={inputClass}
-                >
-                  {SOURCE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
 
               <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
                 Notas de entrega

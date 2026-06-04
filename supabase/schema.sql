@@ -47,7 +47,8 @@ create table if not exists public.customers (
   delivery_notes text,
   source text not null default 'repeat',
   auth_user_id uuid unique,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.resellers (
@@ -94,8 +95,6 @@ create table if not exists public.orders (
   reseller_id uuid references public.resellers(id) on delete set null,
   batch_id uuid references public.inventory_batches(id) on delete set null,
   sales_channel public.sales_channel not null default 'internal',
-  quantity_boxes integer not null default 1,
-  unit_price numeric(12,2) not null,
   items_count integer not null default 0,
   total_amount numeric(12,2) not null default 0,
   payment_method_expected public.payment_method not null,
@@ -125,7 +124,6 @@ create table if not exists public.public_order_requests (
   google_place_label text,
   address_source text not null default 'manual',
   delivery_area text not null default 'pending_review',
-  quantity_boxes integer not null default 1,
   items_count integer not null default 0,
   payment_method_expected public.payment_method not null,
   lead_source text not null default 'direct_link',

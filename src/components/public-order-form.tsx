@@ -135,9 +135,9 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
           />
         </label>
 
-        <PhoneInput name="phone" required value={phone} onChange={setPhone} className="md:col-span-2" />
+        <PhoneInput name="phone" required value={phone} onChange={setPhone} />
 
-        <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+        <label className="grid gap-2 text-sm text-stone-300">
           Instagram
           <input
             name="instagram"
@@ -146,6 +146,9 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
             placeholder="usuario"
             className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
           />
+          <span aria-hidden="true" className="text-xs text-transparent">
+            .
+          </span>
         </label>
 
         <AddressInput required value={address} onChange={setAddress} className="md:col-span-2" />

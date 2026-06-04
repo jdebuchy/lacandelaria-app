@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  structuredAddressSchema,
-  toStructuredAddressColumns
-} from "@/lib/address";
+import { toStructuredAddressColumns, structuredAddressSchema } from "@/lib/address";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
@@ -17,11 +14,11 @@ import {
 } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const createManualOrderSchema = structuredAddressSchema
+const updateManualOrderSchema = structuredAddressSchema
   .extend({
     customerId: z.string().uuid().optional().or(z.literal("")),
-    firstName: z.string().optional().or(z.literal("")),
-    lastName: z.string().optional().or(z.literal("")),
+    firstName: z.string().max(120).optional().or(z.literal("")),
+    lastName: z.string().max(120).optional().or(z.literal("")),
     phone: z.string().min(8, "Ingresa un WhatsApp valido."),
     instagram: z.string().max(100).optional().or(z.literal("")),
     addressLine1: z.string().min(5, "Ingresa una dirección."),
@@ -44,15 +41,22 @@ const createManualOrderSchema = structuredAddressSchema
     }
   });
 
-export async function POST(request: Request) {
+type Params = {
+  params: Promise<{
+    orderId: string;
+  }>;
+};
+
+export async function PATCH(request: Request, context: Params) {
   const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
 
   if ("error" in authResult) {
     return authResult.error;
   }
 
+  const { orderId } = await context.params;
   const body = await request.json();
-  const parsed = createManualOrderSchema.safeParse(body);
+  const parsed = updateManualOrderSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -67,9 +71,8 @@ export async function POST(request: Request) {
   const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
   const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
   const addressColumns = toStructuredAddressColumns(parsed.data);
-  const firstName = parsed.data.firstName?.trim() || null;
+  const firstName = parsed.data.firstName?.trim() || instagram || "Cliente";
   const lastName = parsed.data.lastName?.trim() || null;
-  const fallbackFirstName = firstName || instagram || "Cliente";
 
   if (normalizedPhone.length < 11 || normalizedPhone.length > 14) {
     return NextResponse.json(
@@ -79,25 +82,38 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  let customerId = parsed.data.customerId || null;
+  const { data: existingOrder, error: orderFetchError } = await supabase
+    .from("orders")
+    .select("id, customer_id")
+    .eq("id", orderId)
+    .single();
+
+  if (orderFetchError || !existingOrder) {
+    return NextResponse.json(
+      { success: false, message: "No se encontro el pedido." },
+      { status: 404 }
+    );
+  }
+
+  let customerId = parsed.data.customerId || existingOrder.customer_id || null;
 
   if (!customerId) {
-    const { data: existingCustomer } = await supabase
+    const { data: matchedCustomer } = await supabase
       .from("customers")
       .select("id")
       .eq("phone", normalizedPhone)
       .limit(1)
       .maybeSingle();
 
-    customerId = existingCustomer?.id ?? null;
+    customerId = matchedCustomer?.id ?? null;
   }
 
   if (customerId) {
     const { error: customerUpdateError } = await supabase
       .from("customers")
       .update({
-        first_name: fallbackFirstName,
-        last_name: lastName || null,
+        first_name: firstName,
+        last_name: lastName,
         phone: normalizedPhone,
         instagram,
         ...addressColumns,
@@ -116,8 +132,8 @@ export async function POST(request: Request) {
     const { data: newCustomer, error: customerInsertError } = await supabase
       .from("customers")
       .insert({
-        first_name: fallbackFirstName,
-        last_name: lastName || null,
+        first_name: firstName,
+        last_name: lastName,
         phone: normalizedPhone,
         instagram,
         ...addressColumns,
@@ -178,43 +194,46 @@ export async function POST(request: Request) {
   const itemsCount = calculateItemsCount(orderItems);
   const totalAmount = calculateOrderTotal(orderItems);
 
-  const { data: newOrder, error: orderInsertError } = await supabase
+  const { error: orderUpdateError } = await supabase
     .from("orders")
-    .insert({
+    .update({
       customer_id: customerId,
-      seller_user_id: authResult.auth.profile.id,
-      sales_channel: "internal",
       items_count: itemsCount,
       total_amount: totalAmount,
       payment_method_expected: parsed.data.paymentMethodExpected,
-      status: "confirmed",
-      payment_status: "pending",
       delivery_date: parsed.data.deliveryDate || null,
       delivery_area: addressColumns.delivery_area,
       notes: parsed.data.notes || null
     })
-    .select("id")
-    .single();
+    .eq("id", orderId);
 
-  if (orderInsertError || !newOrder) {
-    console.error("manual order insert failed", orderInsertError);
+  if (orderUpdateError) {
+    console.error("order update failed", orderUpdateError);
     return NextResponse.json(
-      { success: false, message: "No se pudo crear el pedido." },
+      { success: false, message: "No se pudo actualizar el pedido." },
+      { status: 500 }
+    );
+  }
+
+  const { error: deleteItemsError } = await supabase.from("order_items").delete().eq("order_id", orderId);
+
+  if (deleteItemsError) {
+    console.error("order_items delete failed", deleteItemsError);
+    return NextResponse.json(
+      { success: false, message: "No se pudo actualizar el detalle del pedido." },
       { status: 500 }
     );
   }
 
   const { error: itemsInsertError } = await supabase.from("order_items").insert(
     orderItems.map((item) => ({
-      order_id: newOrder.id,
+      order_id: orderId,
       ...item
     }))
   );
 
   if (itemsInsertError) {
     console.error("order_items insert failed", itemsInsertError);
-    await supabase.from("orders").delete().eq("id", newOrder.id);
-
     return NextResponse.json(
       { success: false, message: "No se pudo guardar el detalle del pedido." },
       { status: 500 }
@@ -223,6 +242,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
-    message: "Pedido manual creado correctamente."
+    message: "Pedido actualizado correctamente."
   });
 }

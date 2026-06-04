@@ -232,7 +232,7 @@ export default async function OrdersPage() {
           </div>
 
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
               <div>Cliente</div>
               <div>Canal</div>
               <div>Área</div>
@@ -241,12 +241,13 @@ export default async function OrdersPage() {
               <div>Cant.</div>
               <div>Total</div>
               <div>Alta</div>
+              <div></div>
             </div>
             {orderRows.length ? (
               orderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
                   <div>
                     <p className="font-medium text-stone-100">{order.customerName}</p>
@@ -270,6 +271,14 @@ export default async function OrdersPage() {
                   <div>{order.itemsCount}</div>
                   <div>${order.totalAmount.toLocaleString("es-AR")}</div>
                   <div>{formatDate(order.created_at)}</div>
+                  <div className="flex justify-end">
+                    <Link
+                      href={`/panel/orders/${order.id}/edit`}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                    >
+                      Editar
+                    </Link>
+                  </div>
                 </div>
               ))
             ) : (
@@ -307,6 +316,14 @@ export default async function OrdersPage() {
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Total</p>
                       <p className="mt-1 text-stone-200">${order.totalAmount.toLocaleString("es-AR")}</p>
                     </div>
+                  </div>
+                  <div className="mt-4">
+                    <Link
+                      href={`/panel/orders/${order.id}/edit`}
+                      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                    >
+                      Editar pedido
+                    </Link>
                   </div>
                 </article>
               ))

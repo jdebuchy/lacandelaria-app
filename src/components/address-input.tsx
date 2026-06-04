@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   StructuredAddress,
   addressLine2Label,
@@ -20,6 +20,7 @@ type AddressInputProps = {
   onChange: (value: StructuredAddress) => void;
   required?: boolean;
   className?: string;
+  afterPostalCode?: ReactNode;
 };
 
 const ADDRESS_AUTOCOMPLETE = "new-password";
@@ -28,7 +29,7 @@ function buildSearchValue(address: StructuredAddress) {
   return address.googlePlaceLabel || formatStructuredAddressSummary(address).replace(/ · /g, ", ").replace(/^-$/, "");
 }
 
-export function AddressInput({ value, onChange, required, className }: AddressInputProps) {
+export function AddressInput({ value, onChange, required, className, afterPostalCode }: AddressInputProps) {
   const [query, setQuery] = useState(buildSearchValue(value));
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [searching, setSearching] = useState(false);
@@ -58,8 +59,10 @@ export function AddressInput({ value, onChange, required, className }: AddressIn
         });
         const data = (await response.json()) as { suggestions: Suggestion[] };
         setSuggestions(data.suggestions ?? []);
-      } catch {
-        setSuggestions([]);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setSuggestions([]);
+        }
       } finally {
         setSearching(false);
       }
@@ -132,8 +135,8 @@ export function AddressInput({ value, onChange, required, className }: AddressIn
     "rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-none focus:border-emerald-400";
 
   return (
-    <div className={`grid gap-3 md:grid-cols-2${className ? ` ${className}` : ""}`}>
-      <div className="grid gap-2 md:col-span-2">
+    <div className={`grid gap-3 md:grid-cols-6${className ? ` ${className}` : ""}`}>
+      <div className="grid gap-2 md:col-span-6">
         <label className="text-sm text-stone-300">Buscar dirección</label>
         <input
           value={query}
@@ -177,7 +180,7 @@ export function AddressInput({ value, onChange, required, className }: AddressIn
         {message ? <p className="text-xs text-amber-300">{message}</p> : null}
       </div>
 
-      <label className="flex items-center gap-3 rounded-xl border border-stone-800 bg-stone-950/70 px-4 py-3 text-sm text-stone-300 md:col-span-2">
+      <label className="flex items-center gap-3 rounded-xl border border-stone-800 bg-stone-950/70 px-4 py-3 text-sm text-stone-300 md:col-span-6">
         <input
           type="checkbox"
           checked={value.addressKind === "gated"}
@@ -188,101 +191,186 @@ export function AddressInput({ value, onChange, required, className }: AddressIn
       </label>
 
       {value.addressKind === "gated" ? (
-        <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
-          Nombre del barrio
-          <input
-            required={required}
-            value={value.gatedCommunityName}
-            onChange={(event) => setField("gatedCommunityName", event.target.value)}
-            autoComplete={ADDRESS_AUTOCOMPLETE}
-            data-form-type="other"
-            data-lpignore="true"
-            spellCheck={false}
-            className={inputClass}
-            placeholder="Ej: Golf Club Argentino"
-          />
-        </label>
-      ) : null}
+        <div className="grid gap-3 md:col-span-6 md:grid-cols-4">
+          <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+            Dirección
+            <input
+              required={required}
+              value={value.addressLine1}
+              onChange={(event) => setField("addressLine1", event.target.value)}
+              autoComplete={ADDRESS_AUTOCOMPLETE}
+              data-form-type="other"
+              data-lpignore="true"
+              spellCheck={false}
+              className={inputClass}
+              placeholder="Ej: Ruta Nacional 8 Km 41.5"
+            />
+          </label>
 
-      <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
-        Dirección
-        <input
-          required={required}
-          value={value.addressLine1}
-          onChange={(event) => setField("addressLine1", event.target.value)}
-          autoComplete={ADDRESS_AUTOCOMPLETE}
-          data-form-type="other"
-          data-lpignore="true"
-          spellCheck={false}
-          className={inputClass}
-          placeholder={value.addressKind === "gated" ? "Ej: Ruta Nacional 8 Km 41.5" : "Ej: Av. Gral. Las Heras 4025"}
-        />
-      </label>
+          <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+            Nombre del barrio
+            <input
+              required={required}
+              value={value.gatedCommunityName}
+              onChange={(event) => setField("gatedCommunityName", event.target.value)}
+              autoComplete={ADDRESS_AUTOCOMPLETE}
+              data-form-type="other"
+              data-lpignore="true"
+              spellCheck={false}
+              className={inputClass}
+              placeholder="Ej: Golf Club Argentino"
+            />
+          </label>
 
-      <label className="grid gap-2 text-sm text-stone-300">
-        {addressLine2Label(value.addressKind)}
-        <input
-          value={value.addressLine2}
-          onChange={(event) => setField("addressLine2", event.target.value)}
-          autoComplete={ADDRESS_AUTOCOMPLETE}
-          data-form-type="other"
-          data-lpignore="true"
-          spellCheck={false}
-          className={inputClass}
-          placeholder={value.addressKind === "gated" ? "Ej: Lote 12" : "Ej: 4B"}
-        />
-      </label>
+          <label className="grid gap-2 text-sm text-stone-300">
+            {addressLine2Label(value.addressKind)}
+            <input
+              value={value.addressLine2}
+              onChange={(event) => setField("addressLine2", event.target.value)}
+              autoComplete={ADDRESS_AUTOCOMPLETE}
+              data-form-type="other"
+              data-lpignore="true"
+              spellCheck={false}
+              className={inputClass}
+              placeholder="Ej: Lote 12"
+            />
+          </label>
 
-      <label className="grid gap-2 text-sm text-stone-300">
-        Localidad
-        <input
-          required={required}
-          value={value.locality}
-          onChange={(event) => setField("locality", event.target.value)}
-          autoComplete={ADDRESS_AUTOCOMPLETE}
-          data-form-type="other"
-          data-lpignore="true"
-          spellCheck={false}
-          className={inputClass}
-          placeholder="Ej: CABA"
-        />
-      </label>
+          <label className="grid gap-2 text-sm text-stone-300">
+            Localidad
+            <input
+              required={required}
+              value={value.locality}
+              onChange={(event) => setField("locality", event.target.value)}
+              autoComplete={ADDRESS_AUTOCOMPLETE}
+              data-form-type="other"
+              data-lpignore="true"
+              spellCheck={false}
+              className={inputClass}
+              placeholder="Ej: CABA"
+            />
+          </label>
 
-      <label className="grid gap-2 text-sm text-stone-300">
-        Provincia
-        <input
-          required={required}
-          value={value.administrativeAreaLevel1}
-          onChange={(event) => setField("administrativeAreaLevel1", event.target.value)}
-          autoComplete={ADDRESS_AUTOCOMPLETE}
-          data-form-type="other"
-          data-lpignore="true"
-          spellCheck={false}
-          className={inputClass}
-          placeholder="Ej: Cdad. Autónoma de Buenos Aires"
-        />
-      </label>
+          <label className="grid gap-2 text-sm text-stone-300">
+            Provincia
+            <input
+              required={required}
+              value={value.administrativeAreaLevel1}
+              onChange={(event) => setField("administrativeAreaLevel1", event.target.value)}
+              autoComplete={ADDRESS_AUTOCOMPLETE}
+              data-form-type="other"
+              data-lpignore="true"
+              spellCheck={false}
+              className={inputClass}
+              placeholder="Ej: Cdad. Autónoma de Buenos Aires"
+            />
+          </label>
 
-      <label className="grid gap-2 text-sm text-stone-300">
-        Código postal
-        <input
-          required={required}
-          value={value.postalCode}
-          onChange={(event) => setField("postalCode", event.target.value)}
-          autoComplete={ADDRESS_AUTOCOMPLETE}
-          data-form-type="other"
-          data-lpignore="true"
-          spellCheck={false}
-          className={inputClass}
-          placeholder="Ej: C1425"
-        />
-      </label>
+          <label className="grid gap-2 text-sm text-stone-300">
+            Código postal
+            <input
+              required={required}
+              value={value.postalCode}
+              onChange={(event) => setField("postalCode", event.target.value)}
+              autoComplete={ADDRESS_AUTOCOMPLETE}
+              data-form-type="other"
+              data-lpignore="true"
+              spellCheck={false}
+              className={inputClass}
+              placeholder="Ej: C1425"
+            />
+          </label>
 
-      <div className="grid gap-2 text-sm text-stone-300 md:col-span-2">
-        <label>Origen de la dirección</label>
-        <div className={textareaClass}>
-          {loadingDetails ? "Cargando sugerencia..." : value.addressSource === "google_places" ? "Google Places" : "Carga manual"}
+          {afterPostalCode ? <div className="grid gap-2 text-sm text-stone-300">{afterPostalCode}</div> : null}
         </div>
+      ) : (
+        <>
+          <div className="grid gap-3 md:col-span-6 md:grid-cols-3">
+            <label className="grid gap-2 text-sm text-stone-300">
+              Dirección
+              <input
+                required={required}
+                value={value.addressLine1}
+                onChange={(event) => setField("addressLine1", event.target.value)}
+                autoComplete={ADDRESS_AUTOCOMPLETE}
+                data-form-type="other"
+                data-lpignore="true"
+                spellCheck={false}
+                className={inputClass}
+                placeholder="Ej: Av. Gral. Las Heras 4025"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-stone-300">
+              {addressLine2Label(value.addressKind)}
+              <input
+                value={value.addressLine2}
+                onChange={(event) => setField("addressLine2", event.target.value)}
+                autoComplete={ADDRESS_AUTOCOMPLETE}
+                data-form-type="other"
+                data-lpignore="true"
+                spellCheck={false}
+                className={inputClass}
+                placeholder="Ej: 4B"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-stone-300">
+              Localidad
+              <input
+                required={required}
+                value={value.locality}
+                onChange={(event) => setField("locality", event.target.value)}
+                autoComplete={ADDRESS_AUTOCOMPLETE}
+                data-form-type="other"
+                data-lpignore="true"
+                spellCheck={false}
+                className={inputClass}
+                placeholder="Ej: CABA"
+              />
+            </label>
+          </div>
+
+          <div className={`grid gap-3 md:col-span-6 ${afterPostalCode ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+            <label className="grid gap-2 text-sm text-stone-300">
+              Provincia
+              <input
+                required={required}
+                value={value.administrativeAreaLevel1}
+                onChange={(event) => setField("administrativeAreaLevel1", event.target.value)}
+                autoComplete={ADDRESS_AUTOCOMPLETE}
+                data-form-type="other"
+                data-lpignore="true"
+                spellCheck={false}
+                className={inputClass}
+                placeholder="Ej: Cdad. Autónoma de Buenos Aires"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-stone-300">
+              Código postal
+              <input
+                required={required}
+                value={value.postalCode}
+                onChange={(event) => setField("postalCode", event.target.value)}
+                autoComplete={ADDRESS_AUTOCOMPLETE}
+                data-form-type="other"
+                data-lpignore="true"
+                spellCheck={false}
+                className={inputClass}
+              placeholder="Ej: C1425"
+            />
+          </label>
+
+            {afterPostalCode ? <div className="grid gap-2 text-sm text-stone-300">{afterPostalCode}</div> : null}
+          </div>
+        </>
+      )}
+
+      <div className="sr-only" aria-live="polite">
+        <span className={textareaClass}>
+          {loadingDetails ? "Cargando sugerencia..." : value.addressSource === "google_places" ? "Google Places" : "Carga manual"}
+        </span>
       </div>
     </div>
   );

@@ -1,11 +1,14 @@
 "use client";
 
-import { FormEvent, useMemo, useState, useTransition } from "react";
+import { FormEvent, useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { ProductFamily } from "@/lib/types";
 
 type ProductCatalogManagerProps = {
   initialProducts: ProductFamily[];
+  initialEditingProduct?: ProductFamily | null;
   initialMessage?: string;
+  mode?: "split" | "form-only";
 };
 
 type FormComponent = {
@@ -121,13 +124,19 @@ function toPayload(form: FormState) {
 
 export function ProductCatalogManager({
   initialProducts,
-  initialMessage = ""
+  initialMessage = "",
+  initialEditingProduct = null,
+  mode = "split"
 }: ProductCatalogManagerProps) {
+  const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(initialEditingProduct?.id ?? null);
+  const [form, setForm] = useState<FormState>(
+    initialEditingProduct ? mapFamilyToForm(initialEditingProduct) : emptyForm()
+  );
   const [message, setMessage] = useState(initialMessage);
   const [isPending, startTransition] = useTransition();
+  const showCatalogList = mode === "split";
 
   const componentOptions = useMemo(
     () =>
@@ -141,6 +150,24 @@ export function ProductCatalogManager({
       ),
     [products]
   );
+
+  useEffect(() => {
+    setProducts(initialProducts);
+  }, [initialProducts]);
+
+  useEffect(() => {
+    if (initialEditingProduct) {
+      setEditingId(initialEditingProduct.id);
+      setForm(mapFamilyToForm(initialEditingProduct));
+      setMessage(initialMessage);
+      return;
+    }
+
+    if (mode === "form-only") {
+      resetForm();
+      setMessage(initialMessage);
+    }
+  }, [initialEditingProduct, initialMessage, mode]);
 
   function resetForm() {
     setEditingId(null);
@@ -160,11 +187,14 @@ export function ProductCatalogManager({
     if (response.ok && result.products) {
       setProducts(result.products);
       setMessage("");
+      return result.products;
     } else if (result.message) {
       setMessage(result.message);
     } else {
       setMessage("No se pudo refrescar el catalogo.");
     }
+
+    return null;
   }
 
   function setVariantField(index: number, patch: Partial<FormVariant>) {
@@ -276,11 +306,31 @@ export function ProductCatalogManager({
         body: JSON.stringify(toPayload(form))
       });
 
-      const result = (await response.json()) as { success: boolean; message: string };
+      const result = (await response.json()) as {
+        success: boolean;
+        message: string;
+        productId?: string;
+      };
       setMessage(result.message);
 
       if (response.ok) {
-        await refreshProducts();
+        const refreshed = await refreshProducts();
+
+        if (!editingId && result.productId && mode === "form-only") {
+          router.push(`/panel/products/${result.productId}/edit`);
+          return;
+        }
+
+        if (editingId && mode === "form-only") {
+          const updated = refreshed?.find((product) => product.id === editingId);
+
+          if (updated) {
+            applyProduct(updated);
+          }
+
+          return;
+        }
+
         resetForm();
       }
     }
@@ -314,6 +364,11 @@ export function ProductCatalogManager({
       setMessage(result.message);
 
       if (response.ok) {
+        if (mode === "form-only") {
+          router.push("/panel/products");
+          return;
+        }
+
         await refreshProducts();
         resetForm();
       }
@@ -325,8 +380,12 @@ export function ProductCatalogManager({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-      <form onSubmit={handleSubmit} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
+    <div className={showCatalogList ? "grid gap-6 lg:grid-cols-[1fr_1fr]" : "grid gap-6"}>
+      <form
+        id="product-editor"
+        onSubmit={handleSubmit}
+        className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6"
+      >
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold text-stone-50">
@@ -336,7 +395,7 @@ export function ProductCatalogManager({
               Definís el producto comercial, sus variantes y la composición de bundles.
             </p>
           </div>
-          {editingId ? (
+          {editingId && mode !== "form-only" ? (
             <button
               type="button"
               onClick={resetForm}
@@ -647,72 +706,74 @@ export function ProductCatalogManager({
         </div>
       </form>
 
-      <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-        <div>
-          <h2 className="text-xl font-semibold text-stone-50">Catálogo actual</h2>
-          <p className="mt-1 text-sm text-stone-400">
-            Productos base con variantes vendibles, internas y bundles configurables.
-          </p>
-        </div>
+      {showCatalogList ? (
+        <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
+          <div>
+            <h2 className="text-xl font-semibold text-stone-50">Catálogo actual</h2>
+            <p className="mt-1 text-sm text-stone-400">
+              Productos base con variantes vendibles, internas y bundles configurables.
+            </p>
+          </div>
 
-        <div className="mt-6 grid gap-4">
-          {products.map((product) => (
-            <button
-              key={product.id}
-              type="button"
-              onClick={() => applyProduct(product)}
-              className="rounded-2xl border border-stone-800 bg-stone-950/80 p-4 text-left transition hover:border-stone-700"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-stone-50">{product.name}</p>
-                  <p className="mt-1 text-sm text-stone-400">
-                    {product.variants.length} variante{product.variants.length === 1 ? "" : "s"}
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full border px-3 py-1 text-xs ${
-                    product.active
-                      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-                      : "border-stone-700 bg-stone-900 text-stone-400"
-                  }`}
-                >
-                  {product.active ? "Activo" : "Inactivo"}
-                </span>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                {product.variants.map((variant) => (
-                  <div key={variant.id} className="rounded-2xl bg-stone-900/80 p-3 text-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-medium text-stone-200">
-                        {variant.label}
-                        {variant.isDefault ? " · default" : ""}
-                      </p>
-                      <p className="text-stone-500">
-                        {variant.visibility === "sellable" ? "Vendible" : "Interna"} ·{" "}
-                        {variant.compositionType === "bundle" ? "Compuesta" : "Simple"}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-stone-400">
-                      ${variant.cashPrice.toLocaleString("es-AR")} efectivo · $
-                      {variant.transferPrice.toLocaleString("es-AR")} transferencia
+          <div className="mt-6 grid gap-4">
+            {products.map((product) => (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => applyProduct(product)}
+                className="rounded-2xl border border-stone-800 bg-stone-950/80 p-4 text-left transition hover:border-stone-700"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-base font-semibold text-stone-50">{product.name}</p>
+                    <p className="mt-1 text-sm text-stone-400">
+                      {product.variants.length} variante{product.variants.length === 1 ? "" : "s"}
                     </p>
-                    {variant.components.length ? (
-                      <p className="mt-1 text-xs text-stone-500">
-                        Componentes:{" "}
-                        {variant.components
-                          .map((component) => `${component.componentFamilyName} ${component.componentLabel}`)
-                          .join(", ")}
-                      </p>
-                    ) : null}
                   </div>
-                ))}
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs ${
+                      product.active
+                        ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
+                        : "border-stone-700 bg-stone-900 text-stone-400"
+                    }`}
+                  >
+                    {product.active ? "Activo" : "Inactivo"}
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  {product.variants.map((variant) => (
+                    <div key={variant.id} className="rounded-2xl bg-stone-900/80 p-3 text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-medium text-stone-200">
+                          {variant.label}
+                          {variant.isDefault ? " · default" : ""}
+                        </p>
+                        <p className="text-stone-500">
+                          {variant.visibility === "sellable" ? "Vendible" : "Interna"} ·{" "}
+                          {variant.compositionType === "bundle" ? "Compuesta" : "Simple"}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-stone-400">
+                        ${variant.cashPrice.toLocaleString("es-AR")} efectivo · $
+                        {variant.transferPrice.toLocaleString("es-AR")} transferencia
+                      </p>
+                      {variant.components.length ? (
+                        <p className="mt-1 text-xs text-stone-500">
+                          Componentes:{" "}
+                          {variant.components
+                            .map((component) => `${component.componentFamilyName} ${component.componentLabel}`)
+                            .join(", ")}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

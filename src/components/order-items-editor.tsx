@@ -1,16 +1,42 @@
 "use client";
 
-import type { OrderItemInput, Product } from "@/lib/types";
+import { getDefaultSellableVariantId } from "@/lib/products";
+import type { OrderItemInput, ProductFamily } from "@/lib/types";
 
 type OrderItemsEditorProps = {
   items: OrderItemInput[];
   onChange: (items: OrderItemInput[]) => void;
   paymentMethod: "cash" | "transfer";
-  products: Product[];
+  products: ProductFamily[];
 };
 
 function formatCurrency(value: number) {
   return `$${value.toLocaleString("es-AR")}`;
+}
+
+function getSellableFamilies(products: ProductFamily[]) {
+  return products
+    .map((family) => ({
+      ...family,
+      variants: family.variants.filter((variant) => variant.active && variant.visibility === "sellable")
+    }))
+    .filter((family) => family.active && family.variants.length > 0);
+}
+
+function findFamilyByVariantId(products: ProductFamily[], variantId: string) {
+  return products.find((family) => family.variants.some((variant) => variant.id === variantId)) ?? null;
+}
+
+function findVariantById(products: ProductFamily[], variantId: string) {
+  for (const family of products) {
+    const match = family.variants.find((variant) => variant.id === variantId);
+
+    if (match) {
+      return match;
+    }
+  }
+
+  return null;
 }
 
 export function OrderItemsEditor({
@@ -19,8 +45,8 @@ export function OrderItemsEditor({
   paymentMethod,
   products
 }: OrderItemsEditorProps) {
-  const activeProducts = products.filter((product) => product.active);
-  const selectedProductIds = new Set(items.map((item) => item.productId));
+  const activeFamilies = getSellableFamilies(products);
+  const selectedVariantIds = new Set(items.map((item) => item.productId));
 
   function updateItem(index: number, nextItem: OrderItemInput) {
     onChange(items.map((item, itemIndex) => (itemIndex === index ? nextItem : item)));
@@ -35,31 +61,47 @@ export function OrderItemsEditor({
   }
 
   function addItem() {
-    const fallbackProduct = activeProducts.find((product) => !selectedProductIds.has(product.id));
+    for (const family of activeFamilies) {
+      const defaultVariantId = getDefaultSellableVariantId(family);
 
-    if (!fallbackProduct) {
-      return;
-    }
-
-    onChange([
-      ...items,
-      {
-        productId: fallbackProduct.id,
-        quantity: 1
+      if (defaultVariantId && !selectedVariantIds.has(defaultVariantId)) {
+        onChange([
+          ...items,
+          {
+            productId: defaultVariantId,
+            quantity: 1
+          }
+        ]);
+        return;
       }
-    ]);
+
+      const fallbackVariant = family.variants.find((variant) => !selectedVariantIds.has(variant.id));
+
+      if (fallbackVariant) {
+        onChange([
+          ...items,
+          {
+            productId: fallbackVariant.id,
+            quantity: 1
+          }
+        ]);
+        return;
+      }
+    }
   }
 
-  const hasAvailableProducts = activeProducts.some((product) => !selectedProductIds.has(product.id));
+  const hasAvailableProducts = activeFamilies.some((family) =>
+    family.variants.some((variant) => !selectedVariantIds.has(variant.id))
+  );
 
   const total = items.reduce((sum, item) => {
-    const product = activeProducts.find((entry) => entry.id === item.productId);
+    const variant = findVariantById(activeFamilies, item.productId);
 
-    if (!product) {
+    if (!variant) {
       return sum;
     }
 
-    const unitPrice = paymentMethod === "cash" ? product.cashPrice : product.transferPrice;
+    const unitPrice = paymentMethod === "cash" ? variant.cashPrice : variant.transferPrice;
     return sum + unitPrice * item.quantity;
   }, 0);
 
@@ -68,12 +110,12 @@ export function OrderItemsEditor({
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3">
         <div>
           <p className="text-base font-semibold text-stone-100">Productos del pedido</p>
-          <p className="text-xs text-stone-500">Aquí armas el pedido y ves el total en el momento.</p>
+          <p className="text-xs text-stone-500">Eliges producto y presentación, y el sistema precarga la variante por defecto.</p>
         </div>
         <button
           type="button"
           onClick={addItem}
-          disabled={!activeProducts.length || !hasAvailableProducts}
+          disabled={!activeFamilies.length || !hasAvailableProducts}
           className="rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Agregar línea
@@ -82,23 +124,57 @@ export function OrderItemsEditor({
 
       <div className="grid gap-3">
         {items.map((item, index) => {
-          const product = activeProducts.find((entry) => entry.id === item.productId) ?? activeProducts[0];
-          const unitPrice = product
+          const family = findFamilyByVariantId(activeFamilies, item.productId) ?? activeFamilies[0] ?? null;
+          const familyVariants = family?.variants ?? [];
+          const variant =
+            familyVariants.find((entry) => entry.id === item.productId) ?? familyVariants[0] ?? null;
+          const unitPrice = variant
             ? paymentMethod === "cash"
-              ? product.cashPrice
-              : product.transferPrice
+              ? variant.cashPrice
+              : variant.transferPrice
             : 0;
-          const otherSelectedProductIds = new Set(
+          const otherSelectedVariantIds = new Set(
             items.filter((_, itemIndex) => itemIndex !== index).map((entry) => entry.productId)
           );
 
           return (
             <div
               key={`${item.productId}-${index}`}
-              className="grid gap-3 rounded-2xl border border-stone-800 bg-stone-950/80 p-4 md:grid-cols-[1.6fr_0.8fr_0.8fr_auto]"
+              className="grid gap-3 rounded-2xl border border-stone-800 bg-stone-950/80 p-4 md:grid-cols-[1.2fr_1.2fr_0.7fr_0.9fr_auto]"
             >
               <label className="grid gap-2 text-sm text-stone-300">
                 Producto
+                <select
+                  value={family?.id ?? ""}
+                  onChange={(event) => {
+                    const nextFamily = activeFamilies.find((entry) => entry.id === event.target.value);
+                    const nextDefaultVariantId = nextFamily ? getDefaultSellableVariantId(nextFamily) : null;
+                    const nextVariantId =
+                      nextFamily && nextDefaultVariantId && !otherSelectedVariantIds.has(nextDefaultVariantId)
+                        ? nextDefaultVariantId
+                        : nextFamily?.variants.find((entry) => !otherSelectedVariantIds.has(entry.id))?.id ?? null;
+
+                    if (!nextVariantId) {
+                      return;
+                    }
+
+                    updateItem(index, {
+                      ...item,
+                      productId: nextVariantId
+                    });
+                  }}
+                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                >
+                  {activeFamilies.map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm text-stone-300">
+                Presentación
                 <select
                   value={item.productId}
                   onChange={(event) =>
@@ -109,13 +185,13 @@ export function OrderItemsEditor({
                   }
                   className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
                 >
-                  {activeProducts.map((entry) => (
+                  {familyVariants.map((entry) => (
                     <option
                       key={entry.id}
                       value={entry.id}
-                      disabled={otherSelectedProductIds.has(entry.id)}
+                      disabled={otherSelectedVariantIds.has(entry.id)}
                     >
-                      {entry.name}
+                      {entry.label}
                     </option>
                   ))}
                 </select>
@@ -144,7 +220,7 @@ export function OrderItemsEditor({
                 <div className="rounded-xl border border-stone-800 bg-stone-900/80 px-4 py-3 text-base text-stone-100">
                   <p>{formatCurrency(unitPrice * item.quantity)}</p>
                   <p className="mt-1 text-xs text-stone-500">
-                    {product ? `${product.salesUnitLabel} · ${formatCurrency(unitPrice)}` : "-"}
+                    {variant ? `${variant.label} · ${formatCurrency(unitPrice)}` : "-"}
                   </p>
                 </div>
               </div>

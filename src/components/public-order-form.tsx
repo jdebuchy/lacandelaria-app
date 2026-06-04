@@ -6,7 +6,8 @@ import { AutofillDecoy } from "@/components/autofill-decoy";
 import { OrderItemsEditor } from "@/components/order-items-editor";
 import { PhoneInput } from "@/components/phone-input";
 import { EMPTY_STRUCTURED_ADDRESS } from "@/lib/address";
-import type { OrderItemInput, Product } from "@/lib/types";
+import { getDefaultSellableVariantId } from "@/lib/products";
+import type { OrderItemInput, ProductFamily } from "@/lib/types";
 
 type PublicOrderFormState = {
   success: boolean;
@@ -14,7 +15,7 @@ type PublicOrderFormState = {
 };
 
 type PublicOrderFormProps = {
-  products: Product[];
+  products: ProductFamily[];
 };
 
 const initialState: PublicOrderFormState = {
@@ -23,9 +24,12 @@ const initialState: PublicOrderFormState = {
 };
 
 export function PublicOrderForm({ products }: PublicOrderFormProps) {
-  const activeProducts = products.filter((product) => product.active);
-  const initialItems: OrderItemInput[] = activeProducts[0]
-    ? [{ productId: activeProducts[0].id, quantity: 1 }]
+  const activeProducts = products.filter(
+    (product) => product.active && product.variants.some((variant) => variant.active && variant.visibility === "sellable")
+  );
+  const initialVariantId = activeProducts[0] ? getDefaultSellableVariantId(activeProducts[0]) : null;
+  const initialItems: OrderItemInput[] = initialVariantId
+    ? [{ productId: initialVariantId, quantity: 1 }]
     : [];
 
   const [state, setState] = useState(initialState);

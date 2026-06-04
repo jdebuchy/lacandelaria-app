@@ -48,6 +48,7 @@ La mejor primera version es una `PWA`:
 ## Documentacion
 
 - [Plan de producto](./docs/product-plan.md)
+- [Modelo de catalogo](./docs/catalog-model.md)
 - [Roadmap MVP](./docs/mvp-roadmap.md)
 - [Modelo de datos](./docs/data-model.md)
 

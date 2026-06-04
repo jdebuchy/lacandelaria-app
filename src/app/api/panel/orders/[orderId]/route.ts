@@ -5,12 +5,12 @@ import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
 import {
+  buildVariantLookup,
   buildOrderItems,
   calculateItemsCount,
   calculateOrderTotal,
-  mapProductRow,
+  loadCatalog,
   orderItemsInputSchema,
-  productSchema
 } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -154,13 +154,11 @@ export async function PATCH(request: Request, context: Params) {
     customerId = newCustomer.id;
   }
 
-  const { data: productRows, error: productsError } = await supabase
-    .from("products")
-    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
-    .in(
-      "id",
-      parsed.data.items.map((item) => item.productId)
-    );
+  const { data: catalog, error: productsError } = await loadCatalog(supabase, {
+    onlyActiveFamilies: true,
+    onlySellableVariants: true,
+    onlyActiveVariants: true
+  });
 
   if (productsError) {
     console.error("products fetch failed", productsError);
@@ -170,12 +168,7 @@ export async function PATCH(request: Request, context: Params) {
     );
   }
 
-  const productsById = new Map(
-    (productRows ?? []).map((row) => {
-      const parsedProduct = productSchema.parse(row);
-      return [parsedProduct.id, mapProductRow(parsedProduct)] as const;
-    })
-  );
+  const productsById = buildVariantLookup(catalog ?? []);
 
   let orderItems;
 

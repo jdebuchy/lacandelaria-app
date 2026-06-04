@@ -3,22 +3,9 @@ import { ManualOrderForm, type CustomerMatch } from "@/components/manual-order-f
 import { EMPTY_STRUCTURED_ADDRESS } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { OrderItemInput, Product } from "@/lib/types";
-
-function mapProducts(rows: Array<Record<string, unknown>>): Product[] {
-  return rows.map((row) => ({
-    id: String(row.id),
-    name: String(row.name),
-    slug: String(row.slug),
-    description: typeof row.description === "string" ? row.description : null,
-    salesUnitLabel: String(row.sales_unit_label),
-    cashPrice: Number(row.cash_price),
-    transferPrice: Number(row.transfer_price),
-    active: Boolean(row.active),
-    displayOrder: Number(row.display_order ?? 0)
-  }));
-}
+import type { OrderItemInput } from "@/lib/types";
 
 type Params = {
   params: Promise<{
@@ -32,11 +19,11 @@ export default async function EditOrderPage(context: Params) {
   const supabase = createAdminClient();
 
   const [{ data: products }, { data: order }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
-      .order("display_order", { ascending: true })
-      .order("name", { ascending: true }),
+    loadCatalog(supabase, {
+      onlyActiveFamilies: true,
+      onlySellableVariants: true,
+      onlyActiveVariants: true
+    }),
     supabase
       .from("orders")
       .select(
@@ -136,7 +123,7 @@ export default async function EditOrderPage(context: Params) {
         <ManualOrderForm
           mode="edit"
           orderId={orderId}
-          products={mapProducts(products ?? [])}
+          products={products ?? []}
           initialData={{
             customer,
             firstName: customer?.first_name ?? "",

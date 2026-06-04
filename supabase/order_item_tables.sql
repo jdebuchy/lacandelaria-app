@@ -1,7 +1,7 @@
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete cascade,
-  product_id uuid not null references public.products(id) on delete restrict,
+  product_id uuid not null references public.product_variants(id) on delete restrict,
   product_name_snapshot text not null,
   sales_unit_label_snapshot text not null,
   quantity integer not null,
@@ -13,7 +13,7 @@ create table if not exists public.order_items (
 create table if not exists public.public_order_request_items (
   id uuid primary key default gen_random_uuid(),
   public_order_request_id uuid not null references public.public_order_requests(id) on delete cascade,
-  product_id uuid not null references public.products(id) on delete restrict,
+  product_id uuid not null references public.product_variants(id) on delete restrict,
   product_name_snapshot text not null,
   sales_unit_label_snapshot text not null,
   quantity integer not null,

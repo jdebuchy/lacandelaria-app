@@ -75,17 +75,53 @@ create table if not exists public.inventory_batches (
   notes text
 );
 
-create table if not exists public.products (
+create table if not exists public.product_families (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   slug text not null unique,
   description text,
-  sales_unit_label text not null,
+  active boolean not null default true,
+  display_order integer not null default 0,
+  default_variant_id uuid,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.product_variants (
+  id uuid primary key default gen_random_uuid(),
+  product_family_id uuid not null references public.product_families(id) on delete cascade,
+  label text not null,
+  slug text not null unique,
+  description text,
   cash_price numeric(12,2) not null,
   transfer_price numeric(12,2) not null,
   active boolean not null default true,
   display_order integer not null default 0,
+  visibility text not null default 'sellable' check (visibility in ('sellable', 'internal')),
+  composition_type text not null default 'simple' check (composition_type in ('simple', 'bundle')),
   created_at timestamptz not null default now()
+);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'product_families_default_variant_id_fkey'
+  ) then
+    alter table public.product_families
+      add constraint product_families_default_variant_id_fkey
+      foreign key (default_variant_id) references public.product_variants(id) on delete set null;
+  end if;
+end $$;
+
+create table if not exists public.product_variant_components (
+  bundle_variant_id uuid not null references public.product_variants(id) on delete cascade,
+  component_variant_id uuid not null references public.product_variants(id) on delete restrict,
+  quantity numeric(12,2) not null,
+  created_at timestamptz not null default now(),
+  primary key (bundle_variant_id, component_variant_id),
+  constraint product_variant_components_no_self_reference
+    check (bundle_variant_id <> component_variant_id)
 );
 
 create table if not exists public.orders (
@@ -136,7 +172,7 @@ create table if not exists public.public_order_requests (
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete cascade,
-  product_id uuid not null references public.products(id) on delete restrict,
+  product_id uuid not null references public.product_variants(id) on delete restrict,
   product_name_snapshot text not null,
   sales_unit_label_snapshot text not null,
   quantity integer not null,
@@ -148,7 +184,7 @@ create table if not exists public.order_items (
 create table if not exists public.public_order_request_items (
   id uuid primary key default gen_random_uuid(),
   public_order_request_id uuid not null references public.public_order_requests(id) on delete cascade,
-  product_id uuid not null references public.products(id) on delete restrict,
+  product_id uuid not null references public.product_variants(id) on delete restrict,
   product_name_snapshot text not null,
   sales_unit_label_snapshot text not null,
   quantity integer not null,
@@ -194,26 +230,26 @@ create index if not exists public_order_request_items_request_id_idx
   on public.public_order_request_items(public_order_request_id);
 create index if not exists public_order_request_items_product_id_idx
   on public.public_order_request_items(product_id);
-create index if not exists products_active_display_order_idx
-  on public.products(active, display_order, name);
+create index if not exists product_families_active_display_order_idx
+  on public.product_families(active, display_order, name);
+create index if not exists product_variants_family_display_order_idx
+  on public.product_variants(product_family_id, active, display_order, label);
+create index if not exists product_variants_visibility_display_order_idx
+  on public.product_variants(visibility, active, display_order, label);
+create index if not exists product_variant_components_component_idx
+  on public.product_variant_components(component_variant_id);
 
-insert into public.products (
+insert into public.product_families (
   name,
   slug,
   description,
-  sales_unit_label,
-  cash_price,
-  transfer_price,
   active,
   display_order
 )
 values (
-  'Palta',
-  'palta',
+  'Palta Hass',
+  'palta-hass',
   'Producto inicial del catalogo.',
-  'Caja de 4 kg',
-  25000,
-  30000,
   true,
   0
 )
@@ -221,8 +257,47 @@ on conflict (slug) do update
 set
   name = excluded.name,
   description = excluded.description,
-  sales_unit_label = excluded.sales_unit_label,
+  active = excluded.active,
+  display_order = excluded.display_order;
+
+insert into public.product_variants (
+  product_family_id,
+  label,
+  slug,
+  description,
+  cash_price,
+  transfer_price,
+  active,
+  display_order,
+  visibility,
+  composition_type
+)
+select
+  pf.id,
+  'Caja de 4 kg',
+  'palta-hass-caja-4kg',
+  'Caja de 4 kg',
+  25000,
+  30000,
+  true,
+  0,
+  'sellable',
+  'simple'
+from public.product_families pf
+where pf.slug = 'palta-hass'
+on conflict (slug) do update
+set
+  label = excluded.label,
+  description = excluded.description,
   cash_price = excluded.cash_price,
   transfer_price = excluded.transfer_price,
   active = excluded.active,
-  display_order = excluded.display_order;
+  display_order = excluded.display_order,
+  visibility = excluded.visibility,
+  composition_type = excluded.composition_type;
+
+update public.product_families
+set default_variant_id = pv.id
+from public.product_variants pv
+where public.product_families.slug = 'palta-hass'
+  and pv.slug = 'palta-hass-caja-4kg';

@@ -3,11 +3,11 @@ import { z } from "zod";
 import { structuredAddressSchema, toStructuredAddressColumns } from "@/lib/address";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
 import {
+  buildVariantLookup,
   buildPublicOrderRequestItems,
   calculateItemsCount,
-  mapProductRow,
+  loadCatalog,
   orderItemsInputSchema,
-  productSchema
 } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -82,13 +82,11 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data: productRows, error: productsError } = await supabase
-    .from("products")
-    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
-    .in(
-      "id",
-      parsed.data.items.map((item) => item.productId)
-    );
+  const { data: catalog, error: productsError } = await loadCatalog(supabase, {
+    onlyActiveFamilies: true,
+    onlySellableVariants: true,
+    onlyActiveVariants: true
+  });
 
   if (productsError) {
     console.error("products fetch failed", productsError);
@@ -98,12 +96,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const productsById = new Map(
-    (productRows ?? []).map((row) => {
-      const parsedProduct = productSchema.parse(row);
-      return [parsedProduct.id, mapProductRow(parsedProduct)] as const;
-    })
-  );
+  const productsById = buildVariantLookup(catalog ?? []);
 
   let requestItems;
 

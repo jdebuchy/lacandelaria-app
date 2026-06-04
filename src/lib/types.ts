@@ -18,16 +18,44 @@ export type PublicOrderRequestStatus = "new" | "reviewed" | "converted" | "rejec
 
 export type DeliveryStatus = "pending" | "in_route" | "delivered" | "failed";
 
-export type Product = {
+export type ProductVariantVisibility = "sellable" | "internal";
+
+export type ProductVariantCompositionType = "simple" | "bundle";
+
+export type ProductVariantComponent = {
+  componentVariantId: string;
+  componentFamilyName: string;
+  componentLabel: string;
+  quantity: number;
+};
+
+export type ProductVariant = {
+  id: string;
+  familyId: string;
+  familyName: string;
+  familySlug: string;
+  label: string;
+  slug: string;
+  description?: string | null;
+  cashPrice: number;
+  transferPrice: number;
+  active: boolean;
+  displayOrder: number;
+  visibility: ProductVariantVisibility;
+  compositionType: ProductVariantCompositionType;
+  isDefault: boolean;
+  components: ProductVariantComponent[];
+};
+
+export type ProductFamily = {
   id: string;
   name: string;
   slug: string;
   description?: string | null;
-  salesUnitLabel: string;
-  cashPrice: number;
-  transferPrice: number;
   active: boolean;
-  displayOrder?: number;
+  displayOrder: number;
+  defaultVariantId?: string | null;
+  variants: ProductVariant[];
 };
 
 export type OrderItemInput = {

@@ -1,29 +1,14 @@
 import { PublicOrderForm } from "@/components/public-order-form";
+import { loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Product } from "@/lib/types";
-
-function mapProducts(rows: Array<Record<string, unknown>>): Product[] {
-  return rows.map((row) => ({
-    id: String(row.id),
-    name: String(row.name),
-    slug: String(row.slug),
-    description: typeof row.description === "string" ? row.description : null,
-    salesUnitLabel: String(row.sales_unit_label),
-    cashPrice: Number(row.cash_price),
-    transferPrice: Number(row.transfer_price),
-    active: Boolean(row.active),
-    displayOrder: Number(row.display_order ?? 0)
-  }));
-}
 
 export default async function PublicOrderPage() {
   const supabase = createAdminClient();
-  const { data: products } = await supabase
-    .from("products")
-    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
-    .eq("active", true)
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+  const { data: products } = await loadCatalog(supabase, {
+    onlyActiveFamilies: true,
+    onlySellableVariants: true,
+    onlyActiveVariants: true
+  });
 
   return (
     <main>
@@ -41,7 +26,7 @@ export default async function PublicOrderPage() {
           </p>
         </div>
 
-        <PublicOrderForm products={mapProducts(products ?? [])} />
+        <PublicOrderForm products={products ?? []} />
       </section>
     </main>
   );

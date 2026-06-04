@@ -80,7 +80,11 @@ export default async function BackofficePage() {
       .select("*", { count: "exact", head: true })
       .eq("status", "converted"),
     supabase.from("orders").select("*", { count: "exact", head: true }),
-    supabase.from("products").select("*", { count: "exact", head: true }).eq("active", true),
+    supabase
+      .from("product_variants")
+      .select("*", { count: "exact", head: true })
+      .eq("active", true)
+      .eq("visibility", "sellable"),
     supabase
       .from("orders")
       .select(

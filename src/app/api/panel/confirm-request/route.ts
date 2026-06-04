@@ -3,11 +3,11 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import {
+  buildVariantLookup,
   buildOrderItems,
   calculateItemsCount,
   calculateOrderTotal,
-  mapProductRow,
-  productSchema
+  loadCatalog
 } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -111,13 +111,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: productRows, error: productsError } = await supabase
-    .from("products")
-    .select("id, name, slug, description, sales_unit_label, cash_price, transfer_price, active, display_order")
-    .in(
-      "id",
-      requestItems.map((item) => item.product_id)
-    );
+  const { data: catalog, error: productsError } = await loadCatalog(supabase, {
+    onlyActiveFamilies: true,
+    onlySellableVariants: true,
+    onlyActiveVariants: true
+  });
 
   if (productsError) {
     console.error("products fetch failed", productsError);
@@ -127,12 +125,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const productsById = new Map(
-    (productRows ?? []).map((row) => {
-      const parsedProduct = productSchema.parse(row);
-      return [parsedProduct.id, mapProductRow(parsedProduct)] as const;
-    })
-  );
+  const productsById = buildVariantLookup(catalog ?? []);
 
   let orderItems;
 

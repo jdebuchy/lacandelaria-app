@@ -1,33 +1,13 @@
 import { ProductCatalogManager } from "@/components/product-catalog-manager";
 import { requirePageRole } from "@/lib/auth";
-import { getProductCatalogDbErrorMessage, PRODUCT_SELECT_COLUMNS } from "@/lib/products";
+import { getProductCatalogDbErrorMessage, loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Product } from "@/lib/types";
-
 const ADMIN_ONLY = ["admin"] as const;
-
-function mapProducts(rows: Array<Record<string, unknown>>): Product[] {
-  return rows.map((row) => ({
-    id: String(row.id),
-    name: String(row.name),
-    slug: String(row.slug),
-    description: typeof row.description === "string" ? row.description : null,
-    salesUnitLabel: String(row.sales_unit_label),
-    cashPrice: Number(row.cash_price),
-    transferPrice: Number(row.transfer_price),
-    active: Boolean(row.active),
-    displayOrder: Number(row.display_order ?? 0)
-  }));
-}
 
 export default async function ProductsPage() {
   await requirePageRole(ADMIN_ONLY, "/panel/products");
   const supabase = createAdminClient();
-  const { data: products, error } = await supabase
-    .from("products")
-    .select(PRODUCT_SELECT_COLUMNS)
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+  const { data: products, error } = await loadCatalog(supabase);
 
   return (
     <main>
@@ -42,7 +22,7 @@ export default async function ProductsPage() {
         </div>
 
         <ProductCatalogManager
-          initialProducts={mapProducts(products ?? [])}
+          initialProducts={products ?? []}
           initialMessage={error ? getProductCatalogDbErrorMessage(error, "load") : ""}
         />
       </section>

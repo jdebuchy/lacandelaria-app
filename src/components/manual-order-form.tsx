@@ -13,7 +13,8 @@ import {
   formatStructuredAddressSummary
 } from "@/lib/address";
 import { composeFullName, formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
-import type { OrderItemInput, Product } from "@/lib/types";
+import { getDefaultSellableVariantId } from "@/lib/products";
+import type { OrderItemInput, ProductFamily } from "@/lib/types";
 
 export type CustomerMatch = {
   id: string;
@@ -55,7 +56,7 @@ type ManualOrderFormInitialData = {
 };
 
 type ManualOrderFormProps = {
-  products: Product[];
+  products: ProductFamily[];
   mode?: "create" | "edit";
   orderId?: string;
   initialData?: Partial<ManualOrderFormInitialData>;
@@ -82,9 +83,12 @@ export function ManualOrderForm({
   initialData
 }: ManualOrderFormProps) {
   const router = useRouter();
-  const activeProducts = products.filter((product) => product.active);
-  const fallbackItems: OrderItemInput[] = activeProducts[0]
-    ? [{ productId: activeProducts[0].id, quantity: 1 }]
+  const activeProducts = products.filter(
+    (product) => product.active && product.variants.some((variant) => variant.active && variant.visibility === "sellable")
+  );
+  const fallbackVariantId = activeProducts[0] ? getDefaultSellableVariantId(activeProducts[0]) : null;
+  const fallbackItems: OrderItemInput[] = fallbackVariantId
+    ? [{ productId: fallbackVariantId, quantity: 1 }]
     : [];
   const initialItems = initialData?.items?.length ? initialData.items : fallbackItems;
   const initialCustomer = initialData?.customer ?? null;

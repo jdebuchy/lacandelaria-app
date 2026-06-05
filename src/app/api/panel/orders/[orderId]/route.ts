@@ -44,8 +44,10 @@ const updateManualOrderSchema = structuredAddressSchema
       });
     }
 
-    const hasWindowStart = Boolean(data.deliveryWindowStart?.trim());
-    const hasWindowEnd = Boolean(data.deliveryWindowEnd?.trim());
+    const deliveryWindowStart = data.deliveryWindowStart?.trim() ?? "";
+    const deliveryWindowEnd = data.deliveryWindowEnd?.trim() ?? "";
+    const hasWindowStart = Boolean(deliveryWindowStart);
+    const hasWindowEnd = Boolean(deliveryWindowEnd);
 
     if (hasWindowStart !== hasWindowEnd) {
       ctx.addIssue({
@@ -55,7 +57,7 @@ const updateManualOrderSchema = structuredAddressSchema
       });
     }
 
-    if (hasWindowStart && hasWindowEnd && data.deliveryWindowStart > data.deliveryWindowEnd) {
+    if (hasWindowStart && hasWindowEnd && deliveryWindowStart > deliveryWindowEnd) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "La franja horaria es inválida.",

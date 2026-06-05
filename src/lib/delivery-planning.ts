@@ -8,7 +8,13 @@ import {
   inferLogisticsFlow
 } from "@/lib/logistics";
 import { formatItemsSummary } from "@/lib/products";
-import type { DeliveryStatus, DeliveryTripStatus, PaymentMethod, PaymentStatus } from "@/lib/types";
+import type {
+  DeliveryStatus,
+  DeliveryTripStatus,
+  PaymentMethod,
+  PaymentStatus,
+  SalesChannel
+} from "@/lib/types";
 
 type RelatedCustomer = {
   address_kind?: "standard" | "gated" | null;
@@ -78,7 +84,7 @@ type TripOrderWithRelations = {
   payment_status: PaymentStatus;
   reseller_id?: string | null;
   resellers?: RelatedReseller | RelatedReseller[] | null;
-  sales_channel?: string | null;
+  sales_channel?: SalesChannel | null;
   status: string;
   total_amount?: number | string | null;
 };

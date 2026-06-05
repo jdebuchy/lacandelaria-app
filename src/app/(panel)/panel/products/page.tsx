@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { ProductCatalogList } from "@/components/product-catalog-list";
+import { ProductCatalogManager } from "@/components/product-catalog-manager";
 import { requirePageRole } from "@/lib/auth";
 import { getProductCatalogDbErrorMessage, loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
+
 const ADMIN_ONLY = ["admin"] as const;
 
 export default async function ProductsPage() {
@@ -12,31 +12,15 @@ export default async function ProductsPage() {
 
   return (
     <main>
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-              Productos
-            </h1>
-            <p className="mt-2 text-stone-400">
-              Gestión centralizada de productos, unidades comerciales y precios por medio de pago.
-            </p>
-            {error ? (
-              <p className="mt-2 text-sm text-rose-300">
-                {getProductCatalogDbErrorMessage(error, "load")}
-              </p>
-            ) : null}
-          </div>
-          <Link
-            href="/panel/products/new"
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400"
-          >
-            Nuevo producto
-          </Link>
-        </div>
-
-        <ProductCatalogList products={products ?? []} />
-      </section>
+      {error ? (
+        <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+          <p className="rounded-3xl border border-rose-400/20 bg-rose-500/10 px-5 py-4 text-sm text-rose-300">
+            {getProductCatalogDbErrorMessage(error, "load")}
+          </p>
+        </section>
+      ) : (
+        <ProductCatalogManager initialProducts={products ?? []} editorMode="index" />
+      )}
     </main>
   );
 }

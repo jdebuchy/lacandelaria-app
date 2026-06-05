@@ -10,6 +10,7 @@ import type {
   DeliveryPlanningTrip
 } from "@/lib/delivery-planning";
 import type { DeliveryRoutePreview } from "@/lib/delivery-routing";
+import { formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
 
 type DeliveryTripPlannerProps = {
@@ -379,7 +380,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-7">
           <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
             <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Fecha del viaje</span>
             <input
@@ -409,6 +410,11 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
             <p className="mt-2 text-sm font-medium text-stone-100">{getDeliveryTripStatusLabel(trip.status)}</p>
+          </div>
+          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Depósito</p>
+            <p className="mt-2 text-sm font-medium text-stone-100">{trip.depot.label}</p>
+            <p className="mt-1 text-xs text-stone-500">{formatLogisticsDepotAddress(trip.depot)}</p>
           </div>
           <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pedidos</p>
@@ -566,7 +572,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         </section>
 
         <section className="grid gap-6">
-          <TripRouteMap route={displayedRoute} stops={stops} />
+          <TripRouteMap depot={trip.depot} route={displayedRoute} stops={stops} />
 
           {proposal ? (
             <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5">

@@ -25,6 +25,15 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function isAuthSessionMissingError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: string }).name === "AuthSessionMissingError"
+  );
+}
+
 async function getSessionUser() {
   const supabase = await createClient();
   const {
@@ -33,7 +42,10 @@ async function getSessionUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("auth.getUser failed", error);
+    if (!isAuthSessionMissingError(error)) {
+      console.error("auth.getUser failed", error);
+    }
+
     return null;
   }
 

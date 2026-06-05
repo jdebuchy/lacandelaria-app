@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatStructuredAddressSummary } from "@/lib/address";
 import { formatPersonName } from "@/lib/contact";
+import type { LogisticsDepot } from "@/lib/logistics-depots";
+import { DEFAULT_LOGISTICS_DEPOT_CODE, DEFAULT_LOGISTICS_DEPOT_FALLBACK } from "@/lib/logistics-depots";
 import {
   getLogisticsFlowGuidance,
   getLogisticsFlowLabel,
@@ -8,7 +10,13 @@ import {
   inferLogisticsFlow
 } from "@/lib/logistics";
 import { formatItemsSummary } from "@/lib/products";
-import type { DeliveryStatus, DeliveryTripStatus, PaymentMethod, PaymentStatus } from "@/lib/types";
+import type {
+  DeliveryStatus,
+  DeliveryTripStatus,
+  PaymentMethod,
+  PaymentStatus,
+  SalesChannel
+} from "@/lib/types";
 
 type RelatedCustomer = {
   address_kind?: "standard" | "gated" | null;
@@ -45,11 +53,23 @@ type TripDriverRow = {
   id: string;
 };
 
+type RelatedDepotRow = {
+  address_line_1: string;
+  administrative_area_level_1: string;
+  code: string;
+  google_place_id?: string | null;
+  id: string;
+  label: string;
+  locality: string;
+};
+
 type TripRow = {
   completed_at?: string | null;
   created_at?: string;
+  depot_id: string;
   driver_user_id: string | null;
   id: string;
+  logistics_depots?: RelatedDepotRow | RelatedDepotRow[] | null;
   notes?: string | null;
   scheduled_date: string;
   started_at?: string | null;
@@ -78,7 +98,7 @@ type TripOrderWithRelations = {
   payment_status: PaymentStatus;
   reseller_id?: string | null;
   resellers?: RelatedReseller | RelatedReseller[] | null;
-  sales_channel?: string | null;
+  sales_channel?: SalesChannel | null;
   status: string;
   total_amount?: number | string | null;
 };
@@ -138,6 +158,7 @@ export type DeliveryPlanningTrip = {
   availableOrders: DeliveryPlanningAvailableOrder[];
   completedAt: string | null;
   createdAt: string | null;
+  depot: LogisticsDepot;
   driverUserId: string | null;
   id: string;
   notes: string;
@@ -166,6 +187,22 @@ function formatRouteAddress(customer: RelatedCustomer | null) {
     gatedCommunityName: customer.gated_community_name ?? "",
     locality: customer.locality ?? ""
   });
+}
+
+function buildPlanningDepot(depot: RelatedDepotRow | null): LogisticsDepot {
+  if (!depot) {
+    return DEFAULT_LOGISTICS_DEPOT_FALLBACK;
+  }
+
+  return {
+    addressLine1: depot.address_line_1,
+    administrativeAreaLevel1: depot.administrative_area_level_1,
+    code: depot.code,
+    googlePlaceId: depot.google_place_id ?? null,
+    id: depot.id,
+    label: depot.label,
+    locality: depot.locality
+  };
 }
 
 function buildPlanningStop(tripOrder: TripOrderRow, order: TripOrderWithRelations): DeliveryPlanningStop {
@@ -218,7 +255,7 @@ export async function loadDeliveryTripPlanning(
   supabase: SupabaseClient,
   tripId: string
 ): Promise<{ drivers: DeliveryPlanningDriver[]; trip: DeliveryPlanningTrip | null }> {
-  const [{ data: drivers }, { data: trip }] = await Promise.all([
+  const [driversResult, tripResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, role")
@@ -227,10 +264,49 @@ export async function loadDeliveryTripPlanning(
       .order("full_name", { ascending: true }),
     supabase
       .from("delivery_trips")
-      .select("id, scheduled_date, driver_user_id, status, notes, started_at, completed_at, created_at")
+      .select(
+        `
+          id,
+          depot_id,
+          scheduled_date,
+          driver_user_id,
+          status,
+          notes,
+          started_at,
+          completed_at,
+          created_at,
+          logistics_depots (
+            id,
+            code,
+            label,
+            address_line_1,
+            locality,
+            administrative_area_level_1,
+            google_place_id
+          )
+        `
+      )
       .eq("id", tripId)
       .single()
   ]);
+  const drivers = driversResult.data;
+  let trip: TripRow | null = tripResult.data ?? null;
+
+  if (tripResult.error) {
+    const fallbackTripResult = await supabase
+      .from("delivery_trips")
+      .select("id, scheduled_date, driver_user_id, status, notes, started_at, completed_at, created_at")
+      .eq("id", tripId)
+      .single();
+
+    if (!fallbackTripResult.error && fallbackTripResult.data) {
+      trip = {
+        ...fallbackTripResult.data,
+        depot_id: DEFAULT_LOGISTICS_DEPOT_FALLBACK.id,
+        logistics_depots: null
+      } satisfies TripRow;
+    }
+  }
 
   if (!trip) {
     return {
@@ -389,6 +465,7 @@ export async function loadDeliveryTripPlanning(
       availableOrders,
       completedAt: trip.completed_at ?? null,
       createdAt: trip.created_at ?? null,
+      depot: buildPlanningDepot(takeSingleRelation<RelatedDepotRow>(trip.logistics_depots ?? null)),
       driverUserId: trip.driver_user_id,
       id: trip.id,
       notes: trip.notes ?? "",
@@ -407,6 +484,21 @@ type SaveTripPlanInput = {
   scheduledDate: string;
   tripId: string;
 };
+
+export async function loadDefaultLogisticsDepot(supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("logistics_depots")
+    .select("id, code, label, address_line_1, locality, administrative_area_level_1, google_place_id")
+    .eq("code", DEFAULT_LOGISTICS_DEPOT_CODE)
+    .eq("active", true)
+    .single();
+
+  if (error || !data) {
+    throw new Error("No se encontró el depósito por defecto.");
+  }
+
+  return buildPlanningDepot(data satisfies RelatedDepotRow);
+}
 
 export async function saveDeliveryTripPlan(supabase: SupabaseClient, input: SaveTripPlanInput) {
   const { data: trip, error: tripError } = await supabase

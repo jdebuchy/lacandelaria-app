@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DeliveryPlanningStop } from "@/lib/delivery-planning";
 import type { DeliveryRoutePreview } from "@/lib/delivery-routing";
-import { DEFAULT_LOGISTICS_DEPOT } from "@/lib/logistics-depots";
+import type { LogisticsDepot } from "@/lib/logistics-depots";
+import { DEFAULT_LOGISTICS_DEPOT_FALLBACK, formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { decodeGooglePolyline, getPolylineBounds, type PolylinePoint } from "@/lib/polyline";
 
 type GoogleMapsWindow = Window & {
@@ -46,6 +47,7 @@ type GoogleMapsWindow = Window & {
 };
 
 type TripRouteMapProps = {
+  depot?: LogisticsDepot | null;
   route: DeliveryRoutePreview | null;
   stops: DeliveryPlanningStop[];
 };
@@ -144,10 +146,11 @@ function ensureGoogleMapsScript(apiKey: string) {
   });
 }
 
-export function TripRouteMap({ route, stops }: TripRouteMapProps) {
+export function TripRouteMap({ depot, route, stops }: TripRouteMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [mapsError, setMapsError] = useState<string | null>(null);
   const browserMapsKey = getGoogleMapsBrowserKey();
+  const tripDepot = depot ?? DEFAULT_LOGISTICS_DEPOT_FALLBACK;
   const orderedStops = useMemo(() => {
     const stopById = new Map(stops.map((stop) => [stop.orderId, stop]));
     return (route?.orderedStopIds ?? stops.map((stop) => stop.orderId))
@@ -366,7 +369,7 @@ export function TripRouteMap({ route, stops }: TripRouteMapProps) {
       </div>
 
       <div className="mt-4 rounded-2xl border border-stone-800 bg-stone-950/60 px-4 py-3 text-sm text-stone-300">
-        Origen y destino fijos: {DEFAULT_LOGISTICS_DEPOT.label} · {DEFAULT_LOGISTICS_DEPOT.address}
+        Origen y destino fijos: {tripDepot.label} · {formatLogisticsDepotAddress(tripDepot)}
       </div>
       {!browserMapsKey ? (
         <div className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">

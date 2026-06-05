@@ -16,8 +16,21 @@ begin
   end if;
 end $$;
 
+create table if not exists public.logistics_depots (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  label text not null,
+  address_line_1 text not null,
+  locality text not null,
+  administrative_area_level_1 text not null,
+  google_place_id text,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.delivery_trips (
   id uuid primary key default gen_random_uuid(),
+  depot_id uuid not null references public.logistics_depots(id) on delete restrict,
   scheduled_date date not null,
   driver_user_id uuid references public.profiles(id) on delete set null,
   status public.delivery_trip_status not null default 'draft',
@@ -38,12 +51,43 @@ create table if not exists public.delivery_trip_orders (
 );
 
 create index if not exists deliveries_order_id_idx on public.deliveries(order_id);
+create index if not exists logistics_depots_active_label_idx
+  on public.logistics_depots(active, label);
 create index if not exists delivery_trips_scheduled_date_status_idx
   on public.delivery_trips(scheduled_date, status, created_at desc);
 create index if not exists delivery_trips_driver_status_idx
   on public.delivery_trips(driver_user_id, status, scheduled_date);
+create index if not exists delivery_trips_depot_scheduled_date_idx
+  on public.delivery_trips(depot_id, scheduled_date, created_at desc);
 create index if not exists delivery_trip_orders_trip_sequence_idx
   on public.delivery_trip_orders(delivery_trip_id, sequence_number);
 create unique index if not exists delivery_trip_orders_active_order_idx
   on public.delivery_trip_orders(order_id)
   where released_at is null;
+
+insert into public.logistics_depots (
+  code,
+  label,
+  address_line_1,
+  locality,
+  administrative_area_level_1,
+  google_place_id,
+  active
+)
+values (
+  'deposito_1',
+  'Depósito 1',
+  'Juan Antonio Cabrera 4511',
+  'Buenos Aires',
+  'Capital Federal',
+  null,
+  true
+)
+on conflict (code) do update
+set
+  label = excluded.label,
+  address_line_1 = excluded.address_line_1,
+  locality = excluded.locality,
+  administrative_area_level_1 = excluded.administrative_area_level_1,
+  google_place_id = excluded.google_place_id,
+  active = excluded.active;

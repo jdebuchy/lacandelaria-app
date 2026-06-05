@@ -1,7 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST() {
+function getRedirectOrigin(request: NextRequest) {
+  const requestUrl = new URL(request.url);
+  const forwardedHost = request.headers.get("x-forwarded-host");
+
+  if (process.env.NODE_ENV !== "development" && forwardedHost) {
+    return `https://${forwardedHost}`;
+  }
+
+  return requestUrl.origin;
+}
+
+export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
 
@@ -9,7 +20,7 @@ export async function POST() {
     console.error("signOut failed", error);
   }
 
-  return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"), {
+  return NextResponse.redirect(`${getRedirectOrigin(request)}/login`, {
     status: 303
   });
 }

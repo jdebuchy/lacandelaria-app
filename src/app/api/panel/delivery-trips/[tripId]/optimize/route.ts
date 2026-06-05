@@ -61,7 +61,8 @@ export async function POST(request: Request, context: Params) {
   const proposal = await computeOptimizedRoute(
     routeStops,
     parsed.data.orderedStopIds,
-    parsed.data.scheduledDate || trip.scheduledDate
+    parsed.data.scheduledDate || trip.scheduledDate,
+    trip.depot
   );
 
   return NextResponse.json({

@@ -57,7 +57,7 @@ export async function POST(request: Request, context: Params) {
   }
 
   const routeStops = parsed.data.stops?.length ? parsed.data.stops : trip.stops;
-  const route = await computeDisplayedRoute(routeStops, parsed.data.orderedStopIds);
+  const route = await computeDisplayedRoute(routeStops, parsed.data.orderedStopIds, trip.depot);
 
   return NextResponse.json({
     route,

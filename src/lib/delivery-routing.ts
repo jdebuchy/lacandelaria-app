@@ -2,7 +2,8 @@ import "server-only";
 
 import { createSign } from "node:crypto";
 import type { DeliveryPlanningStop } from "@/lib/delivery-planning";
-import { DEFAULT_LOGISTICS_DEPOT } from "@/lib/logistics-depots";
+import type { LogisticsDepot } from "@/lib/logistics-depots";
+import { DEFAULT_LOGISTICS_DEPOT_FALLBACK, formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 
 export type DeliveryRoutingStop = Pick<
   DeliveryPlanningStop,
@@ -80,7 +81,15 @@ function getRoutesApiKey() {
   return process.env.GOOGLE_MAPS_API_KEY ?? "";
 }
 
-function getDepotWaypoint() {
+function getDepotWaypoint(depot?: LogisticsDepot | null) {
+  if (depot?.googlePlaceId) {
+    return { placeId: depot.googlePlaceId } satisfies Waypoint;
+  }
+
+  if (depot) {
+    return { address: formatLogisticsDepotAddress(depot) } satisfies Waypoint;
+  }
+
   const placeId = process.env.LOGISTICS_DEPOT_PLACE_ID?.trim();
   const address = process.env.LOGISTICS_DEPOT_ADDRESS?.trim();
 
@@ -92,7 +101,7 @@ function getDepotWaypoint() {
     return { address } satisfies Waypoint;
   }
 
-  return { address: DEFAULT_LOGISTICS_DEPOT.address } satisfies Waypoint;
+  return { address: formatLogisticsDepotAddress(DEFAULT_LOGISTICS_DEPOT_FALLBACK) } satisfies Waypoint;
 }
 
 function getOptimizationCredentials() {
@@ -195,25 +204,26 @@ function buildOrderedStops(stops: DeliveryRoutingStop[], orderedStopIds?: string
 
 async function callRoutesApi(
   orderedStops: DeliveryRoutingStop[],
+  depot: LogisticsDepot | null | undefined,
   options: {
     optimizeWaypointOrder: boolean;
   }
 ) {
   const apiKey = getRoutesApiKey();
+  const depotWaypoint = getDepotWaypoint(depot);
 
-  if (!apiKey || orderedStops.length < 2) {
+  if (!apiKey || orderedStops.length < (depotWaypoint ? 1 : 2)) {
     return null;
   }
 
-  const depot = getDepotWaypoint();
   const warnings: string[] = [];
   let origin: Waypoint;
   let destination: Waypoint;
   let routeStops = orderedStops;
 
-  if (depot) {
-    origin = depot;
-    destination = depot;
+  if (depotWaypoint) {
+    origin = depotWaypoint;
+    destination = depotWaypoint;
   } else {
     origin = stopToWaypoint(orderedStops[0]);
     destination = stopToWaypoint(orderedStops.at(-1) ?? orderedStops[0]);
@@ -282,7 +292,7 @@ async function callRoutesApi(
   if (options.optimizeWaypointOrder) {
     const optimizedIntermediate = route.optimizedIntermediateWaypointIndex ?? [];
 
-    if (depot) {
+    if (depotWaypoint) {
       orderedIds = optimizedIntermediate.map((index) => orderedStops[index]?.orderId).filter(Boolean);
     } else {
       const head = orderedStops[0]?.orderId;
@@ -300,7 +310,7 @@ async function callRoutesApi(
   const routeLegs = route.legs ?? [];
   const legMappedStops = buildOrderedStops(orderedStops, orderedIds);
 
-  if (depot) {
+  if (depotWaypoint) {
     for (const [index, stop] of legMappedStops.entries()) {
       const endLatLng = routeLegs[index]?.endLocation?.latLng;
       if (endLatLng) {
@@ -344,7 +354,11 @@ async function callRoutesApi(
   };
 }
 
-async function callOptimizationApi(stops: DeliveryRoutingStop[], scheduledDate?: string) {
+async function callOptimizationApi(
+  stops: DeliveryRoutingStop[],
+  depot: LogisticsDepot | null | undefined,
+  scheduledDate?: string
+) {
   const token = await getServiceAccountAccessToken();
   const credentials = getOptimizationCredentials();
 
@@ -352,8 +366,8 @@ async function callOptimizationApi(stops: DeliveryRoutingStop[], scheduledDate?:
     return null;
   }
 
-  const depot = getDepotWaypoint();
-  if (!depot) {
+  const depotWaypoint = getDepotWaypoint(depot);
+  if (!depotWaypoint) {
     return null;
   }
 
@@ -383,9 +397,9 @@ async function callOptimizationApi(stops: DeliveryRoutingStop[], scheduledDate?:
       {
         costPerHour: 1,
         costPerKilometer: 1,
-        endWaypoint: depot,
+        endWaypoint: depotWaypoint,
         label: "delivery-trip",
-        startWaypoint: depot
+        startWaypoint: depotWaypoint
       }
     ]
   };
@@ -420,7 +434,7 @@ async function callOptimizationApi(stops: DeliveryRoutingStop[], scheduledDate?:
     return null;
   }
 
-  const preview = await callRoutesApi(buildOrderedStops(stops, orderedStopIds), {
+  const preview = await callRoutesApi(buildOrderedStops(stops, orderedStopIds), depot, {
     optimizeWaypointOrder: false
   });
 
@@ -436,13 +450,14 @@ async function callOptimizationApi(stops: DeliveryRoutingStop[], scheduledDate?:
 
 export async function computeDisplayedRoute(
   stops: DeliveryRoutingStop[],
-  orderedStopIds?: string[]
+  orderedStopIds?: string[],
+  depot?: LogisticsDepot | null
 ): Promise<DeliveryRoutePreview> {
   const orderedStops = buildOrderedStops(stops, orderedStopIds);
   let route: Awaited<ReturnType<typeof callRoutesApi>> | null = null;
 
   try {
-    route = await callRoutesApi(orderedStops, { optimizeWaypointOrder: false });
+    route = await callRoutesApi(orderedStops, depot, { optimizeWaypointOrder: false });
   } catch (error) {
     return {
       encodedPolyline: null,
@@ -473,14 +488,15 @@ export async function computeDisplayedRoute(
 export async function computeOptimizedRoute(
   stops: DeliveryRoutingStop[],
   orderedStopIds?: string[],
-  scheduledDate?: string
+  scheduledDate?: string,
+  depot?: LogisticsDepot | null
 ): Promise<DeliveryRoutePreview> {
   const orderedStops = buildOrderedStops(stops, orderedStopIds);
   let optimizationWarning: string | null = null;
 
   if (hasTimeWindows(orderedStops)) {
     try {
-      const optimized = await callOptimizationApi(orderedStops, scheduledDate);
+      const optimized = await callOptimizationApi(orderedStops, depot, scheduledDate);
       if (optimized) {
         return optimized;
       }
@@ -493,7 +509,7 @@ export async function computeOptimizedRoute(
   let route: Awaited<ReturnType<typeof callRoutesApi>> | null = null;
 
   try {
-    route = await callRoutesApi(orderedStops, { optimizeWaypointOrder: true });
+    route = await callRoutesApi(orderedStops, depot, { optimizeWaypointOrder: true });
   } catch (error) {
     return {
       encodedPolyline: null,

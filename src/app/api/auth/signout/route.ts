@@ -1,31 +1,26 @@
-import { createServerClient } from "@supabase/ssr";
-import type { SetAllCookies } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/config";
+import { createClient } from "@/lib/supabase/server";
+
+function getRedirectOrigin(request: NextRequest) {
+  const requestUrl = new URL(request.url);
+  const forwardedHost = request.headers.get("x-forwarded-host");
+
+  if (process.env.NODE_ENV !== "development" && forwardedHost) {
+    return `https://${forwardedHost}`;
+  }
+
+  return requestUrl.origin;
+}
 
 export async function POST(request: NextRequest) {
-  const response = NextResponse.redirect(
-    new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
-    { status: 303 }
-  );
-  const supabase = createServerClient(appConfig.supabaseUrl, appConfig.supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: Parameters<SetAllCookies>[0]) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
-        });
-      }
-    }
-  });
-
+  const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
     console.error("signOut failed", error);
   }
 
-  return response;
+  return NextResponse.redirect(`${getRedirectOrigin(request)}/login`, {
+    status: 303
+  });
 }

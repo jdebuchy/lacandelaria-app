@@ -32,6 +32,8 @@ const createManualOrderSchema = structuredAddressSchema
     items: orderItemsInputSchema,
     paymentMethodExpected: z.enum(["cash", "transfer"]),
     deliveryDate: z.string().optional().or(z.literal("")),
+    deliveryWindowStart: z.string().optional().or(z.literal("")),
+    deliveryWindowEnd: z.string().optional().or(z.literal("")),
     notes: z.string().max(500).optional().or(z.literal(""))
   })
   .superRefine((data, ctx) => {
@@ -40,6 +42,25 @@ const createManualOrderSchema = structuredAddressSchema
         code: z.ZodIssueCode.custom,
         message: "Ingresa nombre, apellido o Instagram.",
         path: ["firstName"]
+      });
+    }
+
+    const hasWindowStart = Boolean(data.deliveryWindowStart?.trim());
+    const hasWindowEnd = Boolean(data.deliveryWindowEnd?.trim());
+
+    if (hasWindowStart !== hasWindowEnd) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Completa ambas horas de entrega o deja ambas vacías.",
+        path: ["deliveryWindowStart"]
+      });
+    }
+
+    if (hasWindowStart && hasWindowEnd && data.deliveryWindowStart > data.deliveryWindowEnd) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La franja horaria es inválida.",
+        path: ["deliveryWindowStart"]
       });
     }
   });
@@ -183,6 +204,8 @@ export async function POST(request: Request) {
       status: "confirmed",
       payment_status: "pending",
       delivery_date: parsed.data.deliveryDate || null,
+      delivery_window_start: parsed.data.deliveryWindowStart || null,
+      delivery_window_end: parsed.data.deliveryWindowEnd || null,
       delivery_area: addressColumns.delivery_area,
       notes: parsed.data.notes || null
     })

@@ -8,6 +8,7 @@ type OrderItemsEditorProps = {
   onChange: (items: OrderItemInput[]) => void;
   paymentMethod: "cash" | "transfer";
   products: ProductFamily[];
+  removeAction?: "default" | "subtle" | "hidden";
 };
 
 function formatCurrency(value: number) {
@@ -43,7 +44,8 @@ export function OrderItemsEditor({
   items,
   onChange,
   paymentMethod,
-  products
+  products,
+  removeAction = "default"
 }: OrderItemsEditorProps) {
   const activeFamilies = getSellableFamilies(products);
   const selectedVariantIds = new Set(items.map((item) => item.productId));
@@ -226,14 +228,20 @@ export function OrderItemsEditor({
               </div>
 
               <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={() => removeItem(index)}
-                  disabled={items.length === 1}
-                  className="h-12 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Quitar
-                </button>
+                {removeAction === "hidden" ? null : (
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    disabled={items.length === 1}
+                    className={
+                      removeAction === "subtle"
+                        ? "h-12 px-2 text-sm text-stone-500 transition hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-40"
+                        : "h-12 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    }
+                  >
+                    Quitar
+                  </button>
+                )}
               </div>
             </div>
           );

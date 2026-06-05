@@ -473,6 +473,7 @@ export function ManualOrderForm({
                 onChange={setItems}
                 paymentMethod={paymentMethodExpected}
                 products={activeProducts}
+                removeAction={mode === "edit" ? "subtle" : "hidden"}
               />
             ) : null}
           </section>

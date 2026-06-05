@@ -52,9 +52,13 @@ export function getDeliveryStatusLabel(status: DeliveryStatus) {
 }
 
 export function canEditOrder(orderStatus: OrderStatus, hasActiveTrip: boolean) {
-  if (hasActiveTrip) {
+  if (orderStatus === "in_route" || orderStatus === "delivered" || orderStatus === "cancelled") {
     return false;
   }
 
-  return orderStatus !== "delivered" && orderStatus !== "cancelled";
+  if (orderStatus === "assigned") {
+    return true;
+  }
+
+  return !hasActiveTrip;
 }

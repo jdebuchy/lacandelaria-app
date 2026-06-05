@@ -10,9 +10,15 @@ export async function createClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll() {
-        // Server Components must not write cookies.
-        // Middleware and route handlers are responsible for session refresh writes.
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Server Components cannot write cookies during render.
+          // Route handlers like /auth/callback and signout still can.
+        }
       }
     }
   });

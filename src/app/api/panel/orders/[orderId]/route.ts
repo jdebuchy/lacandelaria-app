@@ -5,6 +5,7 @@ import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
 import { getActiveTripOrder } from "@/lib/delivery-trip-ops";
+import { canEditOrder } from "@/lib/delivery-trips";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -98,14 +99,7 @@ export async function PATCH(request: Request, context: Params) {
 
   const activeTripOrder = await getActiveTripOrder(supabase, orderId);
 
-  if (activeTripOrder) {
-    return NextResponse.json(
-      { success: false, message: "Ese pedido ya fue consolidado en un viaje y no se puede editar." },
-      { status: 409 }
-    );
-  }
-
-  if (existingOrder.status === "delivered" || existingOrder.status === "cancelled") {
+  if (!canEditOrder(existingOrder.status, Boolean(activeTripOrder))) {
     return NextResponse.json(
       { success: false, message: "Ese pedido ya no admite edicion." },
       { status: 409 }

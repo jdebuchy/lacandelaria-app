@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { loadDefaultLogisticsDepot } from "@/lib/delivery-planning";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const createTripSchema = z.object({
@@ -29,7 +30,15 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
+  const defaultDepot = await loadDefaultLogisticsDepot(supabase).catch(() => null);
   const uniqueOrderIds = Array.from(new Set(parsed.data.orderIds));
+
+  if (!defaultDepot) {
+    return NextResponse.json(
+      { success: false, message: "No se encontró el depósito por defecto para crear el viaje." },
+      { status: 500 }
+    );
+  }
 
   const [{ data: orders, error: ordersError }, { data: activeAssignments, error: assignmentsError }] =
     await Promise.all([
@@ -88,6 +97,7 @@ export async function POST(request: Request) {
   const { data: newTrip, error: tripInsertError } = await supabase
     .from("delivery_trips")
     .insert({
+      depot_id: defaultDepot.id,
       scheduled_date: parsed.data.scheduledDate,
       driver_user_id: parsed.data.driverUserId || null,
       status: "assigned",

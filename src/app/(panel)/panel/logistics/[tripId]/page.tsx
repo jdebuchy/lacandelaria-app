@@ -33,7 +33,7 @@ export default async function DeliveryTripDetailPage(context: Params) {
     notFound();
   }
 
-  const initialRoute = await computeDisplayedRoute(trip.stops);
+  const initialRoute = await computeDisplayedRoute(trip.stops, undefined, trip.depot);
 
   return (
     <main>

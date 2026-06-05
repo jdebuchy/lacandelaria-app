@@ -28,6 +28,20 @@ function normalizeEmail(email: string) {
 async function getSessionUser() {
   const supabase = await createClient();
   const {
+    data: { session },
+    error: sessionError
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    console.error("auth.getSession failed", sessionError);
+    return null;
+  }
+
+  if (!session) {
+    return null;
+  }
+
+  const {
     data: { user },
     error
   } = await supabase.auth.getUser();

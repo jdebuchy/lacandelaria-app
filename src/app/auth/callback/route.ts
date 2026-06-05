@@ -1,6 +1,7 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { sanitizeRedirectPath } from "@/lib/auth-shared";
-import { createClient } from "@/lib/supabase/server";
+import { appConfig } from "@/lib/config";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -11,7 +12,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?reason=not_registered", request.url));
   }
 
-  const supabase = await createClient();
+  const response = NextResponse.redirect(new URL(nextPath, request.url));
+  const supabase = createServerClient(appConfig.supabaseUrl, appConfig.supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+      }
+    }
+  });
+
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
@@ -19,5 +33,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?reason=not_registered", request.url));
   }
 
-  return NextResponse.redirect(new URL(nextPath, request.url));
+  return response;
 }

@@ -21,12 +21,25 @@ type NavIconKey =
   | "products"
   | "driver";
 
-type NavItem = {
+type NavMatch = {
   exact?: boolean;
+  exclude?: string[];
+  match: string[];
+};
+
+type NavChildItem = NavMatch & {
+  href: string;
+  label: string;
+};
+
+type NavItem = {
+  children?: NavChildItem[];
   href: string;
   iconKey: NavIconKey;
   label: string;
   match: string[];
+  exact?: boolean;
+  exclude?: string[];
   section: "main" | "system";
 };
 
@@ -59,13 +72,19 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       iconKey: "logistics",
       label: "Logística",
       match: ["/panel/logistics"],
-      section: "main"
-    },
-    {
-      href: "/driver",
-      iconKey: "driver",
-      label: "Reparto",
-      match: ["/driver"],
+      children: [
+        {
+          href: "/panel/logistics",
+          label: "Armado de viajes",
+          match: ["/panel/logistics"],
+          exclude: ["/panel/logistics/delivery"]
+        },
+        {
+          href: "/panel/logistics/delivery",
+          label: "Delivery",
+          match: ["/panel/logistics/delivery", "/driver"]
+        }
+      ],
       section: "main"
     },
     {
@@ -111,6 +130,13 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       iconKey: "logistics",
       label: "Logística",
       match: ["/panel/logistics"],
+      children: [
+        {
+          href: "/panel/logistics",
+          label: "Armado de viajes",
+          match: ["/panel/logistics"]
+        }
+      ],
       section: "main"
     }
   ],
@@ -142,15 +168,29 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       iconKey: "logistics",
       label: "Logística",
       match: ["/panel/logistics"],
+      children: [
+        {
+          href: "/panel/logistics",
+          label: "Armado de viajes",
+          match: ["/panel/logistics"]
+        }
+      ],
       section: "main"
     }
   ],
   driver: [
     {
-      href: "/driver",
-      iconKey: "driver",
-      label: "Reparto",
-      match: ["/driver"],
+      href: "/panel/logistics/delivery",
+      iconKey: "logistics",
+      label: "Logística",
+      match: ["/panel/logistics/delivery", "/driver"],
+      children: [
+        {
+          href: "/panel/logistics/delivery",
+          label: "Delivery",
+          match: ["/panel/logistics/delivery", "/driver"]
+        }
+      ],
       section: "main"
     }
   ]
@@ -298,10 +338,34 @@ function FooterActionIcon({ type }: { type: "home" | "logout" | "menu" }) {
   );
 }
 
-function isItemActive(pathname: string, item: NavItem) {
+function isMatchActive(pathname: string, item: NavMatch) {
+  if (item.exclude?.some((excluded) => pathname === excluded || pathname.startsWith(`${excluded}/`))) {
+    return false;
+  }
+
   return item.match.some((match) =>
     item.exact ? pathname === match : pathname === match || pathname.startsWith(`${match}/`)
   );
+}
+
+function isItemActive(pathname: string, item: NavItem) {
+  return isMatchActive(pathname, item) || item.children?.some((child) => isMatchActive(pathname, child)) || false;
+}
+
+function getActiveItemLabel(links: NavItem[], pathname: string) {
+  for (const item of links) {
+    const activeChild = item.children?.find((child) => isMatchActive(pathname, child));
+
+    if (activeChild) {
+      return activeChild.label;
+    }
+
+    if (isMatchActive(pathname, item)) {
+      return item.label;
+    }
+  }
+
+  return links[0]?.label ?? "Navegación";
 }
 
 function SidebarContent({
@@ -396,6 +460,36 @@ function SidebarContent({
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
                   </Link>
+
+                  {item.children?.length ? (
+                    <ul className="mt-1 space-y-1 pl-12">
+                      {item.children.map((child) => {
+                        const isChildActive = isMatchActive(pathname, child);
+
+                        return (
+                          <li key={child.href}>
+                            <Link
+                              href={child.href}
+                              className={classNames(
+                                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+                                isChildActive
+                                  ? "bg-stone-900/80 text-sky-100"
+                                  : "text-stone-500 hover:bg-stone-900/60 hover:text-stone-200"
+                              )}
+                            >
+                              <span
+                                className={classNames(
+                                  "h-1.5 w-1.5 rounded-full transition",
+                                  isChildActive ? "bg-sky-300" : "bg-stone-700"
+                                )}
+                              />
+                              <span className="truncate">{child.label}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
                 </li>
               );
             })}
@@ -517,10 +611,7 @@ export function PanelNav({ role, userEmail, userName }: PanelNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = linksByRole[role];
-  const activeLink = useMemo(
-    () => links.find((item) => isItemActive(pathname, item)) ?? links[0],
-    [links, pathname]
-  );
+  const activeLabel = useMemo(() => getActiveItemLabel(links, pathname), [links, pathname]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -558,7 +649,7 @@ export function PanelNav({ role, userEmail, userName }: PanelNavProps) {
           <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-stone-500">Panel interno</p>
             <p className="mt-1 truncate text-sm font-medium text-stone-100">
-              {activeLink?.label ?? "Navegación"}
+              {activeLabel}
             </p>
           </div>
 

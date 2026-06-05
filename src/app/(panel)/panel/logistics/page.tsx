@@ -16,25 +16,24 @@ type RelatedCustomer = {
   last_name?: string | null;
   gated_community_name?: string | null;
   locality?: string | null;
-  phone?: string | null;
-};
-
-type RelatedReseller = {
-  full_name?: string | null;
-  phone?: string | null;
 };
 
 type RelatedOrderItem = {
   product_name_snapshot: string;
-  sales_unit_label_snapshot: string;
   quantity: number;
+  sales_unit_label_snapshot: string;
+};
+
+type RelatedReseller = {
+  full_name?: string | null;
 };
 
 type TripRow = {
+  created_at: string;
+  driver_user_id: string | null;
   id: string;
   scheduled_date: string;
-  status: "draft" | "assigned" | "in_route" | "completed" | "cancelled";
-  driver_user_id: string | null;
+  status: "assigned" | "completed" | "in_route";
 };
 
 function takeSingleRelation<T>(value: T | T[] | null): T | null {
@@ -81,11 +80,9 @@ export default async function LogisticsPage() {
           status,
           delivery_date,
           delivery_area,
-          notes,
           customers (
             first_name,
             last_name,
-            phone,
             address_kind,
             address_line_1,
             delivery_area,
@@ -93,8 +90,7 @@ export default async function LogisticsPage() {
             locality
           ),
           resellers (
-            full_name,
-            phone
+            full_name
           ),
           order_items (
             product_name_snapshot,
@@ -108,10 +104,11 @@ export default async function LogisticsPage() {
       .order("created_at", { ascending: true }),
     supabase
       .from("delivery_trips")
-      .select("id, scheduled_date, status, driver_user_id")
+      .select("id, scheduled_date, status, driver_user_id, created_at")
       .in("status", ["assigned", "in_route", "completed"])
-      .order("scheduled_date", { ascending: false })
-      .limit(12)
+      .order("scheduled_date", { ascending: true })
+      .order("created_at", { ascending: false })
+      .limit(40)
   ]);
 
   const activeOrderIdSet = new Set((activeTripOrders ?? []).map((row) => row.order_id));
@@ -162,6 +159,11 @@ export default async function LogisticsPage() {
     tripCounts.set(row.delivery_trip_id, (tripCounts.get(row.delivery_trip_id) ?? 0) + 1);
   }
 
+  const today = todayDate();
+  const visibleTrips = ((trips ?? []) as TripRow[]).filter(
+    (trip) => trip.created_at.slice(0, 10) === today || trip.status === "assigned" || trip.status === "in_route"
+  );
+
   return (
     <main>
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -170,70 +172,57 @@ export default async function LogisticsPage() {
             Logística
           </span>
           <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-            Consolidación de viajes
+            Armado de pedidos
           </h1>
           <p className="max-w-3xl text-base leading-7 text-stone-300">
-            Revisa qué pedidos siguen sin viaje, consolídalos en un despacho y asigna la salida a un
-            repartidor con fecha y orden de parada.
+            Crea el viaje desde los pedidos pendientes y, una vez armado, termina de ordenar el recorrido
+            dentro del detalle del viaje.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Sin viaje</p>
-            <p className="mt-2 text-2xl font-semibold text-amber-300 sm:text-3xl">{pendingOrders.length}</p>
-          </article>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Viajes activos</p>
-            <p className="mt-2 text-2xl font-semibold text-sky-300 sm:text-3xl">
-              {(trips ?? []).filter((trip) => trip.status !== "completed").length}
-            </p>
-          </article>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Viajes cerrados</p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-300 sm:text-3xl">
-              {(trips ?? []).filter((trip) => trip.status === "completed").length}
-            </p>
-          </article>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Repartidores</p>
-            <p className="mt-2 text-2xl font-semibold text-rose-300 sm:text-3xl">{driverOptions.length}</p>
-          </article>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <span className="rounded-full border border-stone-700 bg-stone-900/70 px-3 py-1 text-stone-200">
+            {pendingOrders.length} pedidos pendientes
+          </span>
+          <span className="rounded-full border border-stone-700 bg-stone-900/70 px-3 py-1 text-stone-200">
+            {visibleTrips.length} viajes de hoy o pendientes
+          </span>
         </div>
 
-        <DeliveryTripCreateForm defaultDate={todayDate()} drivers={driverOptions} orders={pendingOrders} />
+        <DeliveryTripCreateForm defaultDate={today} drivers={driverOptions} orders={pendingOrders} />
 
-        <section className="space-y-4">
+        <section className="rounded-3xl border border-stone-800 bg-stone-900/60 p-5">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-stone-50">Viajes recientes</h2>
-            <span className="text-sm text-stone-500">{(trips ?? []).length}</span>
+            <div>
+              <h2 className="text-lg font-semibold text-stone-50">Viajes creados hoy o pendientes</h2>
+              <p className="mt-1 text-sm text-stone-400">
+                Lista compacta para volver rápido al armado de cada recorrido.
+              </p>
+            </div>
+            <span className="text-sm text-stone-500">{visibleTrips.length}</span>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {(trips ?? []).length ? (
-              (trips as TripRow[]).map((trip) => (
+          <div className="mt-5 divide-y divide-stone-800">
+            {visibleTrips.length ? (
+              visibleTrips.map((trip) => (
                 <Link
                   key={trip.id}
                   href={`/panel/logistics/${trip.id}`}
-                  className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5 transition hover:border-stone-700"
+                  className="grid gap-3 px-1 py-4 transition hover:bg-stone-900/50 md:grid-cols-[minmax(0,1fr)_auto_auto]"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-base font-semibold text-stone-50">Viaje {trip.id.slice(0, 8)}</p>
-                      <p className="mt-1 text-sm text-stone-400">{formatDate(trip.scheduled_date)}</p>
-                    </div>
-                    <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
-                      {getDeliveryTripStatusLabel(trip.status)}
-                    </span>
+                  <div>
+                    <p className="text-sm font-semibold text-stone-100">Viaje {trip.id.slice(0, 8)}</p>
+                    <p className="mt-1 text-sm text-stone-400">{formatDate(trip.scheduled_date)}</p>
                   </div>
-                  <p className="mt-4 text-sm text-stone-300">
-                    {tripCounts.get(trip.id) ?? 0} pedidos activos
-                  </p>
+                  <p className="text-sm text-stone-300">{tripCounts.get(trip.id) ?? 0} pedidos</p>
+                  <span className="justify-self-start rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
+                    {getDeliveryTripStatusLabel(trip.status)}
+                  </span>
                 </Link>
               ))
             ) : (
-              <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/60 px-4 py-6 text-sm text-stone-400">
-                Todavía no hay viajes creados.
+              <div className="px-1 py-6 text-sm text-stone-400">
+                Todavía no hay viajes creados hoy ni recorridos pendientes.
               </div>
             )}
           </div>

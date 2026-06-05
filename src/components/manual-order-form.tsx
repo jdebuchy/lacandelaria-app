@@ -52,6 +52,8 @@ type ManualOrderFormInitialData = {
   items: OrderItemInput[];
   paymentMethodExpected: "cash" | "transfer";
   deliveryDate: string;
+  deliveryWindowStart: string;
+  deliveryWindowEnd: string;
   notes: string;
 };
 
@@ -115,6 +117,8 @@ export function ManualOrderForm({
   const initialDeliveryNotes = initialData?.deliveryNotes ?? initialCustomer?.delivery_notes ?? "";
   const initialPaymentMethodExpected = initialData?.paymentMethodExpected ?? "cash";
   const initialDeliveryDate = initialData?.deliveryDate ?? "";
+  const initialDeliveryWindowStart = initialData?.deliveryWindowStart ?? "";
+  const initialDeliveryWindowEnd = initialData?.deliveryWindowEnd ?? "";
   const initialNotes = initialData?.notes ?? "";
   const initialLookupValue = initialCustomer
     ? formatPersonName(initialCustomer.first_name, initialCustomer.last_name)
@@ -136,6 +140,8 @@ export function ManualOrderForm({
     initialPaymentMethodExpected
   );
   const [deliveryDate, setDeliveryDate] = useState(initialDeliveryDate);
+  const [deliveryWindowStart, setDeliveryWindowStart] = useState(initialDeliveryWindowStart);
+  const [deliveryWindowEnd, setDeliveryWindowEnd] = useState(initialDeliveryWindowEnd);
   const [notes, setNotes] = useState(initialNotes);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
@@ -256,6 +262,8 @@ export function ManualOrderForm({
     setItems(fallbackItems);
     setPaymentMethodExpected("cash");
     setDeliveryDate("");
+    setDeliveryWindowStart("");
+    setDeliveryWindowEnd("");
     setNotes("");
     setIsCustomerModalOpen(false);
   }
@@ -276,6 +284,8 @@ export function ManualOrderForm({
       items,
       paymentMethodExpected,
       deliveryDate,
+      deliveryWindowStart,
+      deliveryWindowEnd,
       notes
     };
 
@@ -486,6 +496,28 @@ export function ManualOrderForm({
                 type="date"
                 value={deliveryDate}
                 onChange={(event) => setDeliveryDate(event.target.value)}
+                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-stone-300">
+              Entregar desde
+              <input
+                name="deliveryWindowStart"
+                type="time"
+                value={deliveryWindowStart}
+                onChange={(event) => setDeliveryWindowStart(event.target.value)}
+                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-stone-300">
+              Entregar hasta
+              <input
+                name="deliveryWindowEnd"
+                type="time"
+                value={deliveryWindowEnd}
+                onChange={(event) => setDeliveryWindowEnd(event.target.value)}
                 className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>

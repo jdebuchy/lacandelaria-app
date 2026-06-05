@@ -139,6 +139,8 @@ create table if not exists public.orders (
   status public.order_status not null default 'pending_confirmation',
   payment_status public.payment_status not null default 'pending',
   delivery_date date,
+  delivery_window_start time,
+  delivery_window_end time,
   delivery_area text not null default 'pending_review',
   notes text,
   created_at timestamptz not null default now()

@@ -21,7 +21,7 @@ const links = [
     description: "Pedidos, usuarios y seguimiento diario."
   },
   {
-    href: "/driver",
+    href: "/panel/logistics/delivery",
     label: "Reparto",
     description: "Ruta del dia y estados de entrega."
   }

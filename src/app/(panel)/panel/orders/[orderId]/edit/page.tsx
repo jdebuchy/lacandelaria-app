@@ -33,6 +33,8 @@ export default async function EditOrderPage(context: Params) {
           status,
           payment_method_expected,
           delivery_date,
+          delivery_window_start,
+          delivery_window_end,
           notes,
           customers (
             id,
@@ -182,6 +184,10 @@ export default async function EditOrderPage(context: Params) {
               items,
               paymentMethodExpected: order.payment_method_expected === "transfer" ? "transfer" : "cash",
               deliveryDate: typeof order.delivery_date === "string" ? order.delivery_date : "",
+              deliveryWindowStart:
+                typeof order.delivery_window_start === "string" ? order.delivery_window_start : "",
+              deliveryWindowEnd:
+                typeof order.delivery_window_end === "string" ? order.delivery_window_end : "",
               notes: typeof order.notes === "string" ? order.notes : ""
             }}
           />

@@ -44,7 +44,7 @@ const routes = [
     detail: "Administracion de pedidos, usuarios y seguimiento interno."
   },
   {
-    href: "/driver",
+    href: "/panel/logistics/delivery",
     label: "Pantalla de reparto",
     detail: "Repartidor sigue sus entregas asignadas y marca estados."
   }

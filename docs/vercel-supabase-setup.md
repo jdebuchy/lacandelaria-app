@@ -15,6 +15,19 @@ Definir en local y en Vercel:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `GOOGLE_MAPS_API_KEY`
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+- `LOGISTICS_DEPOT_PLACE_ID` o `LOGISTICS_DEPOT_ADDRESS`
+- `LOGISTICS_TIMEZONE_OFFSET`
+- `GOOGLE_ROUTE_OPTIMIZATION_PROJECT_ID`
+- `GOOGLE_ROUTE_OPTIMIZATION_CLIENT_EMAIL`
+- `GOOGLE_ROUTE_OPTIMIZATION_PRIVATE_KEY`
+
+Notas:
+
+- `GOOGLE_MAPS_API_KEY` se usa server-side para Routes API y Places.
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` se usa en el navegador para renderizar el mapa embebido de Google Maps.
+- Si no configurás la variable pública, el planner muestra un fallback visual de la ruta pero no el mapa real.
 
 ## Google SSO
 

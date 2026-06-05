@@ -290,7 +290,7 @@ export async function loadDeliveryTripPlanning(
       .single()
   ]);
   const drivers = driversResult.data;
-  let trip = tripResult.data;
+  let trip: TripRow | null = tripResult.data ?? null;
 
   if (tripResult.error) {
     const fallbackTripResult = await supabase

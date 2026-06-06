@@ -15,6 +15,7 @@ type PanelNavProps = {
 type NavIconKey =
   | "overview"
   | "orders"
+  | "reports"
   | "collections"
   | "logistics"
   | "customers"
@@ -103,6 +104,13 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       section: "management"
     },
     {
+      href: "/panel/reports",
+      iconKey: "reports",
+      label: "Reportes",
+      match: ["/panel/reports"],
+      section: "management"
+    },
+    {
       href: "/panel/users",
       iconKey: "users",
       label: "Usuarios",
@@ -132,6 +140,13 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       label: "Pedidos",
       match: ["/panel/orders"],
       section: "main"
+    },
+    {
+      href: "/panel/reports",
+      iconKey: "reports",
+      label: "Reportes",
+      match: ["/panel/reports"],
+      section: "management"
     },
     {
       href: "/panel/logistics",
@@ -177,6 +192,13 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       label: "Pedidos",
       match: ["/panel/orders"],
       section: "main"
+    },
+    {
+      href: "/panel/reports",
+      iconKey: "reports",
+      label: "Reportes",
+      match: ["/panel/reports"],
+      section: "management"
     },
     {
       href: "/panel/logistics",
@@ -267,6 +289,17 @@ function NavIcon({ iconKey }: { iconKey: NavIconKey }) {
           <path d="M8 9.5h8" />
           <path d="M8 13h8" />
           <path d="M8 16.5h5" />
+        </svg>
+      );
+    case "reports":
+      return (
+        <svg {...commonProps}>
+          <path d="M4 19V5" />
+          <path d="M4 19h16" />
+          <path d="M8 16v-5" />
+          <path d="M12 16V8" />
+          <path d="M16 16v-7" />
+          <path d="m7.5 8.5 3 2.5 3.5-4 4 2" />
         </svg>
       );
     case "collections":

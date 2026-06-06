@@ -1,5 +1,9 @@
 export function normalizeWhatsappPhone(value) {
-  const digits = String(value ?? "").replace(/\D/g, "");
+  const rawIdentifier = String(value ?? "")
+    .split("@")[0]
+    .split(":")[0]
+    .split("-")[0];
+  const digits = rawIdentifier.replace(/\D/g, "");
 
   if (!digits) {
     return "";

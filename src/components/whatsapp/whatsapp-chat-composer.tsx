@@ -24,7 +24,17 @@ export function WhatsappChatComposer({ conversationId }: { conversationId: strin
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: trimmed })
     });
-    const result = (await response.json()) as { success: boolean; message: string };
+    const text = await response.text();
+    let result: { success: boolean; message: string };
+
+    try {
+      result = text
+        ? JSON.parse(text)
+        : { success: response.ok, message: response.ok ? "Mensaje enviado." : "No se pudo enviar el mensaje." };
+    } catch {
+      result = { success: false, message: text || "No se pudo enviar el mensaje." };
+    }
+
     setFeedback(result);
 
     if (!response.ok || !result.success) {

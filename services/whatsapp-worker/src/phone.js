@@ -10,18 +10,24 @@ export function normalizeWhatsappPhone(value) {
   }
 
   if (digits.startsWith("549")) {
-    return digits;
+    return normalizeArgentinaPhoneLength(digits);
   }
 
   if (digits.startsWith("54")) {
-    return `549${digits.slice(2)}`;
+    return normalizeArgentinaPhoneLength(`549${digits.slice(2)}`);
   }
 
   if (digits.startsWith("9") && digits.length >= 11) {
-    return `54${digits}`;
+    return normalizeArgentinaPhoneLength(`54${digits}`);
   }
 
-  return `549${digits}`;
+  return normalizeArgentinaPhoneLength(`549${digits}`);
+}
+
+function normalizeArgentinaPhoneLength(phone) {
+  // Argentine mobile numbers are normally 13 digits including 54 + 9.
+  // Longer values are usually WhatsApp internal IDs or device suffixes.
+  return phone.length >= 11 && phone.length <= 13 ? phone : "";
 }
 
 export function toWhatsappChatId(phone) {

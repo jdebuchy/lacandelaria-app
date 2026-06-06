@@ -111,12 +111,35 @@ async function loadRecentMessages(conversationId) {
   return (data ?? []).reverse();
 }
 
+async function resolveMessagePhone(message) {
+  const candidates = [];
+
+  try {
+    const contact = await message.getContact();
+    candidates.push(contact?.number, contact?.id?.user, contact?.id?._serialized);
+  } catch (error) {
+    console.warn("Could not resolve WhatsApp contact for inbound message.", error);
+  }
+
+  candidates.push(message.from, message.author, message.id?.remote, message.id?._serialized);
+
+  for (const candidate of candidates) {
+    const phone = normalizeWhatsappPhone(candidate);
+
+    if (phone) {
+      return phone;
+    }
+  }
+
+  return "";
+}
+
 export async function handleIncomingMessage(message) {
   if (message.fromMe || message.isStatus) {
     return;
   }
 
-  const phone = normalizeWhatsappPhone(message.from);
+  const phone = await resolveMessagePhone(message);
 
   if (!phone) {
     return;
@@ -141,6 +164,7 @@ export async function handleIncomingMessage(message) {
       message_type: "transactional_reply",
       body,
       raw_payload: {
+        author: message.author ?? null,
         from: message.from,
         id: message.id?._serialized ?? null,
         timestamp: message.timestamp ?? null

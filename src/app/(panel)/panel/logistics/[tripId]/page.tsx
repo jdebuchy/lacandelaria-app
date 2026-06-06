@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DeliveryTripPlanner } from "@/components/delivery-trip-planner";
 import { DeliveryTripStartButton } from "@/components/delivery-trip-start-button";
 import { requirePageRole } from "@/lib/auth";
@@ -31,6 +31,10 @@ export default async function DeliveryTripDetailPage(context: Params) {
 
   if (!trip) {
     notFound();
+  }
+
+  if (trip.status !== "assigned") {
+    redirect(`/panel/logistics/delivery/${trip.id}`);
   }
 
   const initialRoute = await computeDisplayedRoute(trip.stops, undefined, trip.depot);

@@ -6,7 +6,17 @@ import { releaseTripOrder, syncTripCompletion } from "@/lib/delivery-trip-ops";
 import { recordReceivedPayment } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const failureReasonSchema = z.enum([
+  "customer_absent",
+  "incorrect_address",
+  "rejected",
+  "closed",
+  "other"
+]);
+
 const updateDeliverySchema = z.object({
+  failureReason: failureReasonSchema.optional(),
+  note: z.string().max(500).optional().or(z.literal("")),
   orderId: z.string().uuid(),
   payment: z
     .object({
@@ -42,6 +52,13 @@ export async function POST(request: Request) {
   if (parsed.data.payment && parsed.data.status !== "delivered") {
     return NextResponse.json(
       { success: false, message: "El pago solo se puede registrar al marcar entregado." },
+      { status: 400 }
+    );
+  }
+
+  if (parsed.data.status === "failed" && !parsed.data.failureReason) {
+    return NextResponse.json(
+      { success: false, message: "Selecciona un motivo para registrar el no entregado." },
       { status: 400 }
     );
   }
@@ -120,8 +137,10 @@ export async function POST(request: Request) {
   const deliveryPayload = {
     assigned_date: currentDate(),
     delivered_at: parsed.data.status === "delivered" ? new Date().toISOString() : null,
+    failure_reason: parsed.data.status === "failed" ? parsed.data.failureReason ?? null : null,
     delivery_status: parsed.data.status,
-    driver_user_id: authResult.auth.profile.id
+    driver_user_id: authResult.auth.profile.id,
+    proof_note: parsed.data.note?.trim() || null
   };
 
   if (existingDelivery?.id) {
@@ -166,6 +185,29 @@ export async function POST(request: Request) {
       { success: false, message: "La entrega se actualizo pero no el estado del pedido." },
       { status: 500 }
     );
+  }
+
+  if (activeTripOrder?.id) {
+    const { error: tripOrderUpdateError } = await supabase
+      .from("delivery_trip_orders")
+      .update({
+        resolved_at:
+          parsed.data.status === "delivered" || parsed.data.status === "failed"
+            ? new Date().toISOString()
+            : null,
+        stop_failure_reason: parsed.data.status === "failed" ? parsed.data.failureReason ?? null : null,
+        stop_note: parsed.data.note?.trim() || null,
+        stop_status: parsed.data.status
+      })
+      .eq("id", activeTripOrder.id);
+
+    if (tripOrderUpdateError) {
+      console.error("trip order state update failed", tripOrderUpdateError);
+      return NextResponse.json(
+        { success: false, message: "La entrega se actualizo pero no el historial del viaje." },
+        { status: 500 }
+      );
+    }
   }
 
   if (parsed.data.status === "failed" && activeTripOrder?.delivery_trip_id) {
@@ -221,7 +263,7 @@ export async function POST(request: Request) {
         ? "Pedido entregado y cobro registrado."
         : "Pedido marcado como entregado."
       : parsed.data.status === "failed"
-        ? "Pedido rechazado y devuelto a logística."
+        ? "Pedido marcado como no entregado y devuelto a logística."
         : parsed.data.status === "in_route"
           ? "Pedido marcado en reparto."
           : "Estado actualizado.";

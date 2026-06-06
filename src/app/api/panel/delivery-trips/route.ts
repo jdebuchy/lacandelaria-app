@@ -166,6 +166,7 @@ export async function POST(request: Request) {
       driver_user_id: parsed.data.driverUserId || null,
       delivery_status: "pending",
       delivered_at: null,
+      failure_reason: null,
       proof_note: null,
       sequence_number: index + 1
     };

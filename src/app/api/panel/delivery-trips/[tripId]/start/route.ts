@@ -105,12 +105,32 @@ export async function POST(_: Request, context: Params) {
     );
   }
 
+  const { error: tripOrdersUpdateError } = await supabase
+    .from("delivery_trip_orders")
+    .update({
+      resolved_at: null,
+      stop_failure_reason: null,
+      stop_note: null,
+      stop_status: "in_route"
+    })
+    .eq("delivery_trip_id", tripId)
+    .is("released_at", null);
+
+  if (tripOrdersUpdateError) {
+    console.error("trip order status update failed", tripOrdersUpdateError);
+    return NextResponse.json(
+      { success: false, message: "No se pudieron preparar las paradas del viaje." },
+      { status: 500 }
+    );
+  }
+
   const { error: deliveriesUpdateError } = await supabase
     .from("deliveries")
     .update({
       assigned_date: trip.scheduled_date,
       driver_user_id: effectiveDriverId,
-      delivery_status: "in_route"
+      delivery_status: "in_route",
+      failure_reason: null
     })
     .in("order_id", orderIds);
 

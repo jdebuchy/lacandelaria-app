@@ -14,6 +14,7 @@ export async function callOpenRouter(messages) {
       "X-Title": "Paltas La Candelaria WhatsApp Worker"
     },
     body: JSON.stringify({
+      max_tokens: config.openRouterMaxTokens,
       messages,
       model: config.openRouterModel,
       response_format: { type: "json_object" },

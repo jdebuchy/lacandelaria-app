@@ -2,6 +2,7 @@ export const config = {
   appApiUrl: process.env.APP_API_URL ?? "http://localhost:3000",
   internalApiSecret: process.env.INTERNAL_API_SECRET ?? "",
   openRouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
+  openRouterMaxTokens: Number(process.env.OPENROUTER_MAX_TOKENS ?? 700),
   openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-4.1-mini",
   port: Number(process.env.PORT ?? 8080),
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",

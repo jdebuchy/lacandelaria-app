@@ -13,6 +13,7 @@ type PanelNavProps = {
 };
 
 type NavIconKey =
+  | "crm"
   | "overview"
   | "orders"
   | "reports"
@@ -57,9 +58,21 @@ const linksByRole: Record<UserRole, NavItem[]> = {
     },
     {
       href: "/panel/customers",
-      iconKey: "customers",
-      label: "Clientes",
-      match: ["/panel/customers"],
+      iconKey: "crm",
+      label: "CRM",
+      match: ["/panel/customers", "/panel/crm"],
+      children: [
+        {
+          href: "/panel/customers",
+          label: "Clientes",
+          match: ["/panel/customers"]
+        },
+        {
+          href: "/panel/crm/whatsapp",
+          label: "WhatsApp",
+          match: ["/panel/crm/whatsapp"]
+        }
+      ],
       section: "management"
     },
     {
@@ -129,9 +142,21 @@ const linksByRole: Record<UserRole, NavItem[]> = {
     },
     {
       href: "/panel/customers",
-      iconKey: "customers",
-      label: "Clientes",
-      match: ["/panel/customers"],
+      iconKey: "crm",
+      label: "CRM",
+      match: ["/panel/customers", "/panel/crm"],
+      children: [
+        {
+          href: "/panel/customers",
+          label: "Clientes",
+          match: ["/panel/customers"]
+        },
+        {
+          href: "/panel/crm/whatsapp",
+          label: "WhatsApp",
+          match: ["/panel/crm/whatsapp"]
+        }
+      ],
       section: "management"
     },
     {
@@ -181,9 +206,21 @@ const linksByRole: Record<UserRole, NavItem[]> = {
     },
     {
       href: "/panel/customers",
-      iconKey: "customers",
-      label: "Clientes",
-      match: ["/panel/customers"],
+      iconKey: "crm",
+      label: "CRM",
+      match: ["/panel/customers", "/panel/crm"],
+      children: [
+        {
+          href: "/panel/customers",
+          label: "Clientes",
+          match: ["/panel/customers"]
+        },
+        {
+          href: "/panel/crm/whatsapp",
+          label: "WhatsApp",
+          match: ["/panel/crm/whatsapp"]
+        }
+      ],
       section: "management"
     },
     {
@@ -274,6 +311,16 @@ function NavIcon({ iconKey }: { iconKey: NavIconKey }) {
   };
 
   switch (iconKey) {
+    case "crm":
+      return (
+        <svg {...commonProps}>
+          <path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+          <path d="M3.5 19a5 5 0 0 1 10 0" />
+          <path d="M15 7.5h4.5" />
+          <path d="M15 11.5h5.5" />
+          <path d="M15 15.5h3.5" />
+        </svg>
+      );
     case "overview":
       return (
         <svg {...commonProps}>
@@ -586,6 +633,36 @@ function SidebarContent({
                         </span>
                         <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
                       </Link>
+
+                      {item.children?.length ? (
+                        <ul className="mt-1 space-y-1 pl-12">
+                          {item.children.map((child) => {
+                            const isChildActive = isMatchActive(pathname, child);
+
+                            return (
+                              <li key={child.href}>
+                                <Link
+                                  href={child.href}
+                                  className={classNames(
+                                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+                                    isChildActive
+                                      ? "bg-stone-900/80 text-sky-100"
+                                      : "text-stone-500 hover:bg-stone-900/60 hover:text-stone-200"
+                                  )}
+                                >
+                                  <span
+                                    className={classNames(
+                                      "h-1.5 w-1.5 rounded-full transition",
+                                      isChildActive ? "bg-sky-300" : "bg-stone-700"
+                                    )}
+                                  />
+                                  <span className="truncate">{child.label}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : null}
                     </li>
                   );
                 })}

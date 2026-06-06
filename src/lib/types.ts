@@ -2,7 +2,7 @@ export type UserRole = "admin" | "seller" | "driver" | "collector";
 
 export type PaymentMethod = "cash" | "transfer";
 
-export type SalesChannel = "internal" | "public_form" | "reseller";
+export type SalesChannel = "internal" | "public_form" | "reseller" | "whatsapp_ai";
 
 export type OrderStatus =
   | "pending_confirmation"
@@ -19,6 +19,46 @@ export type PublicOrderRequestStatus = "new" | "reviewed" | "converted" | "rejec
 export type DeliveryStatus = "pending" | "in_route" | "delivered" | "failed";
 
 export type DeliveryTripStatus = "draft" | "assigned" | "in_route" | "completed" | "cancelled";
+
+export type WhatsappConversationStatus =
+  | "idle"
+  | "satisfaction_followup_sent"
+  | "satisfaction_answered"
+  | "reactivation_sent"
+  | "interested_in_buying"
+  | "collecting_order_data"
+  | "waiting_for_confirmation"
+  | "order_created"
+  | "needs_human"
+  | "opted_out"
+  | "closed";
+
+export type WhatsappMessageType =
+  | "satisfaction_check"
+  | "reactivation_offer"
+  | "transactional_reply"
+  | "order_confirmation"
+  | "human_handoff"
+  | "opt_out_confirmation";
+
+export type WhatsappQueueStatus = "pending" | "processing" | "sent" | "failed" | "cancelled";
+
+export type WhatsappMessageDirection = "inbound" | "outbound";
+
+export type WhatsappAiIntent =
+  | "satisfied"
+  | "complaint"
+  | "buy"
+  | "ask_price"
+  | "ask_delivery"
+  | "ask_products"
+  | "confirm_order"
+  | "modify_order"
+  | "cancel_order"
+  | "not_interested"
+  | "not_now"
+  | "opt_out"
+  | "unknown";
 
 export type ProductVariantVisibility = "sellable" | "internal";
 

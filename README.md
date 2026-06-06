@@ -48,6 +48,7 @@ La mejor primera version es una `PWA`:
 ## Documentacion
 
 - [Plan de producto](./docs/product-plan.md)
+- [Plan CRM WhatsApp](./docs/crm-whatsapp-plan.md)
 - [Modelo de catalogo](./docs/catalog-model.md)
 - [Roadmap MVP](./docs/mvp-roadmap.md)
 - [Modelo de datos](./docs/data-model.md)
@@ -93,3 +94,47 @@ values
 ```
 
 En el primer login exitoso, la app enlaza `profiles.auth_user_id` automaticamente con ese usuario de Supabase Auth.
+
+## CRM WhatsApp
+
+El modulo `CRM > WhatsApp` agrega una bandeja, cola de mensajes, automatizaciones y configuracion comercial para comunicaciones transaccionales con clientes existentes.
+
+Arquitectura inicial:
+
+- Next.js renderiza el panel y expone APIs internas/admin.
+- Supabase guarda conversaciones, mensajes, cola y opt-out.
+- Railway corre `services/whatsapp-worker` con `whatsapp-web.js`.
+- OpenRouter solo interpreta intencion y devuelve JSON estructurado.
+- El worker crea pedidos llamando a `POST /api/internal/whatsapp/orders` con `INTERNAL_API_SECRET`.
+
+Variables adicionales:
+
+```env
+INTERNAL_API_SECRET="CHANGE_ME_INTERNAL_API_SECRET"
+WHATSAPP_WORKER_URL="https://your-railway-worker.up.railway.app"
+SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="YOUR_SUPABASE_SERVICE_ROLE_KEY"
+OPENROUTER_API_KEY="YOUR_OPENROUTER_API_KEY"
+OPENROUTER_MODEL="openai/gpt-4.1-mini"
+WHATSAPP_SESSION_PATH="/data/whatsapp-session"
+APP_API_URL="https://your-next-app.example.com"
+PORT="8080"
+WORKER_CRON_TIMEZONE="America/Argentina/Buenos_Aires"
+```
+
+Railway:
+
+1. Crear un servicio apuntando a `services/whatsapp-worker`.
+2. Configurar un volumen persistente y usarlo en `WHATSAPP_SESSION_PATH`.
+3. Cargar variables de entorno.
+4. Iniciar con `npm start`.
+5. Escanear el QR que aparece en logs la primera vez.
+
+Reglas operativas:
+
+- No usar como chatbot generalista.
+- No enviar masivo ni insistir si el cliente no responde.
+- Respetar `customers.whatsapp_opt_in` y `whatsapp_opt_out_at`.
+- Reclamos, baja confianza, ambiguedad o preguntas comerciales sensibles quedan en `needs_human`.
+- Precios, stock, zonas y fechas disponibles deben venir del ERP/Supabase.
+- Crear pedidos solo despues de confirmacion explicita y usando la API interna.

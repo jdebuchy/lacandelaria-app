@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { DeliveryTripStatus, OrderStatus } from "@/lib/types";
+import type { DeliveryTripStatus } from "@/lib/types";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -11,7 +11,7 @@ type ActiveTripOrderRow = {
 export async function getActiveTripOrder(admin: AdminClient, orderId: string) {
   const { data, error } = await admin
     .from("delivery_trip_orders")
-    .select("id, delivery_trip_id, order_id, sequence_number")
+    .select("id, delivery_trip_id, order_id, sequence_number, stop_status, stop_failure_reason, stop_note")
     .eq("order_id", orderId)
     .is("released_at", null)
     .limit(1)
@@ -44,6 +44,21 @@ export async function releaseTripOrder(admin: AdminClient, orderId: string) {
 }
 
 export async function syncTripCompletion(admin: AdminClient, tripId: string) {
+  const { data: trip, error: tripError } = await admin
+    .from("delivery_trips")
+    .select("id, status")
+    .eq("id", tripId)
+    .limit(1)
+    .maybeSingle();
+
+  if (tripError) {
+    throw tripError;
+  }
+
+  if (!trip || trip.status === ("completed" satisfies DeliveryTripStatus) || trip.status === ("cancelled" satisfies DeliveryTripStatus)) {
+    return;
+  }
+
   const { data: activeRows, error: activeRowsError } = await admin
     .from("delivery_trip_orders")
     .select("delivery_trip_id, order_id")
@@ -56,41 +71,17 @@ export async function syncTripCompletion(admin: AdminClient, tripId: string) {
 
   const activeTripOrders = (activeRows ?? []) as ActiveTripOrderRow[];
 
-  if (!activeTripOrders.length) {
-    const { error } = await admin
-      .from("delivery_trips")
-      .update({
-        status: "completed" satisfies DeliveryTripStatus,
-        completed_at: new Date().toISOString()
-      })
-      .eq("id", tripId);
-
-    if (error) {
-      throw error;
-    }
-
-    return;
-  }
-
-  const orderIds = activeTripOrders.map((row) => row.order_id);
-  const { data: orders, error: ordersError } = await admin
-    .from("orders")
-    .select("id, status")
-    .in("id", orderIds);
-
-  if (ordersError) {
-    throw ordersError;
-  }
-
-  const unresolved = (orders ?? []).some((order) => order.status !== ("delivered" satisfies OrderStatus));
-
-  const nextStatus: DeliveryTripStatus = unresolved ? "in_route" : "completed";
-  const payload =
-    nextStatus === "completed"
-      ? { status: nextStatus, completed_at: new Date().toISOString() }
-      : { status: nextStatus, completed_at: null };
-
-  const { error } = await admin.from("delivery_trips").update(payload).eq("id", tripId);
+  const nextStatus: DeliveryTripStatus =
+    activeTripOrders.length || trip.status === ("in_route" satisfies DeliveryTripStatus)
+      ? "in_route"
+      : "assigned";
+  const { error } = await admin
+    .from("delivery_trips")
+    .update({
+      status: nextStatus,
+      completed_at: null
+    })
+    .eq("id", tripId);
 
   if (error) {
     throw error;

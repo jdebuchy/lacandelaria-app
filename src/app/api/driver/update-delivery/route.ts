@@ -3,10 +3,18 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { releaseTripOrder, syncTripCompletion } from "@/lib/delivery-trip-ops";
+import { recordReceivedPayment } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const updateDeliverySchema = z.object({
   orderId: z.string().uuid(),
+  payment: z
+    .object({
+      amount: z.coerce.number().positive("Ingresa un monto mayor a cero."),
+      method: z.literal("cash"),
+      reference: z.string().max(240).optional().or(z.literal(""))
+    })
+    .optional(),
   status: z.enum(["pending", "in_route", "delivered", "failed"])
 });
 
@@ -31,11 +39,18 @@ export async function POST(request: Request) {
     );
   }
 
+  if (parsed.data.payment && parsed.data.status !== "delivered") {
+    return NextResponse.json(
+      { success: false, message: "El pago solo se puede registrar al marcar entregado." },
+      { status: 400 }
+    );
+  }
+
   const supabase = createAdminClient();
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .select("id, status")
+    .select("id, status, payment_method_expected")
     .eq("id", parsed.data.orderId)
     .single();
 
@@ -75,6 +90,20 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+  }
+
+  if (parsed.data.payment && !activeTripOrder?.delivery_trip_id) {
+    return NextResponse.json(
+      { success: false, message: "El cobro debe estar asociado a un viaje activo." },
+      { status: 403 }
+    );
+  }
+
+  if (parsed.data.payment && order.payment_method_expected !== "cash") {
+    return NextResponse.json(
+      { success: false, message: "El repartidor solo puede registrar cobros en efectivo." },
+      { status: 400 }
+    );
   }
 
   const nextOrderStatus =
@@ -167,9 +196,30 @@ export async function POST(request: Request) {
     }
   }
 
+  if (parsed.data.payment) {
+    try {
+      await recordReceivedPayment({
+        amount: parsed.data.payment.amount,
+        method: parsed.data.payment.method,
+        orderId: parsed.data.orderId,
+        receivedByUserId: authResult.auth.profile.id,
+        reference: parsed.data.payment.reference,
+        supabase
+      });
+    } catch (error) {
+      console.error("driver payment registration failed", error);
+      return NextResponse.json(
+        { success: false, message: "La entrega se actualizo pero no se pudo registrar el cobro." },
+        { status: 500 }
+      );
+    }
+  }
+
   const message =
     parsed.data.status === "delivered"
-      ? "Pedido marcado como entregado."
+      ? parsed.data.payment
+        ? "Pedido entregado y cobro registrado."
+        : "Pedido marcado como entregado."
       : parsed.data.status === "failed"
         ? "Pedido rechazado y devuelto a logística."
         : parsed.data.status === "in_route"

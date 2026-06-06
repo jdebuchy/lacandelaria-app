@@ -15,6 +15,7 @@ type PanelNavProps = {
 type NavIconKey =
   | "overview"
   | "orders"
+  | "collections"
   | "logistics"
   | "customers"
   | "users"
@@ -40,7 +41,7 @@ type NavItem = {
   match: string[];
   exact?: boolean;
   exclude?: string[];
-  section: "main" | "system";
+  section: "main" | "management" | "system";
 };
 
 const linksByRole: Record<UserRole, NavItem[]> = {
@@ -58,7 +59,7 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       iconKey: "customers",
       label: "Clientes",
       match: ["/panel/customers"],
-      section: "main"
+      section: "management"
     },
     {
       href: "/panel/orders",
@@ -88,11 +89,18 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       section: "main"
     },
     {
+      href: "/panel/collections",
+      iconKey: "collections",
+      label: "Cobranza",
+      match: ["/panel/collections"],
+      section: "main"
+    },
+    {
       href: "/panel/products",
       iconKey: "products",
       label: "Productos",
       match: ["/panel/products"],
-      section: "main"
+      section: "management"
     },
     {
       href: "/panel/users",
@@ -116,7 +124,7 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       iconKey: "customers",
       label: "Clientes",
       match: ["/panel/customers"],
-      section: "main"
+      section: "management"
     },
     {
       href: "/panel/orders",
@@ -138,6 +146,13 @@ const linksByRole: Record<UserRole, NavItem[]> = {
         }
       ],
       section: "main"
+    },
+    {
+      href: "/panel/collections",
+      iconKey: "collections",
+      label: "Cobranza",
+      match: ["/panel/collections"],
+      section: "main"
     }
   ],
   collector: [
@@ -154,7 +169,7 @@ const linksByRole: Record<UserRole, NavItem[]> = {
       iconKey: "customers",
       label: "Clientes",
       match: ["/panel/customers"],
-      section: "main"
+      section: "management"
     },
     {
       href: "/panel/orders",
@@ -252,6 +267,15 @@ function NavIcon({ iconKey }: { iconKey: NavIconKey }) {
           <path d="M8 9.5h8" />
           <path d="M8 13h8" />
           <path d="M8 16.5h5" />
+        </svg>
+      );
+    case "collections":
+      return (
+        <svg {...commonProps}>
+          <path d="M4.5 7.5h15v10h-15z" />
+          <path d="M7 10h2.5" />
+          <path d="M14.5 15h2.5" />
+          <path d="M12 15.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
         </svg>
       );
     case "logistics":
@@ -382,6 +406,7 @@ function SidebarContent({
   userName: string;
 }) {
   const mainLinks = links.filter((item) => item.section === "main");
+  const managementLinks = links.filter((item) => item.section === "management");
   const systemLinks = links.filter((item) => item.section === "system");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -495,6 +520,46 @@ function SidebarContent({
             })}
           </ul>
         </nav>
+
+        {managementLinks.length ? (
+          <>
+            <div className="mx-3 my-5 border-t border-stone-800/80" />
+            <p className="px-3 text-[11px] uppercase tracking-[0.24em] text-stone-500">Gestión</p>
+            <nav className="mt-3">
+              <ul className="space-y-1">
+                {managementLinks.map((item) => {
+                  const isActive = isItemActive(pathname, item);
+
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={classNames(
+                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
+                          isActive
+                            ? "bg-stone-900 text-stone-50"
+                            : "text-stone-400 hover:bg-stone-900/70 hover:text-stone-100"
+                        )}
+                      >
+                        <span
+                          className={classNames(
+                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition",
+                            isActive
+                              ? "text-sky-200"
+                              : "text-stone-500 group-hover:text-stone-300"
+                          )}
+                        >
+                          <NavIcon iconKey={item.iconKey} />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </>
+        ) : null}
 
         {systemLinks.length ? (
           <>

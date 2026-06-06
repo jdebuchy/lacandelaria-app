@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { buildWhatsAppHref } from "@/lib/contact";
 import { getDeliveryStatusLabel } from "@/lib/delivery-trips";
+import { formatCurrency } from "@/lib/payments";
 import { DeliveryStatus } from "@/lib/types";
 
 type DriverStop = {
@@ -19,8 +20,11 @@ type DriverStop = {
   id: string;
   notes: string | null;
   orderStatus: string;
+  paidAmount: number;
+  paymentBalanceAmount: number;
   paymentMethodExpected: string;
   paymentStatus: string;
+  totalAmount: number;
   itemsCount: number;
   itemsSummary: string;
   resellerName: string | null;
@@ -34,6 +38,7 @@ type DriverRouteBoardProps = {
 };
 
 type FeedbackByStop = Record<string, string>;
+type PaymentAmountByStop = Record<string, string>;
 
 function toneClasses(tone: DriverStop["flowTone"]) {
   switch (tone) {
@@ -50,13 +55,17 @@ function statusLabel(status: DeliveryStatus) {
   return getDeliveryStatusLabel(status);
 }
 
-async function updateStop(orderId: string, status: DeliveryStatus) {
+async function updateStop(
+  orderId: string,
+  status: DeliveryStatus,
+  payment?: { amount: number; method: "cash"; reference?: string }
+) {
   const response = await fetch("/api/driver/update-delivery", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ orderId, status })
+    body: JSON.stringify({ orderId, payment, status })
   });
 
   return {
@@ -68,12 +77,17 @@ async function updateStop(orderId: string, status: DeliveryStatus) {
 export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoardProps) {
   const router = useRouter();
   const [feedback, setFeedback] = useState<FeedbackByStop>({});
+  const [paymentAmounts, setPaymentAmounts] = useState<PaymentAmountByStop>({});
   const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  async function handleStatusChange(orderId: string, status: DeliveryStatus) {
+  async function handleStatusChange(
+    orderId: string,
+    status: DeliveryStatus,
+    payment?: { amount: number; method: "cash"; reference?: string }
+  ) {
     setPendingStopId(orderId);
-    const { response, result } = await updateStop(orderId, status);
+    const { response, result } = await updateStop(orderId, status, payment);
 
     setFeedback((current) => ({
       ...current,
@@ -101,6 +115,12 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
     <div className="grid gap-4">
       {stops.map((stop) => {
         const isUpdating = pendingStopId === stop.id || isPending;
+        const paymentAmount = paymentAmounts[stop.id] ?? String(stop.paymentBalanceAmount || "");
+        const numericPaymentAmount = Number(paymentAmount);
+        const canCollectCash =
+          stop.paymentMethodExpected === "cash" &&
+          stop.paymentStatus !== "paid" &&
+          stop.paymentBalanceAmount > 0;
         const whatsappHref = buildWhatsAppHref(
           stop.customerPhone,
           `Hola ${stop.customerName}, te escribimos por tu pedido de La Candelaria.`
@@ -144,7 +164,10 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                   </div>
                   <div className="rounded-2xl bg-stone-950/80 p-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Cobranza</p>
-                    <p className="mt-1 text-sm text-stone-200">{stop.paymentStatus}</p>
+                    <p className="mt-1 text-sm text-stone-200">
+                      {formatCurrency(stop.paidAmount)} / {formatCurrency(stop.totalAmount)}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-500">Saldo {formatCurrency(stop.paymentBalanceAmount)}</p>
                   </div>
                 </div>
 
@@ -188,14 +211,62 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                     >
                       {isUpdating ? "Guardando..." : "Salir a entrega"}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleStatusChange(stop.id, "delivered")}
-                      disabled={isUpdating}
-                      className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isUpdating ? "Guardando..." : "Marcar entregado"}
-                    </button>
+                    {canCollectCash ? (
+                      <div className="grid gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3">
+                        <label className="grid gap-1 text-xs text-emerald-100">
+                          Cobro en efectivo
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value={paymentAmount}
+                            onChange={(event) =>
+                              setPaymentAmounts((current) => ({
+                                ...current,
+                                [stop.id]: event.target.value
+                              }))
+                            }
+                            className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-emerald-300"
+                          />
+                        </label>
+                        {numericPaymentAmount > stop.paymentBalanceAmount ? (
+                          <p className="text-xs text-amber-100">
+                            Supera el saldo. El pedido quedara pagado.
+                          </p>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleStatusChange(stop.id, "delivered", {
+                              amount: numericPaymentAmount,
+                              method: "cash",
+                              reference: "Cobro registrado por reparto"
+                            })
+                          }
+                          disabled={isUpdating || !Number.isFinite(numericPaymentAmount) || numericPaymentAmount <= 0}
+                          className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {isUpdating ? "Guardando..." : "Entregar y cobrar"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStatusChange(stop.id, "delivered")}
+                          disabled={isUpdating}
+                          className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-400/20 px-4 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Entregar sin cobrar
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(stop.id, "delivered")}
+                        disabled={isUpdating}
+                        className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isUpdating ? "Guardando..." : "Marcar entregado"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleStatusChange(stop.id, "failed")}

@@ -12,6 +12,7 @@ import {
   getLogisticsFlowTone,
   inferLogisticsFlow
 } from "@/lib/logistics";
+import { buildPaymentSummary } from "@/lib/payments";
 import { formatItemsSummary } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -42,6 +43,11 @@ type RelatedOrderItem = {
 type RelatedDelivery = {
   delivery_status?: "pending" | "in_route" | "delivered" | "failed" | null;
   proof_note?: string | null;
+};
+
+type RelatedPayment = {
+  amount: number | string;
+  status: string;
 };
 
 type TripRow = {
@@ -119,6 +125,7 @@ export default async function LogisticsDeliveryPage() {
             sales_channel,
             reseller_id,
             items_count,
+            total_amount,
             payment_method_expected,
             payment_status,
             status,
@@ -144,6 +151,10 @@ export default async function LogisticsDeliveryPage() {
             deliveries (
               delivery_status,
               proof_note
+            ),
+            payments (
+              amount,
+              status
             ),
             order_items (
               product_name_snapshot,
@@ -176,6 +187,11 @@ export default async function LogisticsDeliveryPage() {
           const reseller = takeSingleRelation<RelatedReseller>(order.resellers ?? null);
           const delivery = takeSingleRelation<RelatedDelivery>(order.deliveries ?? null);
           const items = (order.order_items ?? []) as RelatedOrderItem[];
+          const payments = ((order.payments ?? []) as RelatedPayment[]).filter(
+            (payment) => payment.status === "received"
+          );
+          const paidAmount = payments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+          const paymentSummary = buildPaymentSummary(Number(order.total_amount ?? 0), paidAmount);
           const flow = inferLogisticsFlow({
             addressLine1: customer?.address_line_1,
             administrativeAreaLevel1: customer?.administrative_area_level_1,
@@ -210,10 +226,13 @@ export default async function LogisticsDeliveryPage() {
             itemsSummary: formatItemsSummary(items, 3),
             notes: delivery?.proof_note || order.notes || customer?.delivery_notes || null,
             orderStatus: order.status,
+            paidAmount: paymentSummary.paidAmount,
+            paymentBalanceAmount: paymentSummary.balanceAmount,
             paymentMethodExpected: order.payment_method_expected,
-            paymentStatus: order.payment_status,
+            paymentStatus: paymentSummary.paymentStatus,
             resellerName: reseller?.full_name || null,
-            sequenceNumber: item.sequence_number
+            sequenceNumber: item.sequence_number,
+            totalAmount: paymentSummary.totalAmount
           };
         })
         .filter((stop): stop is NonNullable<typeof stop> => Boolean(stop));

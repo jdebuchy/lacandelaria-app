@@ -67,7 +67,7 @@ const CUSTOMER_DETAIL_WHATSAPP_SELECT = `${CUSTOMER_DETAIL_BASE_SELECT}, whatsap
 
 export async function getCustomerDetail(customerId: string) {
   const supabase = createAdminClient();
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from("customers")
     .select(CUSTOMER_DETAIL_WHATSAPP_SELECT)
     .eq("id", customerId)
@@ -79,8 +79,23 @@ export async function getCustomerDetail(customerId: string) {
       .select(CUSTOMER_DETAIL_BASE_SELECT)
       .eq("id", customerId)
       .maybeSingle();
-    data = fallback.data;
-    error = fallback.error;
+
+    if (fallback.error) {
+      throw fallback.error;
+    }
+
+    if (!fallback.data) {
+      return null;
+    }
+
+    return {
+      ...fallback.data,
+      whatsapp_phone: null,
+      whatsapp_opt_in: null,
+      whatsapp_opt_out_at: null,
+      last_whatsapp_interaction_at: null,
+      preferred_contact_channel: null,
+    } as CustomerDetail;
   }
 
   if (error) {

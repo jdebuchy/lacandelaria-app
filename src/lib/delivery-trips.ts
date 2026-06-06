@@ -1,4 +1,9 @@
-import type { DeliveryStatus, DeliveryTripStatus, OrderStatus } from "@/lib/types";
+import type {
+  DeliveryFailureReason,
+  DeliveryStatus,
+  DeliveryTripStatus,
+  OrderStatus
+} from "@/lib/types";
 
 export function getDeliveryTripStatusLabel(status: DeliveryTripStatus) {
   switch (status) {
@@ -48,6 +53,23 @@ export function getDeliveryStatusLabel(status: DeliveryStatus) {
       return "Rechazado";
     default:
       return status;
+  }
+}
+
+export function getDeliveryFailureReasonLabel(reason: DeliveryFailureReason | string | null | undefined) {
+  switch (reason) {
+    case "customer_absent":
+      return "Cliente ausente";
+    case "incorrect_address":
+      return "Direccion incorrecta";
+    case "rejected":
+      return "Rechazado";
+    case "closed":
+      return "Cerrado";
+    case "other":
+      return "Otro";
+    default:
+      return reason ?? "Sin motivo";
   }
 }
 

@@ -208,7 +208,8 @@ create table if not exists public.deliveries (
   sequence_number integer,
   delivery_status public.delivery_status not null default 'pending',
   delivered_at timestamptz,
-  proof_note text
+  proof_note text,
+  failure_reason text
 );
 
 create table if not exists public.logistics_depots (
@@ -241,6 +242,10 @@ create table if not exists public.delivery_trip_orders (
   delivery_trip_id uuid not null references public.delivery_trips(id) on delete cascade,
   order_id uuid not null references public.orders(id) on delete cascade,
   sequence_number integer not null,
+  stop_status public.delivery_status,
+  stop_failure_reason text,
+  stop_note text,
+  resolved_at timestamptz,
   released_at timestamptz,
   created_at timestamptz not null default now()
 );

@@ -130,6 +130,7 @@ Railway:
 4. Cargar variables de entorno.
 5. Iniciar con `npm start`.
 6. Escanear el QR que aparece en logs la primera vez.
+   Si el QR de logs se ve deformado, abrir `https://WORKER_URL/admin/qr?secret=INTERNAL_API_SECRET`.
 
 Reglas operativas:
 

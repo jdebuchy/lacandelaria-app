@@ -6,11 +6,13 @@ const { Client, LocalAuth } = pkg;
 
 let client = null;
 let ready = false;
+let latestQr = null;
 
 export function getWhatsappStatus() {
   return {
     ready,
-    initialized: Boolean(client)
+    initialized: Boolean(client),
+    hasQr: Boolean(latestQr)
   };
 }
 
@@ -26,12 +28,14 @@ export function getWhatsappClient() {
     });
 
     client.on("qr", (qr) => {
+      latestQr = qr;
       console.log("WhatsApp QR received. Scan it from the linked device flow.");
       qrcode.generate(qr, { small: true });
     });
 
     client.on("ready", () => {
       ready = true;
+      latestQr = null;
       console.log("WhatsApp client ready.");
     });
 
@@ -42,6 +46,10 @@ export function getWhatsappClient() {
   }
 
   return client;
+}
+
+export function getLatestQr() {
+  return latestQr;
 }
 
 export async function initializeWhatsappClient(onIncomingMessage) {

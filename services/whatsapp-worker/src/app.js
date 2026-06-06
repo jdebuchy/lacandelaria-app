@@ -1,8 +1,9 @@
 import express from "express";
+import QRCode from "qrcode";
 import { assertRequiredConfig, config } from "./config.js";
 import { buildDailyQueue } from "./queueBuilder.js";
 import { handleIncomingMessage } from "./incomingMessageHandler.js";
-import { initializeWhatsappClient, getWhatsappStatus, sendWhatsappMessage } from "./whatsappClient.js";
+import { initializeWhatsappClient, getLatestQr, getWhatsappStatus, sendWhatsappMessage } from "./whatsappClient.js";
 import { processQueue } from "./queueProcessor.js";
 import { startScheduler } from "./scheduler.js";
 import { supabase } from "./supabase.js";
@@ -14,7 +15,7 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 
 function requireInternalSecret(request, response, next) {
-  const provided = request.header("x-internal-api-secret") ?? "";
+  const provided = request.header("x-internal-api-secret") ?? request.query.secret ?? "";
 
   if (!config.internalApiSecret || provided !== config.internalApiSecret) {
     response.status(401).json({ success: false, message: "Unauthorized." });
@@ -30,6 +31,69 @@ app.get("/health", (_, response) => {
     service: "whatsapp-worker",
     whatsapp: getWhatsappStatus()
   });
+});
+
+app.get("/admin/qr", requireInternalSecret, async (_, response, next) => {
+  try {
+    const qr = getLatestQr();
+
+    if (!qr) {
+      response.type("html").send(`<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WhatsApp QR</title>
+    <style>
+      body { align-items: center; background: #f7f4ee; color: #1f1a17; display: grid; font-family: sans-serif; min-height: 100vh; margin: 0; place-items: center; }
+      main { background: white; border-radius: 24px; box-shadow: 0 24px 80px rgb(0 0 0 / 12%); max-width: 520px; padding: 40px; text-align: center; }
+      code { background: #f0ece3; border-radius: 8px; padding: 4px 8px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>No hay QR activo</h1>
+      <p>Estado actual: <code>${JSON.stringify(getWhatsappStatus())}</code></p>
+      <p>Si WhatsApp todavia no esta listo, redeploya o reinicia el worker y recarga esta pagina.</p>
+    </main>
+  </body>
+</html>`);
+      return;
+    }
+
+    const svg = await QRCode.toString(qr, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      type: "svg",
+      width: 360
+    });
+
+    response.type("html").send(`<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="45" />
+    <title>WhatsApp QR</title>
+    <style>
+      body { align-items: center; background: #f7f4ee; color: #1f1a17; display: grid; font-family: sans-serif; min-height: 100vh; margin: 0; place-items: center; }
+      main { background: white; border-radius: 24px; box-shadow: 0 24px 80px rgb(0 0 0 / 12%); max-width: 520px; padding: 40px; text-align: center; }
+      .qr { display: inline-block; margin: 24px 0; }
+      .qr svg { height: auto; max-width: 100%; width: 360px; }
+      p { color: #5f5852; line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Escanear WhatsApp</h1>
+      <div class="qr">${svg}</div>
+      <p>Abrí WhatsApp, Dispositivos vinculados y escaneá este QR. La pagina se actualiza cada 45 segundos porque WhatsApp rota el codigo.</p>
+    </main>
+  </body>
+</html>`);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/admin/build-daily-queue", requireInternalSecret, async (_, response, next) => {

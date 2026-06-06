@@ -24,3 +24,9 @@ export function toWhatsappChatId(phone) {
   const normalized = normalizeWhatsappPhone(phone);
   return normalized ? `${normalized}@c.us` : "";
 }
+
+export function phonesMatch(left, right) {
+  const normalizedLeft = normalizeWhatsappPhone(left);
+  const normalizedRight = normalizeWhatsappPhone(right);
+  return Boolean(normalizedLeft && normalizedRight && normalizedLeft === normalizedRight);
+}

@@ -1,22 +1,36 @@
 import { analyzeIncomingMessage } from "./ai/analyzeIncomingMessage.js";
 import { applyConversationRules } from "./conversationEngine.js";
-import { normalizeWhatsappPhone } from "./phone.js";
+import { normalizeWhatsappPhone, phonesMatch } from "./phone.js";
 import { sendWhatsappMessage } from "./whatsappClient.js";
 import { supabase } from "./supabase.js";
 
 async function findOrCreateCustomer(phone) {
-  const { data: existing } = await supabase
+  const { data: exactMatch } = await supabase
     .from("customers")
     .select("id, first_name, last_name, phone, whatsapp_phone, whatsapp_opt_in, whatsapp_opt_out_at")
     .or(`phone.eq.${phone},whatsapp_phone.eq.${phone}`)
     .limit(1)
     .maybeSingle();
 
-  return existing ?? null;
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const { data: candidates, error } = await supabase
+    .from("customers")
+    .select("id, first_name, last_name, phone, whatsapp_phone, whatsapp_opt_in, whatsapp_opt_out_at")
+    .or("phone.not.is.null,whatsapp_phone.not.is.null")
+    .limit(500);
+
+  if (error) {
+    throw error;
+  }
+
+  return (candidates ?? []).find((customer) => phonesMatch(customer.whatsapp_phone || customer.phone, phone)) ?? null;
 }
 
 async function findOrCreateConversation({ customer, phone }) {
-  const { data: existing, error: existingError } = await supabase
+  const { data: exactExisting, error: existingError } = await supabase
     .from("whatsapp_conversations")
     .select("id, customer_id, phone, status, current_intent, ai_confidence, draft_order, requires_human")
     .eq("phone", phone)
@@ -28,10 +42,34 @@ async function findOrCreateConversation({ customer, phone }) {
     throw existingError;
   }
 
+  let existing = exactExisting;
+
+  if (!existing) {
+    const { data: candidateConversations, error: candidatesError } = await supabase
+      .from("whatsapp_conversations")
+      .select("id, customer_id, phone, status, current_intent, ai_confidence, draft_order, requires_human")
+      .order("updated_at", { ascending: false })
+      .limit(100);
+
+    if (candidatesError) {
+      throw candidatesError;
+    }
+
+    existing = (candidateConversations ?? []).find((conversation) => phonesMatch(conversation.phone, phone)) ?? null;
+  }
+
   if (existing) {
     if (!existing.customer_id && customer?.id) {
-      await supabase.from("whatsapp_conversations").update({ customer_id: customer.id }).eq("id", existing.id);
+      await supabase
+        .from("whatsapp_conversations")
+        .update({
+          customer_id: customer.id,
+          phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existing.id);
       existing.customer_id = customer.id;
+      existing.phone = phone;
     }
 
     return existing;

@@ -1,4 +1,4 @@
-import { toWhatsappChatId } from "./phone.js";
+import { phonesMatch, toWhatsappChatId } from "./phone.js";
 import { sendWhatsappMessage } from "./whatsappClient.js";
 import { supabase } from "./supabase.js";
 
@@ -141,11 +141,22 @@ export async function processQueue({ limit = 1 } = {}) {
 
       let { data: conversation } = await supabase
         .from("whatsapp_conversations")
-        .select("id")
+        .select("id, phone")
         .eq("phone", row.phone)
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (!conversation?.id) {
+        const { data: candidateConversations } = await supabase
+          .from("whatsapp_conversations")
+          .select("id, phone")
+          .eq("customer_id", row.customer_id)
+          .order("updated_at", { ascending: false })
+          .limit(20);
+
+        conversation = (candidateConversations ?? []).find((candidate) => phonesMatch(candidate.phone, row.phone)) ?? null;
+      }
 
       if (!conversation?.id) {
         const { data: createdConversation } = await supabase

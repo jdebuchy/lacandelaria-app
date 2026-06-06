@@ -652,6 +652,7 @@ export async function saveDeliveryTripPlan(supabase: SupabaseClient, input: Save
       const deliveryPayload = {
         assigned_date: input.scheduledDate,
         delivery_status: "pending",
+        failure_reason: null,
         driver_user_id: input.driverUserId,
         proof_note: null,
         sequence_number: input.orderedStopIds.indexOf(orderId) + 1

@@ -20,6 +20,13 @@ export type DeliveryStatus = "pending" | "in_route" | "delivered" | "failed";
 
 export type DeliveryTripStatus = "draft" | "assigned" | "in_route" | "completed" | "cancelled";
 
+export type DeliveryFailureReason =
+  | "customer_absent"
+  | "incorrect_address"
+  | "rejected"
+  | "closed"
+  | "other";
+
 export type WhatsappConversationStatus =
   | "idle"
   | "satisfaction_followup_sent"

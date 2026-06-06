@@ -3,24 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-type DeliveryTripStartButtonProps = {
+type DeliveryTripCompleteButtonProps = {
   tripId: string;
-  disabled?: boolean;
-  label?: string;
 };
 
-export function DeliveryTripStartButton({
-  tripId,
-  disabled = false,
-  label = "Iniciar viaje"
-}: DeliveryTripStartButtonProps) {
+export function DeliveryTripCompleteButton({ tripId }: DeliveryTripCompleteButtonProps) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
   async function handleClick() {
     setMessage("");
-    const response = await fetch(`/api/panel/delivery-trips/${tripId}/start`, {
+    const response = await fetch(`/api/panel/delivery-trips/${tripId}/complete`, {
       method: "POST"
     });
 
@@ -41,10 +35,10 @@ export function DeliveryTripStartButton({
       <button
         type="button"
         onClick={handleClick}
-        disabled={disabled || isPending}
-        className="inline-flex h-10 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={isPending}
+        className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? "Iniciando..." : label}
+        {isPending ? "Finalizando..." : "Finalizar viaje"}
       </button>
       {message ? <p className="text-xs text-stone-400">{message}</p> : null}
     </div>

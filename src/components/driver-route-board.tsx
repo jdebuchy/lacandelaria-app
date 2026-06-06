@@ -4,14 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { buildWhatsAppHref } from "@/lib/contact";
-import { getDeliveryStatusLabel } from "@/lib/delivery-trips";
+import {
+  getDeliveryFailureReasonLabel,
+  getDeliveryStatusLabel
+} from "@/lib/delivery-trips";
 import { formatCurrency } from "@/lib/payments";
-import { DeliveryStatus } from "@/lib/types";
+import type { DeliveryFailureReason, DeliveryStatus } from "@/lib/types";
 
 type DriverStop = {
   addressSummary: string;
   customerName: string;
   customerPhone: string;
+  deliveryFailureReason?: DeliveryFailureReason | null;
   deliveryDate: string | null;
   deliveryStatus: DeliveryStatus;
   flowGuidance: string;
@@ -39,6 +43,16 @@ type DriverRouteBoardProps = {
 
 type FeedbackByStop = Record<string, string>;
 type PaymentAmountByStop = Record<string, string>;
+type FailureReasonByStop = Record<string, DeliveryFailureReason>;
+type NoteByStop = Record<string, string>;
+
+const FAILURE_REASON_OPTIONS: DeliveryFailureReason[] = [
+  "customer_absent",
+  "incorrect_address",
+  "rejected",
+  "closed",
+  "other"
+];
 
 function toneClasses(tone: DriverStop["flowTone"]) {
   switch (tone) {
@@ -58,14 +72,24 @@ function statusLabel(status: DeliveryStatus) {
 async function updateStop(
   orderId: string,
   status: DeliveryStatus,
-  payment?: { amount: number; method: "cash"; reference?: string }
+  options?: {
+    failureReason?: DeliveryFailureReason;
+    note?: string;
+    payment?: { amount: number; method: "cash"; reference?: string };
+  }
 ) {
   const response = await fetch("/api/driver/update-delivery", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ orderId, payment, status })
+    body: JSON.stringify({
+      failureReason: options?.failureReason,
+      note: options?.note,
+      orderId,
+      payment: options?.payment,
+      status
+    })
   });
 
   return {
@@ -78,16 +102,22 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
   const router = useRouter();
   const [feedback, setFeedback] = useState<FeedbackByStop>({});
   const [paymentAmounts, setPaymentAmounts] = useState<PaymentAmountByStop>({});
+  const [failureReasons, setFailureReasons] = useState<FailureReasonByStop>({});
+  const [notes, setNotes] = useState<NoteByStop>({});
   const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   async function handleStatusChange(
     orderId: string,
     status: DeliveryStatus,
-    payment?: { amount: number; method: "cash"; reference?: string }
+    options?: {
+      failureReason?: DeliveryFailureReason;
+      note?: string;
+      payment?: { amount: number; method: "cash"; reference?: string };
+    }
   ) {
     setPendingStopId(orderId);
-    const { response, result } = await updateStop(orderId, status, payment);
+    const { response, result } = await updateStop(orderId, status, options);
 
     setFeedback((current) => ({
       ...current,
@@ -117,6 +147,8 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
         const isUpdating = pendingStopId === stop.id || isPending;
         const paymentAmount = paymentAmounts[stop.id] ?? String(stop.paymentBalanceAmount || "");
         const numericPaymentAmount = Number(paymentAmount);
+        const failureReason = failureReasons[stop.id] ?? stop.deliveryFailureReason ?? "customer_absent";
+        const note = notes[stop.id] ?? stop.notes ?? "";
         const canCollectCash =
           stop.paymentMethodExpected === "cash" &&
           stop.paymentStatus !== "paid" &&
@@ -140,6 +172,11 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                   <span className="rounded-full border border-stone-700 bg-stone-950 px-3 py-1 text-xs text-stone-300">
                     {statusLabel(stop.deliveryStatus)}
                   </span>
+                  {stop.deliveryFailureReason ? (
+                    <span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-200">
+                      {getDeliveryFailureReasonLabel(stop.deliveryFailureReason)}
+                    </span>
+                  ) : null}
                 </div>
 
                 <div>
@@ -238,9 +275,12 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                           type="button"
                           onClick={() =>
                             handleStatusChange(stop.id, "delivered", {
-                              amount: numericPaymentAmount,
-                              method: "cash",
-                              reference: "Cobro registrado por reparto"
+                              note,
+                              payment: {
+                                amount: numericPaymentAmount,
+                                method: "cash",
+                                reference: "Cobro registrado por reparto"
+                              }
                             })
                           }
                           disabled={isUpdating || !Number.isFinite(numericPaymentAmount) || numericPaymentAmount <= 0}
@@ -250,7 +290,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleStatusChange(stop.id, "delivered")}
+                          onClick={() => handleStatusChange(stop.id, "delivered", { note })}
                           disabled={isUpdating}
                           className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-400/20 px-4 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -260,16 +300,49 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                     ) : (
                       <button
                         type="button"
-                        onClick={() => handleStatusChange(stop.id, "delivered")}
+                        onClick={() => handleStatusChange(stop.id, "delivered", { note })}
                         disabled={isUpdating}
                         className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isUpdating ? "Guardando..." : "Marcar entregado"}
                       </button>
                     )}
+                    <select
+                      value={failureReason}
+                      onChange={(event) =>
+                        setFailureReasons((current) => ({
+                          ...current,
+                          [stop.id]: event.target.value as DeliveryFailureReason
+                        }))
+                      }
+                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-rose-300"
+                    >
+                      {FAILURE_REASON_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {getDeliveryFailureReasonLabel(option)}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={note}
+                      onChange={(event) =>
+                        setNotes((current) => ({
+                          ...current,
+                          [stop.id]: event.target.value
+                        }))
+                      }
+                      placeholder="Comentario"
+                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-stone-500"
+                    />
                     <button
                       type="button"
-                      onClick={() => handleStatusChange(stop.id, "failed")}
+                      onClick={() =>
+                        handleStatusChange(stop.id, "failed", {
+                          failureReason,
+                          note
+                        })
+                      }
                       disabled={isUpdating}
                       className="inline-flex h-11 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                     >

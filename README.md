@@ -125,10 +125,11 @@ WORKER_CRON_TIMEZONE="America/Argentina/Buenos_Aires"
 Railway:
 
 1. Crear un servicio apuntando a `services/whatsapp-worker`.
-2. Configurar un volumen persistente y usarlo en `WHATSAPP_SESSION_PATH`.
-3. Cargar variables de entorno.
-4. Iniciar con `npm start`.
-5. Escanear el QR que aparece en logs la primera vez.
+2. Mantener el `Dockerfile` del worker para instalar las librerias de Chromium requeridas por Puppeteer.
+3. Configurar un volumen persistente y usarlo en `WHATSAPP_SESSION_PATH`.
+4. Cargar variables de entorno.
+5. Iniciar con `npm start`.
+6. Escanear el QR que aparece en logs la primera vez.
 
 Reglas operativas:
 

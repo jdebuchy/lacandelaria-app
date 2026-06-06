@@ -243,11 +243,14 @@ create table if not exists public.delivery_trip_orders (
 create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete cascade,
-  amount numeric(12,2) not null,
+  amount numeric(12,2) not null check (amount > 0),
   method public.payment_method not null,
   status text not null default 'received',
   received_by_user_id uuid references public.profiles(id) on delete set null,
-  received_at timestamptz,
+  received_at timestamptz not null default now(),
+  voided_at timestamptz,
+  voided_by_user_id uuid references public.profiles(id) on delete set null,
+  void_reason text,
   reference text
 );
 
@@ -281,6 +284,10 @@ create index if not exists delivery_trip_orders_trip_sequence_idx
 create unique index if not exists delivery_trip_orders_active_order_idx
   on public.delivery_trip_orders(order_id)
   where released_at is null;
+create index if not exists payments_order_id_idx
+  on public.payments(order_id);
+create index if not exists payments_received_at_idx
+  on public.payments(received_at desc);
 create index if not exists product_families_active_display_order_idx
   on public.product_families(active, display_order, name);
 create index if not exists product_variants_family_display_order_idx

@@ -5,6 +5,12 @@ import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
 import { formatItemsSummary } from "@/lib/products";
+import {
+  buildPaymentSummary,
+  formatCurrency,
+  getPaymentMethodLabel,
+  getPaymentStatusLabel
+} from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type RelatedCustomer = {
@@ -27,6 +33,11 @@ type RelatedOrderItem = {
   product_name_snapshot: string;
   sales_unit_label_snapshot: string;
   quantity: number;
+};
+
+type RelatedPayment = {
+  amount: number | string;
+  status: string;
 };
 
 function takeSingleRelation<T>(value: T | T[] | null): T | null {
@@ -56,23 +67,6 @@ function getChannelLabel(channel: string) {
       return "Interno";
     default:
       return channel;
-  }
-}
-
-function getPaymentMethodLabel(method: string) {
-  return method === "transfer" ? "Transferencia" : "Efectivo";
-}
-
-function getPaymentStatusLabel(status: string) {
-  switch (status) {
-    case "paid":
-      return "Pagado";
-    case "partial":
-      return "Parcial";
-    case "pending":
-      return "Pendiente";
-    default:
-      return status;
   }
 }
 
@@ -125,6 +119,10 @@ export default async function OrdersPage() {
             product_name_snapshot,
             sales_unit_label_snapshot,
             quantity
+          ),
+          payments (
+            amount,
+            status
           )
         `
       )
@@ -141,6 +139,11 @@ export default async function OrdersPage() {
     const customer = takeSingleRelation<RelatedCustomer>(order.customers ?? null);
     const reseller = takeSingleRelation<RelatedReseller>(order.resellers ?? null);
     const items = (order.order_items ?? []) as RelatedOrderItem[];
+    const payments = ((order.payments ?? []) as RelatedPayment[]).filter(
+      (payment) => payment.status === "received"
+    );
+    const paidAmount = payments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+    const paymentSummary = buildPaymentSummary(Number(order.total_amount ?? 0), paidAmount);
 
     return {
       id: order.id,
@@ -153,13 +156,15 @@ export default async function OrdersPage() {
       deliveryDate: order.delivery_date,
       notes: order.notes,
       paymentMethodExpected: order.payment_method_expected,
-      paymentStatus: order.payment_status,
+      paymentStatus: paymentSummary.paymentStatus,
+      paidAmount: paymentSummary.paidAmount,
+      paymentBalanceAmount: paymentSummary.balanceAmount,
       itemsCount: Number(order.items_count ?? 0),
       itemsSummary: formatItemsSummary(items),
       status: order.status,
       isEditable: canEditOrder(order.status, activeTripByOrderId.has(order.id)),
       tripId: activeTripByOrderId.get(order.id) ?? null,
-      totalAmount: Number(order.total_amount ?? 0),
+      totalAmount: paymentSummary.totalAmount,
       deliveryArea: order.delivery_area || customer?.delivery_area || "pending_review",
       addressSummary: customer
         ? formatStructuredAddressSummary({
@@ -263,7 +268,15 @@ export default async function OrdersPage() {
                   </div>
                   <div>{order.itemsSummary}</div>
                   <div>{order.itemsCount}</div>
-                  <div>${order.totalAmount.toLocaleString("es-AR")}</div>
+                  <div>
+                    <p>{formatCurrency(order.totalAmount)}</p>
+                    <p className="mt-1 text-xs text-stone-500">
+                      Cobrado {formatCurrency(order.paidAmount)}
+                    </p>
+                    <p className="mt-1 text-xs text-amber-300">
+                      Saldo {formatCurrency(order.paymentBalanceAmount)}
+                    </p>
+                  </div>
                   <div>{formatDate(order.created_at)}</div>
                   <div className="flex justify-end">
                     {order.isEditable ? (
@@ -315,7 +328,11 @@ export default async function OrdersPage() {
                     </div>
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Total</p>
-                      <p className="mt-1 text-stone-200">${order.totalAmount.toLocaleString("es-AR")}</p>
+                      <p className="mt-1 text-stone-200">{formatCurrency(order.totalAmount)}</p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
+                        {formatCurrency(order.paymentBalanceAmount)}
+                      </p>
                     </div>
                   </div>
                   <div className="mt-4">

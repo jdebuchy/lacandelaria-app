@@ -1,6 +1,35 @@
 import { z } from "zod";
 import { callOpenRouter } from "./openRouterClient.js";
 
+const intentAliases = {
+  delivery_inquiry: "ask_delivery",
+  price: "ask_price",
+  price_inquiry: "ask_price",
+  product_inquiry: "ask_products",
+  products_inquiry: "ask_products",
+  purchase: "buy",
+  purchase_intent: "buy",
+  reorder: "buy",
+  unsubscribe: "opt_out"
+};
+
+function normalizeRawAnalysis(raw) {
+  if (!raw || typeof raw !== "object") {
+    return raw;
+  }
+
+  const intent = raw.intent;
+
+  if (typeof intent !== "string") {
+    return raw;
+  }
+
+  return {
+    ...raw,
+    intent: intentAliases[intent] ?? intent
+  };
+}
+
 const analysisSchema = z.object({
   can_create_order: z.boolean().default(false),
   confidence: z.number().min(0).max(1),
@@ -45,7 +74,9 @@ Tu trabajo es interpretar mensajes de clientes existentes para medir satisfacci�
 
 No sos un chatbot generalista. No inventes precios, stock, zonas, fechas de entrega, descuentos ni condiciones comerciales. Usá solamente el contexto estructurado provisto por el sistema. No prometas entregas si no están disponibles en el contexto. No ofrezcas compensaciones ante reclamos. No insistas si el cliente no quiere comprar. Si el cliente pide baja, marcá opt_out. Si hay ambigüedad o baja confianza, pedí una aclaración breve o derivá a humano. Antes de crear un pedido debe existir confirmación explícita del cliente.
 
-Respondé únicamente JSON válido con: intent, confidence, extracted, missing_fields, should_handoff_to_human, suggested_reply, can_create_order.`;
+Respondé únicamente JSON válido con: intent, confidence, extracted, missing_fields, should_handoff_to_human, suggested_reply, can_create_order.
+
+El campo intent debe ser exactamente uno de estos valores: satisfied, complaint, buy, ask_price, ask_delivery, ask_products, confirm_order, modify_order, cancel_order, not_interested, not_now, opt_out, unknown.`;
 
 export async function analyzeIncomingMessage({ commercialContext, conversation, messageBody, recentMessages }) {
   const raw = await callOpenRouter([
@@ -61,5 +92,5 @@ export async function analyzeIncomingMessage({ commercialContext, conversation, 
     }
   ]);
 
-  return analysisSchema.parse(raw);
+  return analysisSchema.parse(normalizeRawAnalysis(raw));
 }

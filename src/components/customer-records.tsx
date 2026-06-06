@@ -331,7 +331,12 @@ export function CustomerRecords({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-base font-semibold text-stone-50">{displayName}</p>
+                    <Link
+                      href={`/panel/customers/${customer.id}`}
+                      className="text-base font-semibold text-stone-50 transition hover:text-emerald-200"
+                    >
+                      {displayName}
+                    </Link>
                     <p className="mt-1 text-sm text-stone-400">
                       {formatWhatsAppPhone(customer.phone)}
                     </p>
@@ -351,6 +356,12 @@ export function CustomerRecords({
                       >
                         {isEditing ? "Cerrar" : "Editar"}
                       </button>
+                      <Link
+                        href={`/panel/customers/${customer.id}`}
+                        className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+                      >
+                        Ver
+                      </Link>
                       <button
                         type="button"
                         onClick={() => handleDelete(customer)}
@@ -433,7 +444,12 @@ export function CustomerRecords({
               <div key={customer.id} className="border-b border-stone-800 last:border-b-0">
                 <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] px-6 py-4 text-sm text-stone-300 hover:bg-stone-900/50">
                   <div className="font-medium text-stone-100">
-                    <div>{customer.first_name || fallbackName}</div>
+                    <Link
+                      href={`/panel/customers/${customer.id}`}
+                      className="transition hover:text-emerald-200"
+                    >
+                      {customer.first_name || fallbackName}
+                    </Link>
                     {customer.instagram ? (
                       <div className="mt-1 text-xs text-stone-500">{customer.instagram}</div>
                     ) : null}
@@ -469,6 +485,12 @@ export function CustomerRecords({
                       >
                         {isEditing ? "Cerrar" : "Editar"}
                       </button>
+                      <Link
+                        href={`/panel/customers/${customer.id}`}
+                        className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+                      >
+                        Ver
+                      </Link>
                       <button
                         type="button"
                         onClick={() => handleDelete(customer)}

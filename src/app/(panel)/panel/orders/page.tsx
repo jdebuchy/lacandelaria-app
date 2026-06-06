@@ -65,6 +65,8 @@ function getChannelLabel(channel: string) {
       return "Revendedora";
     case "internal":
       return "Interno";
+    case "whatsapp_ai":
+      return "WhatsApp IA";
     default:
       return channel;
   }

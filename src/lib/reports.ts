@@ -142,7 +142,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const CHANNEL_LABELS: Record<SalesChannel, string> = {
   internal: "Interno",
   public_form: "Formulario",
-  reseller: "Revendedor"
+  reseller: "Revendedor",
+  whatsapp_ai: "WhatsApp IA"
 };
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
@@ -248,7 +249,10 @@ export function resolveReportFilters(params: Record<string, string | string[] | 
   const method = singleParam(params.method);
 
   return {
-    channel: channel === "internal" || channel === "public_form" || channel === "reseller" ? channel : "all",
+    channel:
+      channel === "internal" || channel === "public_form" || channel === "reseller" || channel === "whatsapp_ai"
+        ? channel
+        : "all",
     endDate,
     groupBy: normalizeGroupBy(singleParam(params.groupBy)),
     method: method === "cash" || method === "transfer" ? method : "all",

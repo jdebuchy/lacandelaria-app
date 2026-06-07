@@ -141,3 +141,39 @@ Reglas operativas:
 - Reclamos, baja confianza, ambiguedad o preguntas comerciales sensibles quedan en `needs_human`.
 - Precios, stock, zonas y fechas disponibles deben venir del ERP/Supabase.
 - Crear pedidos solo despues de confirmacion explicita y usando la API interna.
+
+## CRM Instagram Ads Inbox
+
+El modulo `CRM > Instagram` agrega una bandeja de solo lectura para DMs iniciados por usuarios desde campanas Click to Message / Instagram Direct. Usa la API oficial de Meta y no envia respuestas automaticas en Fase 1.
+
+Arquitectura inicial:
+
+- Next.js renderiza el panel `CRM > Instagram`.
+- Supabase guarda conversaciones, mensajes inbound, leads, logs y payloads crudos de webhooks.
+- Railway corre `services/instagram-worker`.
+- Meta verifica y envia webhooks a `GET/POST /webhooks/meta`.
+- `ENABLE_INSTAGRAM_AUTOMATION=false` mantiene IA y auto-respuestas apagadas.
+
+Variables adicionales del worker:
+
+```env
+META_APP_ID="YOUR_META_APP_ID"
+META_APP_SECRET="YOUR_META_APP_SECRET"
+META_VERIFY_TOKEN="CHANGE_ME_VERIFY_TOKEN"
+META_PAGE_ACCESS_TOKEN="YOUR_PAGE_ACCESS_TOKEN"
+META_GRAPH_API_VERSION="v23.0"
+META_INSTAGRAM_ACCOUNT_ID="YOUR_IG_ACCOUNT_ID"
+SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="YOUR_SUPABASE_SERVICE_ROLE_KEY"
+ENABLE_INSTAGRAM_AUTOMATION="false"
+PORT="8080"
+```
+
+Meta:
+
+1. Usar la app `Paltas La Candelaria CRM-IG`.
+2. Vincular Facebook Page e Instagram profesional `@paltaslacandelaria`.
+3. Configurar callback `https://WORKER_URL/webhooks/meta`.
+4. Usar `META_VERIFY_TOKEN` como verify token.
+5. Suscribir `messages` y `messaging_postbacks`.
+6. Mantener la app en modo propio/testers hasta validar el flujo antes de App Review.

@@ -71,6 +71,11 @@ const linksByRole: Record<UserRole, NavItem[]> = {
           href: "/panel/crm/whatsapp",
           label: "WhatsApp",
           match: ["/panel/crm/whatsapp"]
+        },
+        {
+          href: "/panel/crm/instagram",
+          label: "Instagram",
+          match: ["/panel/crm/instagram"]
         }
       ],
       section: "management"
@@ -155,6 +160,11 @@ const linksByRole: Record<UserRole, NavItem[]> = {
           href: "/panel/crm/whatsapp",
           label: "WhatsApp",
           match: ["/panel/crm/whatsapp"]
+        },
+        {
+          href: "/panel/crm/instagram",
+          label: "Instagram",
+          match: ["/panel/crm/instagram"]
         }
       ],
       section: "management"
@@ -219,6 +229,11 @@ const linksByRole: Record<UserRole, NavItem[]> = {
           href: "/panel/crm/whatsapp",
           label: "WhatsApp",
           match: ["/panel/crm/whatsapp"]
+        },
+        {
+          href: "/panel/crm/instagram",
+          label: "Instagram",
+          match: ["/panel/crm/instagram"]
         }
       ],
       section: "management"

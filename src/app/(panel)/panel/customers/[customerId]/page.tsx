@@ -57,6 +57,8 @@ function getSalesChannelLabel(channel: string) {
       return "Revendedor";
     case "whatsapp_ai":
       return "WhatsApp IA";
+    case "instagram_ai":
+      return "Instagram IA";
     default:
       return channel;
   }

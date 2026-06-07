@@ -141,6 +141,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const CHANNEL_LABELS: Record<SalesChannel, string> = {
   internal: "Interno",
+  instagram_ai: "Instagram IA",
   public_form: "Formulario",
   reseller: "Revendedor",
   whatsapp_ai: "WhatsApp IA"
@@ -250,7 +251,11 @@ export function resolveReportFilters(params: Record<string, string | string[] | 
 
   return {
     channel:
-      channel === "internal" || channel === "public_form" || channel === "reseller" || channel === "whatsapp_ai"
+      channel === "internal" ||
+      channel === "public_form" ||
+      channel === "reseller" ||
+      channel === "whatsapp_ai" ||
+      channel === "instagram_ai"
         ? channel
         : "all",
     endDate,

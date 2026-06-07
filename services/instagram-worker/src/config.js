@@ -11,14 +11,21 @@ export const config = {
   supabaseUrl: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
 };
 
-export function assertRequiredConfig() {
-  const missing = [];
+const requiredConfig = {
+  metaAppSecret: "META_APP_SECRET",
+  metaVerifyToken: "META_VERIFY_TOKEN",
+  supabaseServiceRoleKey: "SUPABASE_SERVICE_ROLE_KEY",
+  supabaseUrl: "SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL"
+};
 
-  for (const key of ["metaAppSecret", "metaVerifyToken", "supabaseServiceRoleKey", "supabaseUrl"]) {
-    if (!config[key]) {
-      missing.push(key);
-    }
-  }
+export function getMissingConfig() {
+  return Object.entries(requiredConfig)
+    .filter(([key]) => !config[key])
+    .map(([, envName]) => envName);
+}
+
+export function assertRequiredConfig() {
+  const missing = getMissingConfig();
 
   if (missing.length) {
     throw new Error(`Missing required Instagram worker config: ${missing.join(", ")}`);

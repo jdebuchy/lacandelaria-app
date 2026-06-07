@@ -1,9 +1,7 @@
 import express from "express";
-import { assertRequiredConfig, config } from "./config.js";
+import { assertRequiredConfig, config, getMissingConfig } from "./config.js";
 import { verifyMetaSignature } from "./metaSignature.js";
 import { processMetaWebhook } from "./webhookProcessor.js";
-
-assertRequiredConfig();
 
 const app = express();
 
@@ -15,9 +13,13 @@ app.use(express.json({
 }));
 
 app.get("/health", (_request, response) => {
+  const missingConfig = getMissingConfig();
+
   response.json({
     automationEnabled: config.enableInstagramAutomation,
+    missingConfig,
     ok: true,
+    ready: missingConfig.length === 0,
     service: "instagram-worker"
   });
 });
@@ -32,11 +34,18 @@ app.get("/webhooks/meta", (request, response) => {
     return;
   }
 
+  if (!config.metaVerifyToken) {
+    response.status(500).send("Missing META_VERIFY_TOKEN");
+    return;
+  }
+
   response.status(403).send("Forbidden");
 });
 
 app.post("/webhooks/meta", async (request, response, next) => {
   try {
+    assertRequiredConfig();
+
     if (!verifyMetaSignature(request)) {
       response.status(401).json({ success: false, message: "Invalid Meta signature." });
       return;

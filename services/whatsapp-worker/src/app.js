@@ -251,9 +251,25 @@ app.use((error, _request, response, _next) => {
   });
 });
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   console.log(`WhatsApp worker listening on ${config.port}`);
 });
+
+function shutdown(signal) {
+  console.log(`WhatsApp worker received ${signal}. Closing server.`);
+  server.close((error) => {
+    if (error) {
+      console.error(error);
+      process.exit(1);
+      return;
+    }
+
+    process.exit(0);
+  });
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 initializeWhatsappClient(handleIncomingMessage)
   .then(() => {

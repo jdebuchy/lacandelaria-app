@@ -41,4 +41,4 @@ RUN npm install --omit=dev
 
 COPY src ./src
 
-CMD ["npm", "start"]
+CMD ["node", "src/app.js"]

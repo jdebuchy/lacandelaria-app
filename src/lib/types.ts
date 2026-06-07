@@ -2,7 +2,7 @@ export type UserRole = "admin" | "seller" | "driver" | "collector";
 
 export type PaymentMethod = "cash" | "transfer";
 
-export type SalesChannel = "internal" | "public_form" | "reseller" | "whatsapp_ai";
+export type SalesChannel = "internal" | "public_form" | "reseller" | "whatsapp_ai" | "instagram_ai";
 
 export type OrderStatus =
   | "pending_confirmation"

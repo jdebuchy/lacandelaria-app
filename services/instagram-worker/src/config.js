@@ -8,7 +8,7 @@ export const config = {
   metaVerifyToken: process.env.META_VERIFY_TOKEN ?? "",
   port: Number(process.env.PORT ?? 8080),
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-  supabaseUrl: process.env.SUPABASE_URL ?? ""
+  supabaseUrl: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
 };
 
 export function assertRequiredConfig() {

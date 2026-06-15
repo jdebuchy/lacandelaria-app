@@ -214,14 +214,22 @@ export default async function CustomerDetailPage({
                       <div className="text-sm sm:text-right">
                         <p className="text-lg font-semibold text-stone-50">{formatCurrency(paymentSummary.totalAmount)}</p>
                         <p className="mt-1 text-stone-500">Saldo {formatCurrency(paymentSummary.balanceAmount)}</p>
-                        {isEditable ? (
+                        <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                           <Link
-                            href={`/panel/orders/${order.id}/edit`}
-                            className="mt-3 inline-flex rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                            href={`/panel/orders/${order.id}`}
+                            className="inline-flex rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
                           >
-                            Editar pedido
+                            Ver pedido
                           </Link>
-                        ) : null}
+                          {isEditable ? (
+                            <Link
+                              href={`/panel/orders/${order.id}/edit`}
+                              className="inline-flex rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                            >
+                              Editar
+                            </Link>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </article>

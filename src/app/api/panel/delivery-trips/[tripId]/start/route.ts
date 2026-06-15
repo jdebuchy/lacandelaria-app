@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { recordOrderActivities } from "@/lib/order-activities";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type Params = {
@@ -141,6 +142,21 @@ export async function POST(_: Request, context: Params) {
       { status: 500 }
     );
   }
+
+  await recordOrderActivities(
+    supabase,
+    orderIds.map((orderId) => ({
+      actorUserId: authResult.auth.profile.id,
+      metadata: {
+        deliveryTripId: tripId,
+        driverUserId: effectiveDriverId,
+        startedAt
+      },
+      orderId,
+      summary: "Pedido marcado en ruta al iniciar el viaje.",
+      type: "order_delivery_updated"
+    }))
+  );
 
   return NextResponse.json({
     success: true,

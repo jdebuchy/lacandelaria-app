@@ -136,7 +136,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
 
   return (
     <div className={`grid gap-3 md:grid-cols-6${className ? ` ${className}` : ""}`}>
-      <div className="grid gap-2 md:col-span-6">
+      <div className="relative grid gap-2 md:col-span-6">
         <label className="text-sm text-stone-300">Buscar dirección</label>
         <input
           value={query}
@@ -157,7 +157,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
           Puedes elegir una sugerencia de Google o completar la dirección manualmente si no aparece.
         </p>
         {(showSuggestions && (searching || suggestions.length > 0)) ? (
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/95 p-2">
+          <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-stone-800 bg-stone-950/95 p-2 shadow-2xl shadow-black/40">
             {searching ? (
               <p className="px-3 py-2 text-sm text-stone-500">Buscando sugerencias...</p>
             ) : (

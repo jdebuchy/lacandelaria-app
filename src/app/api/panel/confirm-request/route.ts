@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { recordOrderActivity } from "@/lib/order-activities";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -208,6 +209,18 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  await recordOrderActivity(supabase, {
+    actorUserId: authResult.auth.profile.id,
+    metadata: {
+      itemsCount,
+      publicOrderRequestId: publicRequest.id,
+      totalAmount
+    },
+    orderId: order.id,
+    summary: "Pedido creado desde solicitud pública.",
+    type: "order_created"
+  });
 
   return NextResponse.json({
     success: true,

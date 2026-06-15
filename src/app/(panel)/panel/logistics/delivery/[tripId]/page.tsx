@@ -294,9 +294,15 @@ export default async function DeliveryTripExecutionPage(context: Params) {
             Volver a delivery
           </Link>
           <span className="text-stone-700">/</span>
-          <Link href="/panel/logistics" className="text-stone-400 transition hover:text-stone-100">
-            Iniciar nuevo viaje
-          </Link>
+          {trip.status === "assigned" ? (
+            <Link href={`/panel/logistics/${trip.id}`} className="text-stone-400 transition hover:text-stone-100">
+              Ajustar planificación
+            </Link>
+          ) : (
+            <Link href="/panel/logistics" className="text-stone-400 transition hover:text-stone-100">
+              Iniciar nuevo viaje
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -318,7 +324,15 @@ export default async function DeliveryTripExecutionPage(context: Params) {
 
           <div className="flex flex-wrap items-start gap-3">
             {trip.status === "assigned" ? (
-              <DeliveryTripStartButton tripId={trip.id} label="Iniciar reparto" />
+              <>
+                <Link
+                  href={`/panel/logistics/${trip.id}`}
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500"
+                >
+                  Ajustar planificación
+                </Link>
+                <DeliveryTripStartButton tripId={trip.id} label="Iniciar reparto" />
+              </>
             ) : null}
             {trip.status === "in_route" ? <DeliveryTripCompleteButton tripId={trip.id} /> : null}
           </div>

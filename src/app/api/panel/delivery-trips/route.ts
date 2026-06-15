@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { loadDefaultLogisticsDepot } from "@/lib/delivery-planning";
+import { loadActiveLogisticsDepot } from "@/lib/logistics-depots";
+import { recordOrderActivities } from "@/lib/order-activities";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const createTripSchema = z.object({
+  depotId: z.string().uuid("Selecciona un depósito de salida."),
   scheduledDate: z.string().min(1, "Selecciona una fecha."),
   driverUserId: z.string().uuid().optional().or(z.literal("")),
   notes: z.string().max(500).optional().or(z.literal("")),
@@ -30,13 +32,13 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const defaultDepot = await loadDefaultLogisticsDepot(supabase).catch(() => null);
+  const depot = await loadActiveLogisticsDepot(supabase, parsed.data.depotId).catch(() => null);
   const uniqueOrderIds = Array.from(new Set(parsed.data.orderIds));
 
-  if (!defaultDepot) {
+  if (!depot) {
     return NextResponse.json(
-      { success: false, message: "No se encontró el depósito por defecto para crear el viaje." },
-      { status: 500 }
+      { success: false, message: "Selecciona un depósito de salida activo." },
+      { status: 400 }
     );
   }
 
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
   const { data: newTrip, error: tripInsertError } = await supabase
     .from("delivery_trips")
     .insert({
-      depot_id: defaultDepot.id,
+      depot_id: depot.id,
       scheduled_date: parsed.data.scheduledDate,
       driver_user_id: parsed.data.driverUserId || null,
       status: "assigned",
@@ -198,6 +200,22 @@ export async function POST(request: Request) {
       }
     }
   }
+
+  await recordOrderActivities(
+    supabase,
+    uniqueOrderIds.map((orderId, index) => ({
+      actorUserId: authResult.auth.profile.id,
+      metadata: {
+        deliveryTripId: newTrip.id,
+        driverUserId: parsed.data.driverUserId || null,
+        scheduledDate: parsed.data.scheduledDate,
+        sequenceNumber: index + 1
+      },
+      orderId,
+      summary: "Pedido asignado a un viaje de entrega.",
+      type: "order_assigned_to_trip"
+    }))
+  );
 
   return NextResponse.json({
     success: true,

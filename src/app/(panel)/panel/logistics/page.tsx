@@ -5,6 +5,7 @@ import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { loadActiveLogisticsDepots } from "@/lib/logistics-depots";
 import { formatItemsSummary } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -64,7 +65,13 @@ function formatDate(value: string | null) {
 export default async function LogisticsPage() {
   await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/logistics");
   const supabase = createAdminClient();
-  const [{ data: drivers }, { data: activeTripOrders }, { data: orders }, { data: trips }] = await Promise.all([
+  const [
+    { data: drivers },
+    { data: activeTripOrders },
+    { data: orders },
+    { data: trips },
+    activeDepots
+  ] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, role")
@@ -108,7 +115,8 @@ export default async function LogisticsPage() {
       .in("status", ["assigned", "in_route", "completed"])
       .order("scheduled_date", { ascending: true })
       .order("created_at", { ascending: false })
-      .limit(40)
+      .limit(40),
+    loadActiveLogisticsDepots(supabase)
   ]);
 
   const activeOrderIdSet = new Set((activeTripOrders ?? []).map((row) => row.order_id));
@@ -189,7 +197,12 @@ export default async function LogisticsPage() {
           </span>
         </div>
 
-        <DeliveryTripCreateForm defaultDate={today} drivers={driverOptions} orders={pendingOrders} />
+        <DeliveryTripCreateForm
+          defaultDate={today}
+          depots={activeDepots}
+          drivers={driverOptions}
+          orders={pendingOrders}
+        />
 
         <section className="rounded-3xl border border-stone-800 bg-stone-900/60 p-5">
           <div className="flex items-center justify-between gap-4">

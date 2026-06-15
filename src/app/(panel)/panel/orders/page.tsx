@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { OrderSearch } from "@/components/order-search";
+import { OrderFilters } from "@/components/order-filters";
 import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
@@ -16,7 +17,7 @@ import {
 import { matchesNormalizedSearchValues } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type SearchParams = Promise<{ q?: string }>;
+type SearchParams = Promise<{ q?: string; status?: string }>;
 
 type RelatedCustomer = {
   address_kind?: "standard" | "gated" | null;
@@ -57,7 +58,6 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString("es-AR", {
     day: "numeric",
     month: "short",
-    year: "numeric",
     timeZone: "America/Argentina/Buenos_Aires"
   });
 }
@@ -79,15 +79,48 @@ function getChannelLabel(channel: string) {
   }
 }
 
+function getDeliveryAreaLabel(area: string) {
+  switch (area) {
+    case "capital_federal":
+      return "Cap. Federal";
+    case "standard":
+      return "GBA";
+    case "pending_review":
+      return "Sin zona";
+    default:
+      return area;
+  }
+}
+
+function getStatusBadgeClass(status: string) {
+  switch (status) {
+    case "pending_confirmation":
+      return "border-amber-700 bg-amber-950/60 text-amber-300";
+    case "confirmed":
+      return "border-sky-700 bg-sky-950/60 text-sky-300";
+    case "assigned":
+      return "border-violet-700 bg-violet-950/60 text-violet-300";
+    case "in_route":
+      return "border-emerald-700 bg-emerald-950/60 text-emerald-300";
+    case "delivered":
+      return "border-stone-700 bg-stone-950/60 text-stone-400";
+    case "cancelled":
+      return "border-red-800 bg-red-950/60 text-red-400";
+    default:
+      return "border-stone-700 bg-stone-900 text-stone-400";
+  }
+}
+
 function normalizeSearchTerm(value?: string) {
   return value?.trim() ?? "";
 }
 
 export default async function OrdersPage({ searchParams }: { searchParams: SearchParams }) {
   await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/orders");
-  const { q } = await searchParams;
+  const { q, status: statusFilter } = await searchParams;
   const normalizedQuery = normalizeSearchTerm(q);
   const safeQ = normalizedQuery ? normalizedQuery.replace(/[,()]/g, "") : "";
+  const normalizedStatusFilter = statusFilter ?? "";
   const supabase = createAdminClient();
   const [
     { count: totalOrders },
@@ -196,20 +229,16 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     };
   });
 
-  const visibleOrderRows = safeQ
-    ? orderRows.filter((order) =>
-        matchesNormalizedSearchValues(
-          [
-            order.customerFirstName,
-            order.customerLastName,
-            order.customerName,
-            order.resellerName,
-            order.customerPhone
-          ],
+  const visibleOrderRows = orderRows.filter((order) => {
+    const matchesSearch = safeQ
+      ? matchesNormalizedSearchValues(
+          [order.customerFirstName, order.customerLastName, order.customerName, order.resellerName, order.customerPhone],
           safeQ
         )
-      )
-    : orderRows;
+      : true;
+    const matchesStatus = normalizedStatusFilter ? order.status === normalizedStatusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <main>
@@ -268,14 +297,16 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
             </Suspense>
           </div>
 
+          <Suspense>
+            <OrderFilters activeStatus={normalizedStatusFilter} />
+          </Suspense>
+
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
               <div>Cliente</div>
-              <div>Canal</div>
               <div>Área</div>
               <div>Estado</div>
               <div>Ítems</div>
-              <div>Cant.</div>
               <div>Total</div>
               <div>Alta</div>
               <div></div>
@@ -284,42 +315,62 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               visibleOrderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
+                  <Link
+                    href={`/panel/orders/${order.id}`}
+                    className="absolute inset-0 z-0"
+                    aria-label={`Ver pedido de ${order.customerName}`}
+                  />
                   <div>
-                    <p className="font-medium text-stone-100">{order.customerName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-stone-100">{order.customerName}</p>
+                      {order.channel !== "internal" && (
+                        <span className="rounded-full border border-stone-700 px-2 py-0.5 text-xs text-stone-400">
+                          {getChannelLabel(order.channel)}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-1 text-xs text-stone-500">
                       {formatWhatsAppPhone(order.customerPhone)}
                     </p>
                   </div>
-                  <div>{getChannelLabel(order.channel)}</div>
                   <div>
-                    <div>{order.deliveryArea}</div>
-                    <div className="mt-1 text-xs text-stone-500">{order.addressSummary}</div>
+                    <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
+                    {order.addressSummary !== "-" && (
+                      <p className="mt-0.5 text-xs text-stone-500">{order.addressSummary}</p>
+                    )}
                   </div>
                   <div>
-                    <p>{getOrderStatusLabel(order.status)}</p>
-                    {order.tripId ? (
-                      <p className="mt-1 text-xs text-sky-300">Viaje {order.tripId.slice(0, 8)}</p>
-                    ) : null}
-                    <p className="mt-1 text-xs text-stone-500">
-                      {getPaymentStatusLabel(order.paymentStatus)} ·{" "}
+                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                      {getOrderStatusLabel(order.status)}
+                    </span>
+                    <p className="mt-1.5 text-xs text-stone-500">
                       {getPaymentMethodLabel(order.paymentMethodExpected)}
                     </p>
+                    {order.tripId && (
+                      <Link
+                        href={`/panel/logistics/delivery/${order.tripId}`}
+                        className="relative z-10 mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
+                      >
+                        Viaje {order.tripId.slice(0, 8)}
+                      </Link>
+                    )}
                   </div>
                   <div>{order.itemsSummary}</div>
-                  <div>{order.itemsCount}</div>
                   <div>
                     <p>{formatCurrency(order.totalAmount)}</p>
                     <p className="mt-1 text-xs text-stone-500">
                       Cobrado {formatCurrency(order.paidAmount)}
                     </p>
-                    <p className="mt-1 text-xs text-amber-300">
-                      Saldo {formatCurrency(order.paymentBalanceAmount)}
-                    </p>
+                    {order.paymentBalanceAmount > 0 && (
+                      <p className="mt-1 text-xs text-amber-300">
+                        Saldo {formatCurrency(order.paymentBalanceAmount)}
+                      </p>
+                    )}
                   </div>
                   <div>{formatDate(order.created_at)}</div>
-                  <div className="flex justify-end">
+                  <div className="relative z-10 flex justify-end">
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}
@@ -328,9 +379,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                         Editar
                       </Link>
                     ) : (
-                      <span className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-500">
-                        Bloqueado
-                      </span>
+                      <Link
+                        href={`/panel/orders/${order.id}`}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-400 transition hover:border-stone-600 hover:text-stone-100"
+                      >
+                        Ver
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -360,8 +414,22 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   <div className="mt-4 grid gap-3 text-sm">
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
-                      <p className="mt-1 text-stone-200">{getOrderStatusLabel(order.status)}</p>
-                      {order.tripId ? <p className="mt-1 text-xs text-sky-300">Viaje {order.tripId.slice(0, 8)}</p> : null}
+                      <div className="mt-1">
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                          {getOrderStatusLabel(order.status)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-stone-500">
+                        {getPaymentMethodLabel(order.paymentMethodExpected)}
+                      </p>
+                      {order.tripId && (
+                        <Link
+                          href={`/panel/logistics/delivery/${order.tripId}`}
+                          className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
+                        >
+                          Viaje {order.tripId.slice(0, 8)}
+                        </Link>
+                      )}
                     </div>
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
@@ -376,7 +444,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href={`/panel/orders/${order.id}`}
+                      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                    >
+                      Ver pedido
+                    </Link>
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}

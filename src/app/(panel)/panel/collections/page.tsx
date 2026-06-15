@@ -357,7 +357,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                       transferBalanceAmount={row.balanceAmount}
                     />
                     <Link
-                      href={`/panel/orders/${row.id}/edit`}
+                      href={`/panel/orders/${row.id}`}
                       className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500"
                     >
                       Ver pedido

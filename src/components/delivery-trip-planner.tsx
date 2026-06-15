@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DateInput } from "@/components/date-input";
 import { TripRouteMap } from "@/components/trip-route-map";
 import type {
   DeliveryPlanningAvailableOrder,
@@ -12,6 +13,7 @@ import type {
 import type { DeliveryRoutePreview } from "@/lib/delivery-routing";
 import { formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { matchesNormalizedSearchValues, normalizeSearchValue } from "@/lib/search";
 
 type DeliveryTripPlannerProps = {
   drivers: DeliveryPlanningDriver[];
@@ -115,6 +117,7 @@ function compareByDateAndName(
 export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTripPlannerProps) {
   const router = useRouter();
   const [scheduledDate, setScheduledDate] = useState(trip.scheduledDate);
+  const [depotId, setDepotId] = useState(trip.depot.id);
   const [driverUserId, setDriverUserId] = useState(trip.driverUserId ?? "");
   const [notes, setNotes] = useState(trip.notes);
   const [stops, setStops] = useState(trip.stops);
@@ -130,6 +133,17 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
   const canEditTrip = trip.status === "assigned";
   const displayedRoute = proposal ?? route;
   const orderedStopIds = stops.map((stop) => stop.orderId);
+  const depotOptions = useMemo(
+    () =>
+      trip.activeDepots.some((depot) => depot.id === trip.depot.id)
+        ? trip.activeDepots
+        : [trip.depot, ...trip.activeDepots],
+    [trip.activeDepots, trip.depot]
+  );
+  const selectedDepot = useMemo(
+    () => depotOptions.find((depot) => depot.id === depotId) ?? trip.depot,
+    [depotId, depotOptions, trip.depot]
+  );
 
   function toRoutingStops(nextStops: DeliveryPlanningStop[]): RoutingStopPayload[] {
     return nextStops.map((stop, index) => ({
@@ -145,7 +159,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
   }
 
   const filteredAvailableOrders = useMemo(() => {
-    const query = availableQuery.trim().toLowerCase();
+    const query = normalizeSearchValue(availableQuery);
 
     return [...availableOrders]
       .filter((order) => {
@@ -158,17 +172,18 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           order.addressSummary,
           order.deliveryArea,
           order.itemsSummary
-        ].some((value) => value.toLowerCase().includes(query));
+        ].some((value) => matchesNormalizedSearchValues([value], query));
       })
       .sort(compareByDateAndName);
   }, [availableOrders, availableQuery]);
 
-  async function fetchRoutePreview(nextStops: DeliveryPlanningStop[]) {
+  async function fetchRoutePreview(nextStops: DeliveryPlanningStop[], nextDepotId = depotId) {
     setPreviewPending(true);
 
     try {
       const response = await fetch(`/api/panel/delivery-trips/${trip.id}/route-preview`, {
         body: JSON.stringify({
+          depotId: nextDepotId,
           orderedStopIds: nextStops.map((stop) => stop.orderId),
           stops: toRoutingStops(nextStops)
         }),
@@ -185,6 +200,16 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
     } finally {
       setPreviewPending(false);
     }
+  }
+
+  function handleDepotChange(nextDepotId: string) {
+    if (!canEditTrip) {
+      return;
+    }
+
+    setDepotId(nextDepotId);
+    setProposal(null);
+    void fetchRoutePreview(stops, nextDepotId);
   }
 
   function handleManualMove(targetStopId: string) {
@@ -276,6 +301,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
     try {
       const response = await fetch(`/api/panel/delivery-trips/${trip.id}/sequence`, {
         body: JSON.stringify({
+          depotId,
           driverUserId: driverUserId || null,
           notes,
           orderedStopIds,
@@ -305,6 +331,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
     try {
       const response = await fetch(`/api/panel/delivery-trips/${trip.id}/optimize`, {
         body: JSON.stringify({
+          depotId,
           orderedStopIds,
           scheduledDate,
           stops: toRoutingStops(stops)
@@ -337,6 +364,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
 
     const response = await fetch(`/api/panel/delivery-trips/${trip.id}/apply-optimization`, {
       body: JSON.stringify({
+        depotId,
         driverUserId: driverUserId || null,
         notes,
         orderedStopIds: proposal.orderedStopIds,
@@ -383,10 +411,9 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-7">
           <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
             <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Fecha del viaje</span>
-            <input
-              type="date"
+            <DateInput
               value={scheduledDate}
-              onChange={(event) => setScheduledDate(event.target.value)}
+              onChange={setScheduledDate}
               disabled={!canEditTrip}
               className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
             />
@@ -411,11 +438,22 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
             <p className="mt-2 text-sm font-medium text-stone-100">{getDeliveryTripStatusLabel(trip.status)}</p>
           </div>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Depósito</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">{trip.depot.label}</p>
-            <p className="mt-1 text-xs text-stone-500">{formatLogisticsDepotAddress(trip.depot)}</p>
-          </div>
+          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
+            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Depósito</span>
+            <select
+              value={depotId}
+              onChange={(event) => handleDepotChange(event.target.value)}
+              disabled={!canEditTrip}
+              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+            >
+              {depotOptions.map((depot) => (
+                <option key={depot.id} value={depot.id}>
+                  {depot.label}{trip.activeDepots.some((activeDepot) => activeDepot.id === depot.id) ? "" : " (inactivo)"}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-stone-500">{formatLogisticsDepotAddress(selectedDepot)}</span>
+          </label>
           <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pedidos</p>
             <p className="mt-2 text-sm font-medium text-stone-100">{stops.length}</p>
@@ -572,7 +610,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         </section>
 
         <section className="grid gap-6">
-          <TripRouteMap depot={trip.depot} route={displayedRoute} stops={stops} />
+          <TripRouteMap depot={selectedDepot} route={displayedRoute} stops={stops} />
 
           {proposal ? (
             <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5">

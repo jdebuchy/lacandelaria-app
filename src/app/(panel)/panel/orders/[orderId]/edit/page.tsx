@@ -182,7 +182,10 @@ export default async function EditOrderPage(context: Params) {
                 : EMPTY_STRUCTURED_ADDRESS,
               deliveryNotes: customer?.delivery_notes ?? "",
               items,
-              paymentMethodExpected: order.payment_method_expected === "transfer" ? "transfer" : "cash",
+              paymentMethodExpected:
+                order.payment_method_expected === "cash" || order.payment_method_expected === "transfer"
+                  ? order.payment_method_expected
+                  : "unknown",
               deliveryDate: typeof order.delivery_date === "string" ? order.delivery_date : "",
               deliveryWindowStart:
                 typeof order.delivery_window_start === "string" ? order.delivery_window_start : "",

@@ -4,6 +4,7 @@ import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { includesNormalizedSearchValue, normalizeSearchValue } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DeliveryFailureReason, DeliveryStatus } from "@/lib/types";
 
@@ -228,7 +229,7 @@ export default async function LogisticsDeliveryPage({
         id: trip.id,
         progressLabel: `${deliveredCount + failedCount}/${rows.length} resueltos`,
         scheduledDate: trip.scheduled_date,
-        searchText: `${trip.id.slice(0, 8)} ${trip.status} ${searchNames}`.toLowerCase(),
+        searchText: normalizeSearchValue(`${trip.id.slice(0, 8)} ${trip.status} ${searchNames}`),
         status: trip.status,
         totalStops: rows.length,
         unresolvedCount
@@ -245,13 +246,17 @@ export default async function LogisticsDeliveryPage({
   ).length;
   const completed = cards.filter((trip) => trip.status === "completed").length;
   const withIncidents = cards.filter((trip) => trip.failedCount > 0).length;
-  const query = params.q?.trim().toLowerCase() || "";
+  const query = normalizeSearchValue(params.q);
   const statusFilter = params.status || "all";
   const dateFilter = params.date || "all";
   const driverFilter = params.driver || "all";
 
   const filteredCards = cards.filter((trip) => {
-    if (query && !trip.searchText.includes(query) && !trip.driverName.toLowerCase().includes(query)) {
+    if (
+      query &&
+      !trip.searchText.includes(query) &&
+      !includesNormalizedSearchValue(trip.driverName, query)
+    ) {
       return false;
     }
 

@@ -4,6 +4,7 @@ import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { loadDeliveryTripPlanning } from "@/lib/delivery-planning";
 import { computeDisplayedRoute } from "@/lib/delivery-routing";
+import { loadActiveLogisticsDepot } from "@/lib/logistics-depots";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const routingStopSchema = z.object({
@@ -18,6 +19,7 @@ const routingStopSchema = z.object({
 });
 
 const previewRouteSchema = z.object({
+  depotId: z.string().uuid().optional(),
   orderedStopIds: z.array(z.string().uuid()).optional(),
   stops: z.array(routingStopSchema).optional()
 });
@@ -57,7 +59,18 @@ export async function POST(request: Request, context: Params) {
   }
 
   const routeStops = parsed.data.stops?.length ? parsed.data.stops : trip.stops;
-  const route = await computeDisplayedRoute(routeStops, parsed.data.orderedStopIds, trip.depot);
+  const depot = parsed.data.depotId
+    ? await loadActiveLogisticsDepot(supabase, parsed.data.depotId).catch(() => null)
+    : trip.depot;
+
+  if (!depot) {
+    return NextResponse.json(
+      { success: false, message: "Selecciona un depósito de salida activo." },
+      { status: 400 }
+    );
+  }
+
+  const route = await computeDisplayedRoute(routeStops, parsed.data.orderedStopIds, depot);
 
   return NextResponse.json({
     route,

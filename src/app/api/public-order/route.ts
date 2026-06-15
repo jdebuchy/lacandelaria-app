@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { structuredAddressSchema, toStructuredAddressColumns } from "@/lib/address";
-import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import {
   buildVariantLookup,
   buildPublicOrderRequestItems,
@@ -22,7 +22,7 @@ const publicOrderSchema = structuredAddressSchema
     administrativeAreaLevel1: z.string().min(2, "Ingresa una provincia."),
     postalCode: z.string().min(3, "Ingresa un código postal."),
     items: orderItemsInputSchema,
-    paymentMethodExpected: z.enum(["cash", "transfer"]),
+    paymentMethodExpected: z.enum(["unknown", "cash", "transfer"]),
     notes: z.string().max(500).optional().or(z.literal("")),
     leadSource: z.enum(["instagram", "whatsapp", "direct_link", "reseller"]).default("direct_link"),
     website: z.string().optional().or(z.literal("")),
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   }
 
   const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
-  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const instagram = normalizeInstagramUsername(parsed.data.instagram) || null;
   const addressColumns = toStructuredAddressColumns(parsed.data);
   const fallbackFirstName = parsed.data.firstName?.trim() || instagram || "Cliente";
   const fallbackLastName = parsed.data.lastName?.trim() || null;

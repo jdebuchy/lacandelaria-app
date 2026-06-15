@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { AddressInput } from "@/components/address-input";
 import { AutofillDecoy } from "@/components/autofill-decoy";
+import { DateInput } from "@/components/date-input";
 import { OrderItemsEditor } from "@/components/order-items-editor";
 import { PhoneInput } from "@/components/phone-input";
 import {
@@ -12,13 +13,18 @@ import {
   StructuredAddress,
   formatStructuredAddressSummary
 } from "@/lib/address";
-import { composeFullName, formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import {
+  composeFullName,
+  formatPersonName,
+  formatWhatsAppPhone,
+  normalizeInstagramUsername
+} from "@/lib/contact";
 import { getDefaultSellableVariantId } from "@/lib/products";
-import type { OrderItemInput, ProductFamily } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderItemInput, ProductFamily } from "@/lib/types";
 
 export type CustomerMatch = {
   id: string;
-  first_name: string;
+  first_name?: string | null;
   last_name?: string | null;
   phone?: string | null;
   instagram?: string | null;
@@ -50,7 +56,7 @@ type ManualOrderFormInitialData = {
   address: StructuredAddress;
   deliveryNotes: string;
   items: OrderItemInput[];
-  paymentMethodExpected: "cash" | "transfer";
+  paymentMethodExpected: ExpectedPaymentMethod;
   deliveryDate: string;
   deliveryWindowStart: string;
   deliveryWindowEnd: string;
@@ -115,7 +121,7 @@ export function ManualOrderForm({
       : EMPTY_STRUCTURED_ADDRESS
   );
   const initialDeliveryNotes = initialData?.deliveryNotes ?? initialCustomer?.delivery_notes ?? "";
-  const initialPaymentMethodExpected = initialData?.paymentMethodExpected ?? "cash";
+  const initialPaymentMethodExpected = initialData?.paymentMethodExpected ?? "unknown";
   const initialDeliveryDate = initialData?.deliveryDate ?? "";
   const initialDeliveryWindowStart = initialData?.deliveryWindowStart ?? "";
   const initialDeliveryWindowEnd = initialData?.deliveryWindowEnd ?? "";
@@ -136,7 +142,7 @@ export function ManualOrderForm({
   const [address, setAddress] = useState<StructuredAddress>(initialAddress);
   const [deliveryNotes, setDeliveryNotes] = useState(initialDeliveryNotes);
   const [items, setItems] = useState<OrderItemInput[]>(initialItems);
-  const [paymentMethodExpected, setPaymentMethodExpected] = useState<"cash" | "transfer">(
+  const [paymentMethodExpected, setPaymentMethodExpected] = useState<ExpectedPaymentMethod>(
     initialPaymentMethodExpected
   );
   const [deliveryDate, setDeliveryDate] = useState(initialDeliveryDate);
@@ -146,11 +152,7 @@ export function ManualOrderForm({
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
   function customerDisplayName(customer: CustomerMatch) {
-    return formatPersonName(customer.first_name, customer.last_name);
-  }
-
-  function normalizeInstagramValue(value: string) {
-    return value.trim().replace(/^@+/, "");
+    return formatPersonName(customer.first_name, customer.last_name, customer.instagram);
   }
 
   useEffect(() => {
@@ -260,7 +262,7 @@ export function ManualOrderForm({
     setAddress(EMPTY_STRUCTURED_ADDRESS);
     setDeliveryNotes("");
     setItems(fallbackItems);
-    setPaymentMethodExpected("cash");
+    setPaymentMethodExpected("unknown");
     setDeliveryDate("");
     setDeliveryWindowStart("");
     setDeliveryWindowEnd("");
@@ -328,7 +330,7 @@ export function ManualOrderForm({
   const addressSummary = formatStructuredAddressSummary(address);
   const customerSummary = [
     formatWhatsAppPhone(phone),
-    instagram.trim() ? `@${normalizeInstagramValue(instagram)}` : null,
+    instagram.trim() ? `@${normalizeInstagramUsername(instagram)}` : null,
     addressSummary !== "-" ? addressSummary : null
   ].filter(Boolean);
 
@@ -469,9 +471,10 @@ export function ManualOrderForm({
               <select
                 name="paymentMethodExpected"
                 value={paymentMethodExpected}
-                onChange={(event) => setPaymentMethodExpected(event.target.value as "cash" | "transfer")}
+                onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
                 className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               >
+                <option value="unknown">No definido</option>
                 <option value="cash">Efectivo</option>
                 <option value="transfer">Transferencia</option>
               </select>
@@ -488,41 +491,40 @@ export function ManualOrderForm({
             ) : null}
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-[repeat(3,minmax(0,1fr))]">
+            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Fecha tentativa de entrega
-              <input
+              <DateInput
                 name="deliveryDate"
-                type="date"
                 value={deliveryDate}
-                onChange={(event) => setDeliveryDate(event.target.value)}
+                onChange={setDeliveryDate}
                 className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Entregar desde
               <input
                 name="deliveryWindowStart"
                 type="time"
                 value={deliveryWindowStart}
                 onChange={(event) => setDeliveryWindowStart(event.target.value)}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Entregar hasta
               <input
                 name="deliveryWindowEnd"
                 type="time"
                 value={deliveryWindowEnd}
                 onChange={(event) => setDeliveryWindowEnd(event.target.value)}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+            <label className="grid gap-2 text-sm text-stone-300 md:col-span-3">
               Notas internas del pedido
               <textarea
                 name="notes"
@@ -613,7 +615,6 @@ export function ManualOrderForm({
 
               <PhoneInput
                 name="phone"
-                required
                 value={phone}
                 onChange={(nextPhone) => {
                   setPhone(nextPhone);
@@ -632,7 +633,7 @@ export function ManualOrderForm({
                     setInstagram(event.target.value);
                     if (
                       selectedCustomer &&
-                      normalizeInstagramValue(event.target.value) !== (selectedCustomer.instagram ?? "")
+                      normalizeInstagramUsername(event.target.value) !== (selectedCustomer.instagram ?? "")
                     ) {
                       clearSelectedCustomer();
                     }

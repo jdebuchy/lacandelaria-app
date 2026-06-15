@@ -26,6 +26,7 @@ type DriverStop = {
   orderStatus: string;
   paidAmount: number;
   paymentBalanceAmount: number;
+  cashPaymentBalanceAmount: number;
   paymentMethodExpected: string;
   paymentStatus: string;
   totalAmount: number;
@@ -45,6 +46,18 @@ type FeedbackByStop = Record<string, string>;
 type PaymentAmountByStop = Record<string, string>;
 type FailureReasonByStop = Record<string, DeliveryFailureReason>;
 type NoteByStop = Record<string, string>;
+
+function getExpectedPaymentMethodLabel(method: string) {
+  if (method === "cash") {
+    return "Efectivo";
+  }
+
+  if (method === "transfer") {
+    return "Transferencia";
+  }
+
+  return "No definido";
+}
 
 const FAILURE_REASON_OPTIONS: DeliveryFailureReason[] = [
   "customer_absent",
@@ -145,14 +158,14 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
     <div className="grid gap-4">
       {stops.map((stop) => {
         const isUpdating = pendingStopId === stop.id || isPending;
-        const paymentAmount = paymentAmounts[stop.id] ?? String(stop.paymentBalanceAmount || "");
+        const paymentAmount = paymentAmounts[stop.id] ?? String(stop.cashPaymentBalanceAmount || "");
         const numericPaymentAmount = Number(paymentAmount);
         const failureReason = failureReasons[stop.id] ?? stop.deliveryFailureReason ?? "customer_absent";
         const note = notes[stop.id] ?? stop.notes ?? "";
         const canCollectCash =
-          stop.paymentMethodExpected === "cash" &&
+          (stop.paymentMethodExpected === "cash" || stop.paymentMethodExpected === "unknown") &&
           stop.paymentStatus !== "paid" &&
-          stop.paymentBalanceAmount > 0;
+          stop.cashPaymentBalanceAmount > 0;
         const whatsappHref = buildWhatsAppHref(
           stop.customerPhone,
           `Hola ${stop.customerName}, te escribimos por tu pedido de La Candelaria.`
@@ -196,7 +209,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                   <div className="rounded-2xl bg-stone-950/80 p-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pago</p>
                     <p className="mt-1 text-sm text-stone-200">
-                      {stop.paymentMethodExpected === "cash" ? "Efectivo" : "Transferencia"}
+                      {getExpectedPaymentMethodLabel(stop.paymentMethodExpected)}
                     </p>
                   </div>
                   <div className="rounded-2xl bg-stone-950/80 p-3">
@@ -266,7 +279,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                             className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-emerald-300"
                           />
                         </label>
-                        {numericPaymentAmount > stop.paymentBalanceAmount ? (
+                        {numericPaymentAmount > stop.cashPaymentBalanceAmount ? (
                           <p className="text-xs text-amber-100">
                             Supera el saldo. El pedido quedara pagado.
                           </p>

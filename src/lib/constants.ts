@@ -14,8 +14,9 @@ export const ORDER_STATUSES = [
 ] as const;
 
 export const PAYMENT_METHODS = ["cash", "transfer"] as const;
+export const EXPECTED_PAYMENT_METHODS = ["unknown", "cash", "transfer"] as const;
 
-export const SALES_CHANNELS = ["internal", "public_form", "reseller"] as const;
+export const SALES_CHANNELS = ["internal", "public_form", "reseller", "whatsapp_ai", "instagram_ai"] as const;
 
 export const DELIVERY_TRIP_STATUSES = [
   "draft",

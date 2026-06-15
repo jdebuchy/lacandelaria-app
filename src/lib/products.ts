@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type {
-  PaymentMethod,
+  ExpectedPaymentMethod,
   ProductFamily,
   ProductVariant,
   ProductVariantComponent
@@ -560,6 +560,7 @@ export function flattenCatalogVariants(families: ProductFamily[]) {
 
 export function getDefaultSellableVariantId(family: ProductFamily) {
   const sellableVariants = family.variants.filter((variant) => variant.visibility === "sellable" && variant.active);
+  const defaultVariant = sellableVariants.find((variant) => variant.id === family.defaultVariantId);
 
   if (!sellableVariants.length) {
     return null;
@@ -567,7 +568,7 @@ export function getDefaultSellableVariantId(family: ProductFamily) {
 
   return (
     sellableVariants.find((variant) => variant.isDefault)?.id ??
-    family.defaultVariantId ??
+    defaultVariant?.id ??
     sellableVariants[0]?.id ??
     null
   );
@@ -593,7 +594,7 @@ export function buildVariantLookup(families: ProductFamily[]) {
   return lookup;
 }
 
-export function getProductUnitPrice(product: ProductVariantForOrder, paymentMethod: PaymentMethod) {
+export function getProductUnitPrice(product: ProductVariantForOrder, paymentMethod: ExpectedPaymentMethod) {
   return paymentMethod === "cash" ? product.cashPrice : product.transferPrice;
 }
 
@@ -613,7 +614,7 @@ export function consolidateOrderItems(items: OrderItemInput[]) {
 export function buildOrderItems(
   productsById: Map<string, ProductVariantForOrder>,
   items: OrderItemInput[],
-  paymentMethod: PaymentMethod
+  paymentMethod: ExpectedPaymentMethod
 ) {
   return consolidateOrderItems(items).map((item) => {
     const product = productsById.get(item.productId);
@@ -638,7 +639,7 @@ export function buildOrderItems(
 export function buildPublicOrderRequestItems(
   productsById: Map<string, ProductVariantForOrder>,
   items: OrderItemInput[],
-  paymentMethod: PaymentMethod
+  paymentMethod: ExpectedPaymentMethod
 ) {
   return consolidateOrderItems(items).map((item) => {
     const product = productsById.get(item.productId);

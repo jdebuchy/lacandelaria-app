@@ -1,12 +1,12 @@
 "use client";
 
 import { getDefaultSellableVariantId } from "@/lib/products";
-import type { OrderItemInput, ProductFamily } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderItemInput, ProductFamily } from "@/lib/types";
 
 type OrderItemsEditorProps = {
   items: OrderItemInput[];
   onChange: (items: OrderItemInput[]) => void;
-  paymentMethod: "cash" | "transfer";
+  paymentMethod: ExpectedPaymentMethod;
   products: ProductFamily[];
   removeAction?: "default" | "subtle" | "hidden";
 };
@@ -96,21 +96,27 @@ export function OrderItemsEditor({
     family.variants.some((variant) => !selectedVariantIds.has(variant.id))
   );
 
-  const total = items.reduce((sum, item) => {
-    const variant = findVariantById(activeFamilies, item.productId);
+  const totals = items.reduce(
+    (sum, item) => {
+      const variant = findVariantById(activeFamilies, item.productId);
 
-    if (!variant) {
-      return sum;
-    }
+      if (!variant) {
+        return sum;
+      }
 
-    const unitPrice = paymentMethod === "cash" ? variant.cashPrice : variant.transferPrice;
-    return sum + unitPrice * item.quantity;
-  }, 0);
+      return {
+        cash: sum.cash + variant.cashPrice * item.quantity,
+        transfer: sum.transfer + variant.transferPrice * item.quantity
+      };
+    },
+    { cash: 0, transfer: 0 }
+  );
+  const total = paymentMethod === "cash" ? totals.cash : totals.transfer;
 
   return (
-    <div className="grid gap-4 md:col-span-2">
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3">
-        <div>
+    <div className="grid min-w-0 gap-4 md:col-span-2">
+      <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <p className="text-base font-semibold text-stone-100">Productos del pedido</p>
           <p className="text-xs text-stone-500">Eliges producto y presentación, y el sistema precarga la variante por defecto.</p>
         </div>
@@ -118,13 +124,13 @@ export function OrderItemsEditor({
           type="button"
           onClick={addItem}
           disabled={!activeFamilies.length || !hasAvailableProducts}
-          className="rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="self-start whitespace-nowrap rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
         >
           Agregar línea
         </button>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid min-w-0 gap-3">
         {items.map((item, index) => {
           const family = findFamilyByVariantId(activeFamilies, item.productId) ?? activeFamilies[0] ?? null;
           const familyVariants = family?.variants ?? [];
@@ -142,9 +148,9 @@ export function OrderItemsEditor({
           return (
             <div
               key={`${item.productId}-${index}`}
-              className="grid gap-3 rounded-2xl border border-stone-800 bg-stone-950/80 p-4 md:grid-cols-[1.2fr_1.2fr_0.7fr_0.9fr_auto]"
+              className="grid min-w-0 gap-3 rounded-2xl border border-stone-800 bg-stone-950/80 p-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(5rem,0.7fr)_minmax(0,0.9fr)_auto]"
             >
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid min-w-0 gap-2 text-sm text-stone-300">
                 Producto
                 <select
                   value={family?.id ?? ""}
@@ -165,7 +171,7 @@ export function OrderItemsEditor({
                       productId: nextVariantId
                     });
                   }}
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
                 >
                   {activeFamilies.map((entry) => (
                     <option key={entry.id} value={entry.id}>
@@ -175,7 +181,7 @@ export function OrderItemsEditor({
                 </select>
               </label>
 
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid min-w-0 gap-2 text-sm text-stone-300">
                 Presentación
                 <select
                   value={item.productId}
@@ -185,7 +191,7 @@ export function OrderItemsEditor({
                       productId: event.target.value
                     })
                   }
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
                 >
                   {familyVariants.map((entry) => (
                     <option
@@ -199,7 +205,7 @@ export function OrderItemsEditor({
                 </select>
               </label>
 
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid min-w-0 gap-2 text-sm text-stone-300">
                 Cantidad
                 <input
                   type="number"
@@ -213,13 +219,13 @@ export function OrderItemsEditor({
                       quantity: Math.max(1, Number(event.target.value) || 1)
                     })
                   }
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
                 />
               </label>
 
-              <div className="grid gap-2 text-sm text-stone-300">
+              <div className="grid min-w-0 gap-2 text-sm text-stone-300">
                 <p>Subtotal</p>
-                <div className="rounded-xl border border-stone-800 bg-stone-900/80 px-4 py-3 text-base text-stone-100">
+                <div className="min-w-0 rounded-xl border border-stone-800 bg-stone-900/80 px-4 py-3 text-base text-stone-100">
                   <p>{formatCurrency(unitPrice * item.quantity)}</p>
                   <p className="mt-1 text-xs text-stone-500">
                     {variant ? `${variant.label} · ${formatCurrency(unitPrice)}` : "-"}
@@ -249,11 +255,17 @@ export function OrderItemsEditor({
       </div>
 
       <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm">
-        <p className="text-emerald-200">Total estimado</p>
+        <p className="text-emerald-200">{paymentMethod === "unknown" ? "Total base" : "Total estimado"}</p>
         <p className="mt-2 text-2xl font-semibold text-stone-50">{formatCurrency(total)}</p>
-        <p className="mt-1 text-stone-300">
-          Calculado con precios por {paymentMethod === "cash" ? "efectivo" : "transferencia"}.
-        </p>
+        {paymentMethod === "unknown" ? (
+          <p className="mt-1 text-stone-300">
+            Transferencia {formatCurrency(totals.transfer)} · Efectivo {formatCurrency(totals.cash)}
+          </p>
+        ) : (
+          <p className="mt-1 text-stone-300">
+            Calculado con precios por {paymentMethod === "cash" ? "efectivo" : "transferencia"}.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { releaseTripOrder, syncTripCompletion } from "@/lib/delivery-trip-ops";
+import { getDeliveryFailureReasonLabel, getDeliveryStatusLabel } from "@/lib/delivery-trips";
+import { recordOrderActivity } from "@/lib/order-activities";
 import { recordReceivedPayment } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -116,7 +118,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (parsed.data.payment && order.payment_method_expected !== "cash") {
+  if (
+    parsed.data.payment &&
+    order.payment_method_expected !== "cash" &&
+    order.payment_method_expected !== "unknown"
+  ) {
     return NextResponse.json(
       { success: false, message: "El repartidor solo puede registrar cobros en efectivo." },
       { status: 400 }
@@ -210,11 +216,37 @@ export async function POST(request: Request) {
     }
   }
 
+  await recordOrderActivity(supabase, {
+    actorUserId: authResult.auth.profile.id,
+    metadata: {
+      deliveryTripId: activeTripOrder?.delivery_trip_id ?? null,
+      failureReason: parsed.data.status === "failed" ? parsed.data.failureReason ?? null : null,
+      note: parsed.data.note?.trim() || null,
+      status: parsed.data.status
+    },
+    orderId: parsed.data.orderId,
+    summary:
+      parsed.data.status === "failed"
+        ? `Entrega marcada como no entregada: ${getDeliveryFailureReasonLabel(parsed.data.failureReason)}.`
+        : `Entrega marcada como ${getDeliveryStatusLabel(parsed.data.status).toLowerCase()}.`,
+    type: "order_delivery_updated"
+  });
+
   if (parsed.data.status === "failed" && activeTripOrder?.delivery_trip_id) {
     try {
       const tripId = await releaseTripOrder(supabase, parsed.data.orderId);
 
       if (tripId) {
+        await recordOrderActivity(supabase, {
+          actorUserId: authResult.auth.profile.id,
+          metadata: {
+            deliveryTripId: tripId,
+            failureReason: parsed.data.failureReason ?? null
+          },
+          orderId: parsed.data.orderId,
+          summary: "Pedido liberado del viaje para reprogramación.",
+          type: "order_released_from_trip"
+        });
         await syncTripCompletion(supabase, tripId);
       }
     } catch (error) {

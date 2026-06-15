@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { recordOrderActivities } from "@/lib/order-activities";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const updateTripSchema = z.object({
@@ -150,6 +151,22 @@ export async function PATCH(request: Request, context: Params) {
       );
     }
   }
+
+  await recordOrderActivities(
+    supabase,
+    parsed.data.sequence.map((item) => ({
+      actorUserId: authResult.auth.profile.id,
+      metadata: {
+        deliveryTripId: tripId,
+        driverUserId: parsed.data.driverUserId || null,
+        scheduledDate: parsed.data.scheduledDate,
+        sequenceNumber: item.sequenceNumber
+      },
+      orderId: item.orderId,
+      summary: "Viaje de entrega actualizado.",
+      type: "order_trip_updated"
+    }))
+  );
 
   return NextResponse.json({
     success: true,

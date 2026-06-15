@@ -111,7 +111,11 @@ function projectPoint(
 }
 
 function getGoogleMapsBrowserKey() {
-  return process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_BROWSER_MAPS_API_KEY ?? "";
+  return (
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ??
+    process.env.NEXT_PUBLIC_GOOGLE_BROWSER_MAPS_API_KEY?.trim() ??
+    ""
+  );
 }
 
 function ensureGoogleMapsScript(apiKey: string) {
@@ -306,7 +310,7 @@ export function TripRouteMap({ depot, route, stops }: TripRouteMapProps) {
         ) : null}
         {!route.encodedPolyline || !points.length ? (
           <div className="flex h-[320px] items-center justify-center px-6 text-center text-sm text-stone-400">
-            No hay una ruta suficiente para renderizar el mapa.
+            No se pudo calcular una ruta de Google Maps para renderizar el mapa.
           </div>
         ) : null}
         {mapsError && route.encodedPolyline && points.length ? (

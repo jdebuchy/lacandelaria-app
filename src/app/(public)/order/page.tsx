@@ -2,6 +2,8 @@ import { PublicOrderForm } from "@/components/public-order-form";
 import { loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicOrderPage() {
   const supabase = createAdminClient();
   const { data: products } = await loadCatalog(supabase, {

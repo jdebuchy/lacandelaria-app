@@ -12,7 +12,7 @@ import {
   getPaymentStatusLabel
 } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { OrderStatus, PaymentMethod } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderStatus, PaymentMethod } from "@/lib/types";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -38,12 +38,30 @@ type RelatedPayment = {
   status: string;
 };
 
+type RelatedOrderItem = {
+  quantity: number | string | null;
+  product_variants?: {
+    cash_price?: number | string | null;
+    transfer_price?: number | string | null;
+  } | Array<{
+    cash_price?: number | string | null;
+    transfer_price?: number | string | null;
+  }> | null;
+};
+
 function takeSingleRelation<T>(value: T | T[] | null): T | null {
   if (Array.isArray(value)) {
     return value[0] ?? null;
   }
 
   return value ?? null;
+}
+
+function calculateCashTotal(items: RelatedOrderItem[] | null | undefined) {
+  return (items ?? []).reduce((sum, item) => {
+    const variant = takeSingleRelation(item.product_variants ?? null);
+    return sum + Number(item.quantity ?? 0) * Number(variant?.cash_price ?? 0);
+  }, 0);
 }
 
 function getSearchValue(
@@ -118,6 +136,13 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           status,
           received_at,
           reference
+        ),
+        order_items (
+          quantity,
+          product_variants (
+            cash_price,
+            transfer_price
+          )
         )
       `
     )
@@ -131,7 +156,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
     ordersQuery = ordersQuery.eq("payment_status", statusFilter);
   }
 
-  if (methodFilter === "cash" || methodFilter === "transfer") {
+  if (methodFilter === "unknown" || methodFilter === "cash" || methodFilter === "transfer") {
     ordersQuery = ordersQuery.eq("payment_method_expected", methodFilter);
   }
 
@@ -162,6 +187,12 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
         .sort((a, b) => String(b.received_at ?? "").localeCompare(String(a.received_at ?? "")));
       const paidAmount = payments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
       const summary = buildPaymentSummary(Number(order.total_amount ?? 0), paidAmount);
+      const paymentMethodExpected = order.payment_method_expected as ExpectedPaymentMethod;
+      const cashTotalAmount =
+        paymentMethodExpected === "unknown"
+          ? calculateCashTotal((order.order_items ?? []) as RelatedOrderItem[])
+          : Number(order.total_amount ?? 0);
+      const cashSummary = buildPaymentSummary(cashTotalAmount, paidAmount);
       const lastPayment = payments[0];
       const customerName = customer
         ? formatPersonName(customer.first_name, customer.last_name)
@@ -178,9 +209,11 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
         orderStatus: order.status as OrderStatus,
         paidAmount: summary.paidAmount,
         payments: payments.slice(0, 3),
-        paymentMethodExpected: order.payment_method_expected as PaymentMethod,
+        paymentMethodExpected,
         paymentStatus: summary.paymentStatus,
         searchText: `${customerName} ${customerPhone}`.toLowerCase(),
+        cashBalanceAmount: cashSummary.balanceAmount,
+        cashTotalAmount: cashSummary.totalAmount,
         totalAmount: summary.totalAmount
       };
     })
@@ -260,6 +293,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
               className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
             >
               <option value="all">Todos</option>
+              <option value="unknown">No definido</option>
               <option value="cash">Efectivo</option>
               <option value="transfer">Transferencia</option>
             </select>
@@ -317,11 +351,13 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                   <div className="grid gap-3">
                     <PaymentRegisterForm
                       balanceAmount={row.balanceAmount}
+                      cashBalanceAmount={row.cashBalanceAmount}
                       defaultMethod={row.paymentMethodExpected}
                       orderId={row.id}
+                      transferBalanceAmount={row.balanceAmount}
                     />
                     <Link
-                      href={`/panel/orders/${row.id}/edit`}
+                      href={`/panel/orders/${row.id}`}
                       className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500"
                     >
                       Ver pedido

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { structuredAddressSchema, toStructuredAddressColumns } from "@/lib/address";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const createCustomerSchema = structuredAddressSchema.extend({
@@ -22,6 +22,10 @@ const createCustomerSchema = structuredAddressSchema.extend({
     });
   }
 });
+
+function isDuplicateInstagramError(error?: { code?: string | null; message?: string | null } | null) {
+  return error?.code === "23505" && (error.message?.includes("customers_instagram_normalized_unique_idx") ?? false);
+}
 
 export async function POST(request: Request) {
   const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
@@ -51,10 +55,33 @@ export async function POST(request: Request) {
 
   const firstName = parsed.data.firstName?.trim() || null;
   const lastName = parsed.data.lastName?.trim() || null;
-  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const instagram = normalizeInstagramUsername(parsed.data.instagram) || null;
   const addressColumns = toStructuredAddressColumns(parsed.data);
 
   const supabase = createAdminClient();
+  if (instagram) {
+    const { data: existingCustomer, error: existingCustomerError } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("instagram", instagram)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingCustomerError) {
+      console.error("customer instagram lookup failed", existingCustomerError);
+      return NextResponse.json(
+        { success: false, message: "No se pudo validar el Instagram del cliente." },
+        { status: 500 }
+      );
+    }
+
+    if (existingCustomer) {
+      return NextResponse.json(
+        { success: false, message: "Ya existe un cliente con ese Instagram." },
+        { status: 409 }
+      );
+    }
+  }
 
   const { error } = await supabase.from("customers").insert({
     first_name: firstName,
@@ -67,6 +94,13 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    if (isDuplicateInstagramError(error)) {
+      return NextResponse.json(
+        { success: false, message: "Ya existe un cliente con ese Instagram." },
+        { status: 409 }
+      );
+    }
+
     console.error("customer create failed", error);
     return NextResponse.json(
       { success: false, message: "No se pudo crear el cliente." },

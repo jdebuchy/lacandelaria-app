@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useMemo, useState, useTransition } from "react";
 import { formatCurrency, getPaymentMethodLabel } from "@/lib/payments";
-import type { PaymentMethod } from "@/lib/types";
+import type { ExpectedPaymentMethod, PaymentMethod } from "@/lib/types";
 
 type PaymentRegisterFormProps = {
   balanceAmount: number;
-  defaultMethod: PaymentMethod;
+  cashBalanceAmount?: number;
+  defaultMethod: ExpectedPaymentMethod;
   orderId: string;
+  transferBalanceAmount?: number;
 };
 
 function normalizeAmountInput(value: number) {
@@ -18,17 +20,21 @@ function normalizeAmountInput(value: number) {
 
 export function PaymentRegisterForm({
   balanceAmount,
+  cashBalanceAmount,
   defaultMethod,
-  orderId
+  orderId,
+  transferBalanceAmount
 }: PaymentRegisterFormProps) {
   const router = useRouter();
+  const initialMethod = defaultMethod === "cash" || defaultMethod === "transfer" ? defaultMethod : "transfer";
   const [amount, setAmount] = useState(normalizeAmountInput(balanceAmount));
-  const [method, setMethod] = useState<PaymentMethod>(defaultMethod);
+  const [method, setMethod] = useState<PaymentMethod>(initialMethod);
   const [reference, setReference] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const numericAmount = Number(amount);
-  const exceedsBalance = numericAmount > balanceAmount && balanceAmount > 0;
+  const currentBalanceAmount = method === "cash" ? cashBalanceAmount ?? balanceAmount : transferBalanceAmount ?? balanceAmount;
+  const exceedsBalance = numericAmount > currentBalanceAmount && currentBalanceAmount > 0;
   const canSubmit = Number.isFinite(numericAmount) && numericAmount > 0 && !isPending;
   const buttonLabel = useMemo(() => {
     if (isPending) {
@@ -91,7 +97,17 @@ export function PaymentRegisterForm({
           Metodo
           <select
             value={method}
-            onChange={(event) => setMethod(event.target.value as PaymentMethod)}
+            onChange={(event) => {
+              const nextMethod = event.target.value as PaymentMethod;
+              setMethod(nextMethod);
+              setAmount(
+                normalizeAmountInput(
+                  nextMethod === "cash"
+                    ? cashBalanceAmount ?? balanceAmount
+                    : transferBalanceAmount ?? balanceAmount
+                )
+              );
+            }}
             className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
           >
             <option value="cash">{getPaymentMethodLabel("cash")}</option>
@@ -111,7 +127,7 @@ export function PaymentRegisterForm({
       </label>
       {exceedsBalance ? (
         <p className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-          El monto supera el saldo de {formatCurrency(balanceAmount)}. El pedido quedara pagado.
+          El monto supera el saldo de {formatCurrency(currentBalanceAmount)}. El pedido quedara pagado.
         </p>
       ) : null}
       <button

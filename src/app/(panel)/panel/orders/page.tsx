@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { OrderSearch } from "@/components/order-search";
 import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
@@ -11,7 +13,10 @@ import {
   getPaymentMethodLabel,
   getPaymentStatusLabel
 } from "@/lib/payments";
+import { matchesNormalizedSearchValues } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+type SearchParams = Promise<{ q?: string }>;
 
 type RelatedCustomer = {
   address_kind?: "standard" | "gated" | null;
@@ -74,8 +79,15 @@ function getChannelLabel(channel: string) {
   }
 }
 
-export default async function OrdersPage() {
+function normalizeSearchTerm(value?: string) {
+  return value?.trim() ?? "";
+}
+
+export default async function OrdersPage({ searchParams }: { searchParams: SearchParams }) {
   await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/orders");
+  const { q } = await searchParams;
+  const normalizedQuery = normalizeSearchTerm(q);
+  const safeQ = normalizedQuery ? normalizedQuery.replace(/[,()]/g, "") : "";
   const supabase = createAdminClient();
   const [
     { count: totalOrders },
@@ -156,6 +168,9 @@ export default async function OrdersPage() {
       customerName: customer
         ? formatPersonName(customer.first_name, customer.last_name)
         : reseller?.full_name || "Cliente sin nombre",
+      customerFirstName: customer?.first_name ?? null,
+      customerLastName: customer?.last_name ?? null,
+      resellerName: reseller?.full_name ?? null,
       customerPhone: customer?.phone || reseller?.phone || "-",
       deliveryDate: order.delivery_date,
       notes: order.notes,
@@ -180,6 +195,21 @@ export default async function OrdersPage() {
         : "-"
     };
   });
+
+  const visibleOrderRows = safeQ
+    ? orderRows.filter((order) =>
+        matchesNormalizedSearchValues(
+          [
+            order.customerFirstName,
+            order.customerLastName,
+            order.customerName,
+            order.resellerName,
+            order.customerPhone
+          ],
+          safeQ
+        )
+      )
+    : orderRows;
 
   return (
     <main>
@@ -226,9 +256,16 @@ export default async function OrdersPage() {
         </div>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-stone-50">Todos los pedidos</h2>
-            <span className="text-sm text-stone-500">{orderRows.length}</span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-stone-50">Todos los pedidos</h2>
+              <p className="mt-1 text-sm text-stone-500">
+                {visibleOrderRows.length} {normalizedQuery ? "resultado(s)" : "pedido(s)"}
+              </p>
+            </div>
+            <Suspense>
+              <OrderSearch defaultValue={normalizedQuery} />
+            </Suspense>
           </div>
 
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
@@ -243,8 +280,8 @@ export default async function OrdersPage() {
               <div>Alta</div>
               <div></div>
             </div>
-            {orderRows.length ? (
-              orderRows.map((order) => (
+            {visibleOrderRows.length ? (
+              visibleOrderRows.map((order) => (
                 <div
                   key={order.id}
                   className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
@@ -300,14 +337,14 @@ export default async function OrdersPage() {
               ))
             ) : (
               <div className="px-4 py-8 text-center text-sm text-stone-500">
-                Todavia no hay pedidos cargados.
+                {normalizedQuery ? "No hay pedidos para esa búsqueda." : "Todavia no hay pedidos cargados."}
               </div>
             )}
           </div>
 
           <div className="grid gap-3 lg:hidden">
-            {orderRows.length ? (
-              orderRows.map((order) => (
+            {visibleOrderRows.length ? (
+              visibleOrderRows.map((order) => (
                 <article key={order.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -357,7 +394,7 @@ export default async function OrdersPage() {
               ))
             ) : (
               <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-4 py-8 text-center text-sm text-stone-500">
-                Todavia no hay pedidos cargados.
+                {normalizedQuery ? "No hay pedidos para esa búsqueda." : "Todavia no hay pedidos cargados."}
               </div>
             )}
           </div>

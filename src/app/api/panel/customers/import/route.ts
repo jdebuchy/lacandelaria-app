@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { deriveDeliveryArea, splitFullName } from "@/lib/address";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const SOURCE_MAP: Record<string, string> = {
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
     const phoneInput = row.telefono?.trim() ?? "";
     const phone = phoneInput ? normalizeArgentinaPhoneInput(phoneInput) : null;
-    const instagram = row.instagram?.trim().replace(/^@+/, "") || null;
+    const instagram = normalizeInstagramUsername(row.instagram) || null;
     const sourceRaw = (row.origen ?? "").toLowerCase().trim();
     const source = SOURCE_MAP[sourceRaw] ?? "repeat";
     const { firstName, lastName } = lastNameRaw
@@ -195,15 +195,25 @@ export async function POST(request: Request) {
   const phones = normalized
     .map((r) => r.phone)
     .filter((phone): phone is string => Boolean(phone));
+  const instagrams = normalized
+    .map((r) => r.instagram)
+    .filter((instagram): instagram is string => Boolean(instagram));
   const { data: existing, error: existingError } = phones.length > 0
     ? await supabase
       .from("customers")
-      .select("phone")
+      .select("phone, instagram")
       .in("phone", phones)
     : { data: [], error: null };
 
-  if (existingError) {
-    console.error("customer import existing lookup failed", existingError);
+  const { data: existingByInstagram, error: existingInstagramError } = instagrams.length > 0
+    ? await supabase
+      .from("customers")
+      .select("instagram")
+      .in("instagram", instagrams)
+    : { data: [], error: null };
+
+  if (existingError || existingInstagramError) {
+    console.error("customer import existing lookup failed", existingError ?? existingInstagramError);
     return NextResponse.json(
       { success: false, message: "Error al validar clientes existentes." },
       { status: 500 }
@@ -211,8 +221,25 @@ export async function POST(request: Request) {
   }
 
   const existingPhones = new Set((existing ?? []).map((c) => c.phone));
+  const existingInstagrams = new Set((existingByInstagram ?? []).map((c) => normalizeInstagramUsername(c.instagram)));
+  const seenInstagrams = new Set<string>();
   const toInsert = normalized
-    .filter((r) => !r.phone || !existingPhones.has(r.phone))
+    .filter((r) => {
+      if (r.phone && existingPhones.has(r.phone)) {
+        return false;
+      }
+
+      if (!r.instagram) {
+        return true;
+      }
+
+      if (existingInstagrams.has(r.instagram) || seenInstagrams.has(r.instagram)) {
+        return false;
+      }
+
+      seenInstagrams.add(r.instagram);
+      return true;
+    })
     .map(({ display_name, ...row }) => row);
   const skipped = normalized.length - toInsert.length;
 
@@ -228,6 +255,13 @@ export async function POST(request: Request) {
   const { error } = await supabase.from("customers").insert(toInsert);
 
   if (error) {
+    if (error.code === "23505" && error.message?.includes("customers_instagram_normalized_unique_idx")) {
+      return NextResponse.json(
+        { success: false, message: "Hay clientes con Instagram duplicado en la importación o en la base." },
+        { status: 409 }
+      );
+    }
+
     console.error("csv import failed", error);
     return NextResponse.json(
       { success: false, message: "Error al importar los clientes." },
@@ -236,7 +270,7 @@ export async function POST(request: Request) {
   }
 
   const parts = [`${toInsert.length} cliente${toInsert.length !== 1 ? "s" : ""} importado${toInsert.length !== 1 ? "s" : ""}.`];
-  if (skipped > 0) parts.push(`${skipped} omitido${skipped !== 1 ? "s" : ""} por teléfono duplicado.`);
+  if (skipped > 0) parts.push(`${skipped} omitido${skipped !== 1 ? "s" : ""} por teléfono o Instagram duplicado.`);
 
   return NextResponse.json({
     success: true,

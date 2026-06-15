@@ -148,7 +148,6 @@ export function AddCustomerButton() {
               </label>
 
               <AddressInput
-                required
                 value={fields.address}
                 onChange={setAddress}
                 className="md:col-span-2"

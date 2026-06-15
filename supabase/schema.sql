@@ -351,6 +351,9 @@ create index if not exists public_order_request_items_request_id_idx
   on public.public_order_request_items(public_order_request_id);
 create index if not exists public_order_request_items_product_id_idx
   on public.public_order_request_items(product_id);
+create unique index if not exists customers_instagram_normalized_unique_idx
+  on public.customers (lower(btrim(instagram)))
+  where nullif(btrim(instagram), '') is not null;
 create index if not exists deliveries_order_id_idx on public.deliveries(order_id);
 create index if not exists logistics_depots_active_label_idx
   on public.logistics_depots(active, label);

@@ -12,13 +12,18 @@ import {
   StructuredAddress,
   formatStructuredAddressSummary
 } from "@/lib/address";
-import { composeFullName, formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import {
+  composeFullName,
+  formatPersonName,
+  formatWhatsAppPhone,
+  normalizeInstagramUsername
+} from "@/lib/contact";
 import { getDefaultSellableVariantId } from "@/lib/products";
 import type { OrderItemInput, ProductFamily } from "@/lib/types";
 
 export type CustomerMatch = {
   id: string;
-  first_name: string;
+  first_name?: string | null;
   last_name?: string | null;
   phone?: string | null;
   instagram?: string | null;
@@ -146,11 +151,7 @@ export function ManualOrderForm({
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
   function customerDisplayName(customer: CustomerMatch) {
-    return formatPersonName(customer.first_name, customer.last_name);
-  }
-
-  function normalizeInstagramValue(value: string) {
-    return value.trim().replace(/^@+/, "");
+    return formatPersonName(customer.first_name, customer.last_name, customer.instagram);
   }
 
   useEffect(() => {
@@ -328,7 +329,7 @@ export function ManualOrderForm({
   const addressSummary = formatStructuredAddressSummary(address);
   const customerSummary = [
     formatWhatsAppPhone(phone),
-    instagram.trim() ? `@${normalizeInstagramValue(instagram)}` : null,
+    instagram.trim() ? `@${normalizeInstagramUsername(instagram)}` : null,
     addressSummary !== "-" ? addressSummary : null
   ].filter(Boolean);
 
@@ -613,7 +614,6 @@ export function ManualOrderForm({
 
               <PhoneInput
                 name="phone"
-                required
                 value={phone}
                 onChange={(nextPhone) => {
                   setPhone(nextPhone);
@@ -632,7 +632,7 @@ export function ManualOrderForm({
                     setInstagram(event.target.value);
                     if (
                       selectedCustomer &&
-                      normalizeInstagramValue(event.target.value) !== (selectedCustomer.instagram ?? "")
+                      normalizeInstagramUsername(event.target.value) !== (selectedCustomer.instagram ?? "")
                     ) {
                       clearSelectedCustomer();
                     }

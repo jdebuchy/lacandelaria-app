@@ -166,7 +166,6 @@ function CustomerEditForm({
           </span>
         </label>
         <AddressInput
-          required
           value={address}
           onChange={setAddress}
           className="md:col-span-2"

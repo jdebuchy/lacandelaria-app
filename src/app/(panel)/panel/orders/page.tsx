@@ -281,9 +281,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
           </div>
 
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
               <div>Cliente</div>
-              <div>Canal</div>
               <div>Área</div>
               <div>Estado</div>
               <div>Ítems</div>
@@ -295,15 +294,21 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               visibleOrderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
                   <div>
-                    <p className="font-medium text-stone-100">{order.customerName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-stone-100">{order.customerName}</p>
+                      {order.channel !== "internal" && (
+                        <span className="rounded-full border border-stone-700 px-2 py-0.5 text-xs text-stone-400">
+                          {getChannelLabel(order.channel)}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-1 text-xs text-stone-500">
                       {formatWhatsAppPhone(order.customerPhone)}
                     </p>
                   </div>
-                  <div>{getChannelLabel(order.channel)}</div>
                   <div>{getDeliveryAreaLabel(order.deliveryArea)}</div>
                   <div>
                     <p>{getOrderStatusLabel(order.status)}</p>

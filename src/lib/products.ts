@@ -560,6 +560,7 @@ export function flattenCatalogVariants(families: ProductFamily[]) {
 
 export function getDefaultSellableVariantId(family: ProductFamily) {
   const sellableVariants = family.variants.filter((variant) => variant.visibility === "sellable" && variant.active);
+  const defaultVariant = sellableVariants.find((variant) => variant.id === family.defaultVariantId);
 
   if (!sellableVariants.length) {
     return null;
@@ -567,7 +568,7 @@ export function getDefaultSellableVariantId(family: ProductFamily) {
 
   return (
     sellableVariants.find((variant) => variant.isDefault)?.id ??
-    family.defaultVariantId ??
+    defaultVariant?.id ??
     sellableVariants[0]?.id ??
     null
   );

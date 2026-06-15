@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createSign } from "node:crypto";
 import type { DeliveryPlanningStop } from "@/lib/delivery-planning";
 import type { LogisticsDepot } from "@/lib/logistics-depots";
 import { DEFAULT_LOGISTICS_DEPOT_FALLBACK, formatLogisticsDepotAddress } from "@/lib/logistics-depots";
@@ -78,7 +77,7 @@ export type DeliveryRoutePreview = {
 };
 
 function getRoutesApiKey() {
-  return process.env.GOOGLE_MAPS_API_KEY ?? "";
+  return process.env.GOOGLE_MAPS_API_KEY?.trim() ?? "";
 }
 
 function getDepotWaypoint(depot?: LogisticsDepot | null) {
@@ -131,6 +130,7 @@ async function getServiceAccountAccessToken() {
     return null;
   }
 
+  const { createSign } = await import("node:crypto");
   const now = Math.floor(Date.now() / 1000);
   const header = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claimSet = base64UrlEncode(

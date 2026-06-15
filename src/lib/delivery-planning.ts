@@ -2,7 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatStructuredAddressSummary } from "@/lib/address";
 import { formatPersonName } from "@/lib/contact";
 import type { LogisticsDepot } from "@/lib/logistics-depots";
-import { DEFAULT_LOGISTICS_DEPOT_CODE, DEFAULT_LOGISTICS_DEPOT_FALLBACK } from "@/lib/logistics-depots";
+import {
+  DEFAULT_LOGISTICS_DEPOT_CODE,
+  DEFAULT_LOGISTICS_DEPOT_FALLBACK,
+  loadActiveLogisticsDepot,
+  loadActiveLogisticsDepots
+} from "@/lib/logistics-depots";
 import {
   getLogisticsFlowGuidance,
   getLogisticsFlowLabel,
@@ -155,6 +160,7 @@ export type DeliveryPlanningAvailableOrder = {
 };
 
 export type DeliveryPlanningTrip = {
+  activeDepots: LogisticsDepot[];
   availableOrders: DeliveryPlanningAvailableOrder[];
   completedAt: string | null;
   createdAt: string | null;
@@ -255,13 +261,14 @@ export async function loadDeliveryTripPlanning(
   supabase: SupabaseClient,
   tripId: string
 ): Promise<{ drivers: DeliveryPlanningDriver[]; trip: DeliveryPlanningTrip | null }> {
-  const [driversResult, tripResult] = await Promise.all([
+  const [driversResult, activeDepotsResult, tripResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, role")
       .in("role", ["driver", "admin"])
       .eq("active", true)
       .order("full_name", { ascending: true }),
+    loadActiveLogisticsDepots(supabase).catch(() => []),
     supabase
       .from("delivery_trips")
       .select(
@@ -290,6 +297,7 @@ export async function loadDeliveryTripPlanning(
       .single()
   ]);
   const drivers = driversResult.data;
+  const activeDepots = activeDepotsResult.length ? activeDepotsResult : [DEFAULT_LOGISTICS_DEPOT_FALLBACK];
   let trip: TripRow | null = tripResult.data ?? null;
 
   if (tripResult.error) {
@@ -462,6 +470,7 @@ export async function loadDeliveryTripPlanning(
   return {
     drivers: (drivers ?? []).map((driver: TripDriverRow) => ({ id: driver.id, name: driver.full_name })),
     trip: {
+      activeDepots,
       availableOrders,
       completedAt: trip.completed_at ?? null,
       createdAt: trip.created_at ?? null,
@@ -478,6 +487,7 @@ export async function loadDeliveryTripPlanning(
 }
 
 type SaveTripPlanInput = {
+  depotId: string;
   driverUserId: string | null;
   notes: string;
   orderedStopIds: string[];
@@ -518,6 +528,8 @@ export async function saveDeliveryTripPlan(supabase: SupabaseClient, input: Save
   if (trip.status !== "assigned") {
     throw new Error("Solo se puede replanificar un viaje antes de iniciarlo.");
   }
+
+  await loadActiveLogisticsDepot(supabase, input.depotId);
 
   const { data: activeTripOrders, error: activeTripOrdersError } = await supabase
     .from("delivery_trip_orders")
@@ -570,6 +582,7 @@ export async function saveDeliveryTripPlan(supabase: SupabaseClient, input: Save
   const { error: tripUpdateError } = await supabase
     .from("delivery_trips")
     .update({
+      depot_id: input.depotId,
       driver_user_id: input.driverUserId,
       notes: input.notes.trim() || null,
       scheduled_date: input.scheduledDate

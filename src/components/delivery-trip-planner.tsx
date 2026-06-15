@@ -12,6 +12,7 @@ import type {
 import type { DeliveryRoutePreview } from "@/lib/delivery-routing";
 import { formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { matchesNormalizedSearchValues, normalizeSearchValue } from "@/lib/search";
 
 type DeliveryTripPlannerProps = {
   drivers: DeliveryPlanningDriver[];
@@ -145,7 +146,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
   }
 
   const filteredAvailableOrders = useMemo(() => {
-    const query = availableQuery.trim().toLowerCase();
+    const query = normalizeSearchValue(availableQuery);
 
     return [...availableOrders]
       .filter((order) => {
@@ -158,7 +159,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           order.addressSummary,
           order.deliveryArea,
           order.itemsSummary
-        ].some((value) => value.toLowerCase().includes(query));
+        ].some((value) => matchesNormalizedSearchValues([value], query));
       })
       .sort(compareByDateAndName);
   }, [availableOrders, availableQuery]);

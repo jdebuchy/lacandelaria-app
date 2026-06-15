@@ -7,6 +7,7 @@ import { CsvImportButton } from "@/components/csv-import-button";
 import { AddCustomerButton } from "@/components/add-customer-button";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
+import { matchesNormalizedSearchValues } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type CustomerAreaFilter = "all" | "gated" | "capital" | "province" | "pending_review";
@@ -79,14 +80,6 @@ function normalizePage(value?: string) {
   }
 
   return Math.floor(page);
-}
-
-function normalizeSortValue(value?: string | null) {
-  return (value ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .trim();
 }
 
 function buildHref({
@@ -389,16 +382,17 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
   function buildCustomersQuery(selectClause: string, hasUpdatedAt: boolean) {
     let query = supabase
       .from("customers")
-      .select(selectClause, { count: "exact" })
-      .range(rangeFrom, rangeTo);
-
-    if (safeQ) {
-      query = query.or(`first_name.ilike.%${safeQ}%,last_name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%,instagram.ilike.%${safeQ}%`);
-    }
+      .select(selectClause, { count: "exact" });
 
     query = applyAreaFilter(query, areaFilter);
 
-    return applySorting(query, sortKey, sortDirection, hasUpdatedAt);
+    query = applySorting(query, sortKey, sortDirection, hasUpdatedAt);
+
+    if (!safeQ) {
+      query = query.range(rangeFrom, rangeTo);
+    }
+
+    return query;
   }
 
   let { data: customers, error, count } = await buildCustomersQuery(CUSTOMER_SELECT_WITH_UPDATED_AT, true);
@@ -411,10 +405,27 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
   }
 
   if (error) throw error;
-  const rows = (customers ?? []) as unknown as CustomerRecord[];
-  const totalCount = count ?? rows.length;
+  const allRows = (customers ?? []) as unknown as CustomerRecord[];
+  const filteredRows = safeQ
+    ? allRows.filter((customer) =>
+        matchesNormalizedSearchValues(
+          [
+            customer.first_name,
+            customer.last_name,
+            `${customer.first_name ?? ""} ${customer.last_name ?? ""}`,
+            customer.phone,
+            customer.instagram
+          ],
+          safeQ
+        )
+      )
+    : allRows;
+  const totalCount = safeQ ? filteredRows.length : count ?? filteredRows.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const clampedPage = Math.min(currentPage, totalPages);
+  const rows = safeQ
+    ? filteredRows.slice((clampedPage - 1) * pageSize, clampedPage * pageSize)
+    : filteredRows;
   const showingFrom = totalCount === 0 ? 0 : (clampedPage - 1) * pageSize + 1;
   const showingTo = Math.min(clampedPage * pageSize, totalCount);
 

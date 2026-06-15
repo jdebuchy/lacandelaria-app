@@ -2,6 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState, useTransition } from "react";
+import { DateInput } from "@/components/date-input";
+import {
+  DEFAULT_LOGISTICS_DEPOT_CODE,
+  formatLogisticsDepotAddress,
+  type LogisticsDepot
+} from "@/lib/logistics-depots";
 
 type SelectableOrder = {
   area: string;
@@ -19,6 +25,7 @@ type DriverOption = {
 
 type DeliveryTripCreateFormProps = {
   defaultDate: string;
+  depots: LogisticsDepot[];
   drivers: DriverOption[];
   orders: SelectableOrder[];
 };
@@ -39,11 +46,15 @@ function getAreaLabel(area: string) {
 
 export function DeliveryTripCreateForm({
   defaultDate,
+  depots,
   drivers,
   orders
 }: DeliveryTripCreateFormProps) {
   const router = useRouter();
   const [scheduledDate, setScheduledDate] = useState(defaultDate);
+  const [depotId, setDepotId] = useState(
+    depots.find((depot) => depot.code === DEFAULT_LOGISTICS_DEPOT_CODE)?.id ?? depots[0]?.id ?? ""
+  );
   const [driverUserId, setDriverUserId] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
@@ -107,6 +118,7 @@ export function DeliveryTripCreateForm({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+        depotId,
         scheduledDate,
         driverUserId,
         notes,
@@ -135,12 +147,27 @@ export function DeliveryTripCreateForm({
   return (
     <form onSubmit={handleSubmit} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+        <label className="flex min-w-[240px] flex-1 flex-col gap-2 text-sm text-stone-300">
+          <span>Depósito de salida</span>
+          <select
+            value={depotId}
+            onChange={(event) => setDepotId(event.target.value)}
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            required
+          >
+            {depots.map((depot) => (
+              <option key={depot.id} value={depot.id}>
+                {depot.label} · {formatLogisticsDepotAddress(depot)}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <label className="flex min-w-[180px] flex-1 flex-col gap-2 text-sm text-stone-300">
           <span>Fecha del viaje</span>
-          <input
-            type="date"
+          <DateInput
             value={scheduledDate}
-            onChange={(event) => setScheduledDate(event.target.value)}
+            onChange={setScheduledDate}
             className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
             required
           />
@@ -180,7 +207,7 @@ export function DeliveryTripCreateForm({
         </div>
         <button
           type="submit"
-          disabled={isPending || !selectedOrderIds.length || !scheduledDate}
+          disabled={isPending || !selectedOrderIds.length || !scheduledDate || !depotId}
           className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Creando..." : "Crear viaje"}

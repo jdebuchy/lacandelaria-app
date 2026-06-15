@@ -6,7 +6,7 @@ import {
 } from "@/lib/address";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -22,7 +22,7 @@ const createManualOrderSchema = structuredAddressSchema
     customerId: z.string().uuid().optional().or(z.literal("")),
     firstName: z.string().optional().or(z.literal("")),
     lastName: z.string().optional().or(z.literal("")),
-    phone: z.string().min(8, "Ingresa un WhatsApp valido."),
+    phone: z.string().optional().or(z.literal("")),
     instagram: z.string().max(100).optional().or(z.literal("")),
     addressLine1: z.string().min(5, "Ingresa una dirección."),
     locality: z.string().min(2, "Ingresa una localidad."),
@@ -67,6 +67,10 @@ const createManualOrderSchema = structuredAddressSchema
     }
   });
 
+function isDuplicateInstagramError(error?: { code?: string | null; message?: string | null } | null) {
+  return error?.code === "23505" && (error.message?.includes("customers_instagram_normalized_unique_idx") ?? false);
+}
+
 export async function POST(request: Request) {
   const authResult = await requireApiRole(PANEL_ALLOWED_ROLES);
 
@@ -87,14 +91,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
-  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone ?? "");
+  const instagram = normalizeInstagramUsername(parsed.data.instagram) || null;
   const addressColumns = toStructuredAddressColumns(parsed.data);
   const firstName = parsed.data.firstName?.trim() || null;
   const lastName = parsed.data.lastName?.trim() || null;
   const fallbackFirstName = firstName || instagram || "Cliente";
 
-  if (normalizedPhone.length < 11 || normalizedPhone.length > 14) {
+  if (normalizedPhone && (normalizedPhone.length < 11 || normalizedPhone.length > 14)) {
     return NextResponse.json(
       { success: false, message: "Ingresa un telefono valido." },
       { status: 400 }
@@ -104,11 +108,22 @@ export async function POST(request: Request) {
   const supabase = createAdminClient();
   let customerId = parsed.data.customerId || null;
 
-  if (!customerId) {
+  if (!customerId && normalizedPhone) {
     const { data: existingCustomer } = await supabase
       .from("customers")
       .select("id")
       .eq("phone", normalizedPhone)
+      .limit(1)
+      .maybeSingle();
+
+    customerId = existingCustomer?.id ?? null;
+  }
+
+  if (!customerId && instagram) {
+    const { data: existingCustomer } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("instagram", instagram)
       .limit(1)
       .maybeSingle();
 
@@ -121,7 +136,7 @@ export async function POST(request: Request) {
       .update({
         first_name: fallbackFirstName,
         last_name: lastName || null,
-        phone: normalizedPhone,
+        phone: normalizedPhone || null,
         instagram,
         ...addressColumns,
         delivery_notes: parsed.data.deliveryNotes || null
@@ -129,6 +144,13 @@ export async function POST(request: Request) {
       .eq("id", customerId);
 
     if (customerUpdateError) {
+      if (isDuplicateInstagramError(customerUpdateError)) {
+        return NextResponse.json(
+          { success: false, message: "Ya existe un cliente con ese Instagram." },
+          { status: 409 }
+        );
+      }
+
       console.error("customer update failed", customerUpdateError);
       return NextResponse.json(
         { success: false, message: "No se pudo actualizar el cliente." },
@@ -141,7 +163,7 @@ export async function POST(request: Request) {
       .insert({
         first_name: fallbackFirstName,
         last_name: lastName || null,
-        phone: normalizedPhone,
+        phone: normalizedPhone || null,
         instagram,
         ...addressColumns,
         delivery_notes: parsed.data.deliveryNotes || null,
@@ -151,6 +173,13 @@ export async function POST(request: Request) {
       .single();
 
     if (customerInsertError || !newCustomer) {
+      if (isDuplicateInstagramError(customerInsertError)) {
+        return NextResponse.json(
+          { success: false, message: "Ya existe un cliente con ese Instagram." },
+          { status: 409 }
+        );
+      }
+
       console.error("customer insert failed", customerInsertError);
       return NextResponse.json(
         { success: false, message: "No se pudo crear el cliente." },

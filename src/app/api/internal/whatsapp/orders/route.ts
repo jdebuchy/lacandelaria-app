@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { structuredAddressSchema, toStructuredAddressColumns } from "@/lib/address";
 import { appConfig } from "@/lib/config";
-import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import {
   buildOrderItems,
   buildVariantLookup,
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
   }
 
   const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
-  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const instagram = normalizeInstagramUsername(parsed.data.instagram) || null;
   const firstName = parsed.data.firstName?.trim() || instagram || "Cliente";
   const lastName = parsed.data.lastName?.trim() || null;
   const addressColumns = toStructuredAddressColumns(parsed.data);

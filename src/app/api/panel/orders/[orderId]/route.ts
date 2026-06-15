@@ -3,7 +3,7 @@ import { z } from "zod";
 import { toStructuredAddressColumns, structuredAddressSchema } from "@/lib/address";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import { getActiveTripOrder } from "@/lib/delivery-trip-ops";
 import { canEditOrder } from "@/lib/delivery-trips";
 import {
@@ -21,7 +21,7 @@ const updateManualOrderSchema = structuredAddressSchema
     customerId: z.string().uuid().optional().or(z.literal("")),
     firstName: z.string().max(120).optional().or(z.literal("")),
     lastName: z.string().max(120).optional().or(z.literal("")),
-    phone: z.string().min(8, "Ingresa un WhatsApp valido."),
+    phone: z.string().optional().or(z.literal("")),
     instagram: z.string().max(100).optional().or(z.literal("")),
     addressLine1: z.string().min(5, "Ingresa una dirección."),
     locality: z.string().min(2, "Ingresa una localidad."),
@@ -66,6 +66,10 @@ const updateManualOrderSchema = structuredAddressSchema
     }
   });
 
+function isDuplicateInstagramError(error?: { code?: string | null; message?: string | null } | null) {
+  return error?.code === "23505" && (error.message?.includes("customers_instagram_normalized_unique_idx") ?? false);
+}
+
 type Params = {
   params: Promise<{
     orderId: string;
@@ -93,13 +97,13 @@ export async function PATCH(request: Request, context: Params) {
     );
   }
 
-  const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone);
-  const instagram = parsed.data.instagram?.trim().replace(/^@+/, "") || null;
+  const normalizedPhone = normalizeArgentinaPhoneInput(parsed.data.phone ?? "");
+  const instagram = normalizeInstagramUsername(parsed.data.instagram) || null;
   const addressColumns = toStructuredAddressColumns(parsed.data);
   const firstName = parsed.data.firstName?.trim() || instagram || "Cliente";
   const lastName = parsed.data.lastName?.trim() || null;
 
-  if (normalizedPhone.length < 11 || normalizedPhone.length > 14) {
+  if (normalizedPhone && (normalizedPhone.length < 11 || normalizedPhone.length > 14)) {
     return NextResponse.json(
       { success: false, message: "Ingresa un telefono valido." },
       { status: 400 }
@@ -131,11 +135,22 @@ export async function PATCH(request: Request, context: Params) {
 
   let customerId = parsed.data.customerId || existingOrder.customer_id || null;
 
-  if (!customerId) {
+  if (!customerId && normalizedPhone) {
     const { data: matchedCustomer } = await supabase
       .from("customers")
       .select("id")
       .eq("phone", normalizedPhone)
+      .limit(1)
+      .maybeSingle();
+
+    customerId = matchedCustomer?.id ?? null;
+  }
+
+  if (!customerId && instagram) {
+    const { data: matchedCustomer } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("instagram", instagram)
       .limit(1)
       .maybeSingle();
 
@@ -148,7 +163,7 @@ export async function PATCH(request: Request, context: Params) {
       .update({
         first_name: firstName,
         last_name: lastName,
-        phone: normalizedPhone,
+        phone: normalizedPhone || null,
         instagram,
         ...addressColumns,
         delivery_notes: parsed.data.deliveryNotes || null
@@ -156,6 +171,13 @@ export async function PATCH(request: Request, context: Params) {
       .eq("id", customerId);
 
     if (customerUpdateError) {
+      if (isDuplicateInstagramError(customerUpdateError)) {
+        return NextResponse.json(
+          { success: false, message: "Ya existe un cliente con ese Instagram." },
+          { status: 409 }
+        );
+      }
+
       console.error("customer update failed", customerUpdateError);
       return NextResponse.json(
         { success: false, message: "No se pudo actualizar el cliente." },
@@ -168,7 +190,7 @@ export async function PATCH(request: Request, context: Params) {
       .insert({
         first_name: firstName,
         last_name: lastName,
-        phone: normalizedPhone,
+        phone: normalizedPhone || null,
         instagram,
         ...addressColumns,
         delivery_notes: parsed.data.deliveryNotes || null,
@@ -178,6 +200,13 @@ export async function PATCH(request: Request, context: Params) {
       .single();
 
     if (customerInsertError || !newCustomer) {
+      if (isDuplicateInstagramError(customerInsertError)) {
+        return NextResponse.json(
+          { success: false, message: "Ya existe un cliente con ese Instagram." },
+          { status: 409 }
+        );
+      }
+
       console.error("customer insert failed", customerInsertError);
       return NextResponse.json(
         { success: false, message: "No se pudo crear el cliente." },

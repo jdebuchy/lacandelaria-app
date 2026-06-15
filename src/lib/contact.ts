@@ -70,6 +70,10 @@ export function normalizeArgentinaPhoneInput(value: string) {
   return digits;
 }
 
+export function normalizeInstagramUsername(value?: string | null) {
+  return value?.trim().replace(/^@+/, "").toLowerCase() || "";
+}
+
 export function formatWhatsAppPhone(phone?: string | null) {
   if (!phone) {
     return "-";

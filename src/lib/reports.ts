@@ -1,4 +1,4 @@
-import type { OrderStatus, PaymentMethod, PaymentStatus, SalesChannel } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderStatus, PaymentMethod, PaymentStatus, SalesChannel } from "@/lib/types";
 
 export type ReportPreset = "today" | "7d" | "30d" | "month" | "last_month" | "custom";
 export type ReportGroupBy = "day" | "week" | "month";
@@ -7,7 +7,7 @@ export type ReportFilters = {
   channel: "all" | SalesChannel;
   endDate: string;
   groupBy: ReportGroupBy;
-  method: "all" | PaymentMethod;
+  method: "all" | ExpectedPaymentMethod;
   productId: string;
   preset: ReportPreset;
   startDate: string;
@@ -45,7 +45,7 @@ export type ReportOrder = {
   id: string;
   isComplimentary: boolean;
   items: ReportOrderItem[];
-  paymentMethodExpected: PaymentMethod;
+  paymentMethodExpected: ExpectedPaymentMethod;
   paymentStatus: PaymentStatus;
   resellerName: string | null;
   sellerName: string | null;
@@ -156,7 +156,8 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending_confirmation: "Pendiente"
 };
 
-export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+export const PAYMENT_METHOD_LABELS: Record<ExpectedPaymentMethod, string> = {
+  unknown: "No definido",
   cash: "Efectivo",
   transfer: "Transferencia"
 };
@@ -260,7 +261,7 @@ export function resolveReportFilters(params: Record<string, string | string[] | 
         : "all",
     endDate,
     groupBy: normalizeGroupBy(singleParam(params.groupBy)),
-    method: method === "cash" || method === "transfer" ? method : "all",
+    method: method === "unknown" || method === "cash" || method === "transfer" ? method : "all",
     productId: singleParam(params.product) ?? "all",
     preset,
     startDate,
@@ -713,7 +714,7 @@ export function buildReportsData({
         value: number(deliveredNow.filter((delivery) => delivery.status === "failed").length)
       }
     ],
-    methodMix: segmentsFromMap(methodMap, PAYMENT_METHOD_LABELS, ["bg-emerald-300", "bg-sky-300"]),
+    methodMix: segmentsFromMap(methodMap, PAYMENT_METHOD_LABELS, ["bg-stone-300", "bg-emerald-300", "bg-sky-300"]),
     operationMetrics: [
       "pending_confirmation",
       "confirmed",

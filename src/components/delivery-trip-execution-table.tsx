@@ -22,6 +22,7 @@ export type DeliveryExecutionStop = {
   orderStatus: string;
   paidAmount: number;
   paymentBalanceAmount: number;
+  cashPaymentBalanceAmount: number;
   paymentMethodExpected: string;
   paymentStatus: string;
   sequenceNumber: number;
@@ -47,6 +48,18 @@ const FAILURE_REASON_OPTIONS: DeliveryFailureReason[] = [
   "closed",
   "other"
 ];
+
+function getExpectedPaymentMethodLabel(method: string) {
+  if (method === "cash") {
+    return "Efectivo";
+  }
+
+  if (method === "transfer") {
+    return "Transferencia";
+  }
+
+  return "No definido";
+}
 
 async function updateStop(
   orderId: string,
@@ -144,12 +157,12 @@ export function DeliveryTripExecutionTable({
           <tbody className="divide-y divide-stone-800">
             {stops.map((stop) => {
               const isUpdating = pendingStopId === stop.id || isPending;
-              const paymentAmount = paymentAmounts[stop.id] ?? String(stop.paymentBalanceAmount || "");
+              const paymentAmount = paymentAmounts[stop.id] ?? String(stop.cashPaymentBalanceAmount || "");
               const numericPaymentAmount = Number(paymentAmount);
               const canCollectCash =
-                stop.paymentMethodExpected === "cash" &&
+                (stop.paymentMethodExpected === "cash" || stop.paymentMethodExpected === "unknown") &&
                 stop.paymentStatus !== "paid" &&
-                stop.paymentBalanceAmount > 0;
+                stop.cashPaymentBalanceAmount > 0;
               const failureReason = failureReasons[stop.id] ?? stop.deliveryFailureReason ?? "customer_absent";
               const note = notes[stop.id] ?? stop.notes ?? "";
               const whatsappHref = buildWhatsAppHref(
@@ -176,7 +189,7 @@ export function DeliveryTripExecutionTable({
                   </td>
                   <td className="px-4 py-4 text-stone-300">
                     <div className="min-w-[120px]">
-                      <p>{stop.paymentMethodExpected === "cash" ? "Efectivo" : "Transferencia"}</p>
+                      <p>{getExpectedPaymentMethodLabel(stop.paymentMethodExpected)}</p>
                       <p className="mt-1 text-xs text-stone-500">
                         {formatCurrency(stop.paidAmount)} / {formatCurrency(stop.totalAmount)}
                       </p>

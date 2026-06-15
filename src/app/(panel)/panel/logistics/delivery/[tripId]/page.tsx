@@ -64,6 +64,15 @@ type RelatedPayment = {
   status: string;
 };
 
+type RelatedOrderItem = {
+  quantity: number | string | null;
+  product_variants?: {
+    cash_price?: number | string | null;
+  } | Array<{
+    cash_price?: number | string | null;
+  }> | null;
+};
+
 type OrderRow = {
   customers?: RelatedCustomer | RelatedCustomer[] | null;
   deliveries?: RelatedDelivery | RelatedDelivery[] | null;
@@ -74,6 +83,7 @@ type OrderRow = {
   status: string;
   total_amount?: number | string | null;
   payments?: RelatedPayment[] | null;
+  order_items?: RelatedOrderItem[] | null;
 };
 
 function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
@@ -114,6 +124,13 @@ function getEffectiveStopStatus(row: TripOrderRow, order: OrderRow | undefined) 
 
   const delivery = takeSingleRelation(order?.deliveries);
   return delivery?.delivery_status ?? row.stop_status ?? "pending";
+}
+
+function calculateCashTotal(items: RelatedOrderItem[] | null | undefined) {
+  return (items ?? []).reduce((sum, item) => {
+    const variant = takeSingleRelation(item.product_variants);
+    return sum + Number(item.quantity ?? 0) * Number(variant?.cash_price ?? 0);
+  }, 0);
 }
 
 export default async function DeliveryTripExecutionPage(context: Params) {
@@ -183,6 +200,12 @@ export default async function DeliveryTripExecutionPage(context: Params) {
             payments (
               amount,
               status
+            ),
+            order_items (
+              quantity,
+              product_variants (
+                cash_price
+              )
             )
           `
         )
@@ -206,6 +229,10 @@ export default async function DeliveryTripExecutionPage(context: Params) {
       );
       const paidAmount = payments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
       const totalAmount = Number(order.total_amount ?? 0);
+      const cashTotalAmount =
+        order.payment_method_expected === "unknown"
+          ? calculateCashTotal(order.order_items ?? [])
+          : totalAmount;
 
       return {
         addressSummary: customer
@@ -230,6 +257,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
           : delivery?.proof_note || row.stop_note || customer?.delivery_notes || null,
         orderStatus: order.status,
         paidAmount,
+        cashPaymentBalanceAmount: Math.max(0, cashTotalAmount - paidAmount),
         paymentBalanceAmount: Math.max(0, totalAmount - paidAmount),
         paymentMethodExpected: order.payment_method_expected,
         paymentStatus: order.payment_status,

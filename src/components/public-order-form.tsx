@@ -7,7 +7,7 @@ import { OrderItemsEditor } from "@/components/order-items-editor";
 import { PhoneInput } from "@/components/phone-input";
 import { EMPTY_STRUCTURED_ADDRESS } from "@/lib/address";
 import { getDefaultSellableVariantId } from "@/lib/products";
-import type { OrderItemInput, ProductFamily } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderItemInput, ProductFamily } from "@/lib/types";
 
 type PublicOrderFormState = {
   success: boolean;
@@ -41,7 +41,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
   const [instagram, setInstagram] = useState("");
   const [address, setAddress] = useState(EMPTY_STRUCTURED_ADDRESS);
   const [items, setItems] = useState<OrderItemInput[]>(initialItems);
-  const [paymentMethodExpected, setPaymentMethodExpected] = useState<"cash" | "transfer">("cash");
+  const [paymentMethodExpected, setPaymentMethodExpected] = useState<ExpectedPaymentMethod>("unknown");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
       setInstagram("");
       setAddress(EMPTY_STRUCTURED_ADDRESS);
       setItems(initialItems);
-      setPaymentMethodExpected("cash");
+      setPaymentMethodExpected("unknown");
       setNotes("");
     }
   }
@@ -162,9 +162,10 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
           <select
             name="paymentMethodExpected"
             value={paymentMethodExpected}
-            onChange={(event) => setPaymentMethodExpected(event.target.value as "cash" | "transfer")}
+            onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
             className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
           >
+            <option value="unknown">No definido</option>
             <option value="cash">Efectivo</option>
             <option value="transfer">Transferencia</option>
           </select>

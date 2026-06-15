@@ -29,7 +29,7 @@ const updateManualOrderSchema = structuredAddressSchema
     postalCode: z.string().min(3, "Ingresa un código postal."),
     deliveryNotes: z.string().max(500).optional().or(z.literal("")),
     items: orderItemsInputSchema,
-    paymentMethodExpected: z.enum(["cash", "transfer"]),
+    paymentMethodExpected: z.enum(["unknown", "cash", "transfer"]),
     deliveryDate: z.string().optional().or(z.literal("")),
     deliveryWindowStart: z.string().optional().or(z.literal("")),
     deliveryWindowEnd: z.string().optional().or(z.literal("")),

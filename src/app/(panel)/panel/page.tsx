@@ -272,7 +272,13 @@ export default async function BackofficePage() {
                 <div>{formatPersonName(row.first_name, row.last_name)}</div>
                 <div>{formatWhatsAppPhone(row.phone)}</div>
                 <div>{formatItemsSummary((row.public_order_request_items ?? []) as RequestItem[])}</div>
-                <div>{row.payment_method_expected === "cash" ? "Efectivo" : "Transferencia"}</div>
+                <div>
+                  {row.payment_method_expected === "cash"
+                    ? "Efectivo"
+                    : row.payment_method_expected === "transfer"
+                      ? "Transferencia"
+                      : "No definido"}
+                </div>
                 <div>{row.status}</div>
                 <div>
                   <ConfirmRequestButton

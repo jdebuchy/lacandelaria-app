@@ -24,7 +24,7 @@ const createWhatsappOrderSchema = structuredAddressSchema
     instagram: z.string().max(100).optional().or(z.literal("")),
     deliveryNotes: z.string().max(500).optional().or(z.literal("")),
     items: orderItemsInputSchema,
-    paymentMethodExpected: z.enum(["cash", "transfer"]),
+    paymentMethodExpected: z.enum(["unknown", "cash", "transfer"]),
     deliveryDate: z.string().optional().or(z.literal("")),
     deliveryWindowStart: z.string().optional().or(z.literal("")),
     deliveryWindowEnd: z.string().optional().or(z.literal("")),

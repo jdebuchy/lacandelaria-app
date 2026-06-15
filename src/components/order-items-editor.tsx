@@ -1,12 +1,12 @@
 "use client";
 
 import { getDefaultSellableVariantId } from "@/lib/products";
-import type { OrderItemInput, ProductFamily } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderItemInput, ProductFamily } from "@/lib/types";
 
 type OrderItemsEditorProps = {
   items: OrderItemInput[];
   onChange: (items: OrderItemInput[]) => void;
-  paymentMethod: "cash" | "transfer";
+  paymentMethod: ExpectedPaymentMethod;
   products: ProductFamily[];
   removeAction?: "default" | "subtle" | "hidden";
 };
@@ -96,16 +96,22 @@ export function OrderItemsEditor({
     family.variants.some((variant) => !selectedVariantIds.has(variant.id))
   );
 
-  const total = items.reduce((sum, item) => {
-    const variant = findVariantById(activeFamilies, item.productId);
+  const totals = items.reduce(
+    (sum, item) => {
+      const variant = findVariantById(activeFamilies, item.productId);
 
-    if (!variant) {
-      return sum;
-    }
+      if (!variant) {
+        return sum;
+      }
 
-    const unitPrice = paymentMethod === "cash" ? variant.cashPrice : variant.transferPrice;
-    return sum + unitPrice * item.quantity;
-  }, 0);
+      return {
+        cash: sum.cash + variant.cashPrice * item.quantity,
+        transfer: sum.transfer + variant.transferPrice * item.quantity
+      };
+    },
+    { cash: 0, transfer: 0 }
+  );
+  const total = paymentMethod === "cash" ? totals.cash : totals.transfer;
 
   return (
     <div className="grid gap-4 md:col-span-2">
@@ -249,11 +255,17 @@ export function OrderItemsEditor({
       </div>
 
       <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm">
-        <p className="text-emerald-200">Total estimado</p>
+        <p className="text-emerald-200">{paymentMethod === "unknown" ? "Total base" : "Total estimado"}</p>
         <p className="mt-2 text-2xl font-semibold text-stone-50">{formatCurrency(total)}</p>
-        <p className="mt-1 text-stone-300">
-          Calculado con precios por {paymentMethod === "cash" ? "efectivo" : "transferencia"}.
-        </p>
+        {paymentMethod === "unknown" ? (
+          <p className="mt-1 text-stone-300">
+            Transferencia {formatCurrency(totals.transfer)} · Efectivo {formatCurrency(totals.cash)}
+          </p>
+        ) : (
+          <p className="mt-1 text-stone-300">
+            Calculado con precios por {paymentMethod === "cash" ? "efectivo" : "transferencia"}.
+          </p>
+        )}
       </div>
     </div>
   );

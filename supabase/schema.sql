@@ -1,7 +1,7 @@
 create extension if not exists "pgcrypto";
 
 create type public.user_role as enum ('admin', 'seller', 'driver', 'collector');
-create type public.payment_method as enum ('cash', 'transfer');
+create type public.payment_method as enum ('unknown', 'cash', 'transfer');
 create type public.order_status as enum (
   'pending_confirmation',
   'confirmed',

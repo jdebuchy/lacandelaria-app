@@ -91,7 +91,12 @@ async function buildRepeatOrderPayload(customerId) {
       items: lastOrder.order_items
         .map((item) => `${item.quantity} x ${item.product_name_snapshot} ${item.sales_unit_label_snapshot}`)
         .join(", "),
-      paymentMethod: lastOrder.payment_method_expected === "transfer" ? "transferencia" : "efectivo"
+      paymentMethod:
+        lastOrder.payment_method_expected === "transfer"
+          ? "transferencia"
+          : lastOrder.payment_method_expected === "cash"
+            ? "efectivo"
+            : "no definido"
     }
   };
 }

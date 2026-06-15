@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { OrderSearch } from "@/components/order-search";
+import { OrderFilters } from "@/components/order-filters";
 import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
@@ -16,7 +17,7 @@ import {
 import { matchesNormalizedSearchValues } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type SearchParams = Promise<{ q?: string }>;
+type SearchParams = Promise<{ q?: string; status?: string }>;
 
 type RelatedCustomer = {
   address_kind?: "standard" | "gated" | null;
@@ -116,9 +117,10 @@ function normalizeSearchTerm(value?: string) {
 
 export default async function OrdersPage({ searchParams }: { searchParams: SearchParams }) {
   await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/orders");
-  const { q } = await searchParams;
+  const { q, status: statusFilter } = await searchParams;
   const normalizedQuery = normalizeSearchTerm(q);
   const safeQ = normalizedQuery ? normalizedQuery.replace(/[,()]/g, "") : "";
+  const normalizedStatusFilter = statusFilter ?? "";
   const supabase = createAdminClient();
   const [
     { count: totalOrders },
@@ -227,20 +229,16 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     };
   });
 
-  const visibleOrderRows = safeQ
-    ? orderRows.filter((order) =>
-        matchesNormalizedSearchValues(
-          [
-            order.customerFirstName,
-            order.customerLastName,
-            order.customerName,
-            order.resellerName,
-            order.customerPhone
-          ],
+  const visibleOrderRows = orderRows.filter((order) => {
+    const matchesSearch = safeQ
+      ? matchesNormalizedSearchValues(
+          [order.customerFirstName, order.customerLastName, order.customerName, order.resellerName, order.customerPhone],
           safeQ
         )
-      )
-    : orderRows;
+      : true;
+    const matchesStatus = normalizedStatusFilter ? order.status === normalizedStatusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <main>
@@ -298,6 +296,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               <OrderSearch defaultValue={normalizedQuery} />
             </Suspense>
           </div>
+
+          <Suspense>
+            <OrderFilters activeStatus={normalizedStatusFilter} />
+          </Suspense>
 
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
             <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">

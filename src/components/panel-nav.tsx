@@ -97,12 +97,17 @@ const linksByRole: Record<UserRole, NavItem[]> = {
           href: "/panel/logistics",
           label: "Armado de viajes",
           match: ["/panel/logistics"],
-          exclude: ["/panel/logistics/delivery"]
+          exclude: ["/panel/logistics/delivery", "/panel/logistics/depots"]
         },
         {
           href: "/panel/logistics/delivery",
           label: "Delivery",
           match: ["/panel/logistics/delivery", "/driver"]
+        },
+        {
+          href: "/panel/logistics/depots",
+          label: "Depósitos",
+          match: ["/panel/logistics/depots"]
         }
       ],
       section: "main"

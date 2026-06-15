@@ -6,6 +6,7 @@ import { saveDeliveryTripPlan } from "@/lib/delivery-planning";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const saveSequenceSchema = z.object({
+  depotId: z.string().uuid("Selecciona un depósito de salida."),
   driverUserId: z.string().uuid().optional().or(z.literal("")).or(z.null()),
   notes: z.string().max(500).optional().or(z.literal("")),
   orderedStopIds: z.array(z.string().uuid()).min(1, "El viaje necesita al menos un pedido."),
@@ -40,6 +41,7 @@ export async function POST(request: Request, context: Params) {
 
   try {
     await saveDeliveryTripPlan(supabase, {
+      depotId: parsed.data.depotId,
       driverUserId: parsed.data.driverUserId || null,
       notes: parsed.data.notes ?? "",
       orderedStopIds: parsed.data.orderedStopIds,

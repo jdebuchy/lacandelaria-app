@@ -78,6 +78,19 @@ function getChannelLabel(channel: string) {
   }
 }
 
+function getDeliveryAreaLabel(area: string) {
+  switch (area) {
+    case "capital_federal":
+      return "Cap. Federal";
+    case "standard":
+      return "GBA";
+    case "pending_review":
+      return "Sin zona";
+    default:
+      return area;
+  }
+}
+
 function normalizeSearchTerm(value?: string) {
   return value?.trim() ?? "";
 }
@@ -291,10 +304,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     </p>
                   </div>
                   <div>{getChannelLabel(order.channel)}</div>
-                  <div>
-                    <div>{order.deliveryArea}</div>
-                    <div className="mt-1 text-xs text-stone-500">{order.addressSummary}</div>
-                  </div>
+                  <div>{getDeliveryAreaLabel(order.deliveryArea)}</div>
                   <div>
                     <p>{getOrderStatusLabel(order.status)}</p>
                     {order.tripId ? (

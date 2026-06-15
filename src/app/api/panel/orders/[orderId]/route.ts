@@ -6,6 +6,7 @@ import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import { getActiveTripOrder } from "@/lib/delivery-trip-ops";
 import { canEditOrder } from "@/lib/delivery-trips";
+import { recordOrderActivity } from "@/lib/order-activities";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -297,6 +298,18 @@ export async function PATCH(request: Request, context: Params) {
       { status: 500 }
     );
   }
+
+  await recordOrderActivity(supabase, {
+    actorUserId: authResult.auth.profile.id,
+    metadata: {
+      itemsCount,
+      paymentMethodExpected: parsed.data.paymentMethodExpected,
+      totalAmount
+    },
+    orderId,
+    summary: "Pedido editado.",
+    type: "order_updated"
+  });
 
   return NextResponse.json({
     success: true,

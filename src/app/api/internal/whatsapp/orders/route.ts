@@ -3,6 +3,7 @@ import { z } from "zod";
 import { structuredAddressSchema, toStructuredAddressColumns } from "@/lib/address";
 import { appConfig } from "@/lib/config";
 import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
+import { recordOrderActivity } from "@/lib/order-activities";
 import {
   buildOrderItems,
   buildVariantLookup,
@@ -276,6 +277,18 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString()
     })
     .eq("id", parsed.data.conversationId);
+
+  await recordOrderActivity(supabase, {
+    metadata: {
+      conversationId: parsed.data.conversationId,
+      idempotencyKey: parsed.data.idempotencyKey,
+      itemsCount: calculateItemsCount(orderItems),
+      totalAmount: calculateOrderTotal(orderItems)
+    },
+    orderId: order.id,
+    summary: "Pedido creado desde WhatsApp IA.",
+    type: "order_created"
+  });
 
   return NextResponse.json({
     success: true,

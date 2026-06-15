@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, useTransition } from "react";
+import { DateInput } from "@/components/date-input";
 
 type DriverOption = {
   id: string;
@@ -88,10 +89,9 @@ export function DeliveryTripEditor({
       <div className="grid gap-4 lg:grid-cols-3">
         <label className="flex flex-col gap-2 text-sm text-stone-300">
           <span>Fecha del viaje</span>
-          <input
-            type="date"
+          <DateInput
             value={scheduledDate}
-            onChange={(event) => setScheduledDate(event.target.value)}
+            onChange={setScheduledDate}
             className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
             required
           />

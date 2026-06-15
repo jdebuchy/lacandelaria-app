@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { loadActiveLogisticsDepot } from "@/lib/logistics-depots";
+import { recordOrderActivities } from "@/lib/order-activities";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const createTripSchema = z.object({
@@ -199,6 +200,22 @@ export async function POST(request: Request) {
       }
     }
   }
+
+  await recordOrderActivities(
+    supabase,
+    uniqueOrderIds.map((orderId, index) => ({
+      actorUserId: authResult.auth.profile.id,
+      metadata: {
+        deliveryTripId: newTrip.id,
+        driverUserId: parsed.data.driverUserId || null,
+        scheduledDate: parsed.data.scheduledDate,
+        sequenceNumber: index + 1
+      },
+      orderId,
+      summary: "Pedido asignado a un viaje de entrega.",
+      type: "order_assigned_to_trip"
+    }))
+  );
 
   return NextResponse.json({
     success: true,

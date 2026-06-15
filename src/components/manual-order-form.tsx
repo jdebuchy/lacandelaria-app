@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { AddressInput } from "@/components/address-input";
 import { AutofillDecoy } from "@/components/autofill-decoy";
+import { DateInput } from "@/components/date-input";
 import { OrderItemsEditor } from "@/components/order-items-editor";
 import { PhoneInput } from "@/components/phone-input";
 import {
@@ -490,41 +491,40 @@ export function ManualOrderForm({
             ) : null}
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-[repeat(3,minmax(0,1fr))]">
+            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Fecha tentativa de entrega
-              <input
+              <DateInput
                 name="deliveryDate"
-                type="date"
                 value={deliveryDate}
-                onChange={(event) => setDeliveryDate(event.target.value)}
+                onChange={setDeliveryDate}
                 className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Entregar desde
               <input
                 name="deliveryWindowStart"
                 type="time"
                 value={deliveryWindowStart}
                 onChange={(event) => setDeliveryWindowStart(event.target.value)}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Entregar hasta
               <input
                 name="deliveryWindowEnd"
                 type="time"
                 value={deliveryWindowEnd}
                 onChange={(event) => setDeliveryWindowEnd(event.target.value)}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+            <label className="grid gap-2 text-sm text-stone-300 md:col-span-3">
               Notas internas del pedido
               <textarea
                 name="notes"

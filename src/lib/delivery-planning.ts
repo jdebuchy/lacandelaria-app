@@ -14,6 +14,7 @@ import {
   getLogisticsFlowTone,
   inferLogisticsFlow
 } from "@/lib/logistics";
+import { recordOrderActivities } from "@/lib/order-activities";
 import { formatItemsSummary } from "@/lib/products";
 import type {
   DeliveryStatus,
@@ -627,6 +628,19 @@ export async function saveDeliveryTripPlan(supabase: SupabaseClient, input: Save
     if (releaseDeliveriesError) {
       throw new Error("No se pudo limpiar la asignación de una entrega.");
     }
+
+    await recordOrderActivities(
+      supabase,
+      removedOrderIds.map((orderId) => ({
+        metadata: {
+          deliveryTripId: input.tripId,
+          releasedAt
+        },
+        orderId,
+        summary: "Pedido quitado del viaje y devuelto a disponibles.",
+        type: "order_released_from_trip"
+      }))
+    );
   }
 
   if (addedOrderIds.length) {
@@ -680,6 +694,21 @@ export async function saveDeliveryTripPlan(supabase: SupabaseClient, input: Save
         throw new Error("No se pudo preparar una entrega nueva.");
       }
     }
+
+    await recordOrderActivities(
+      supabase,
+      addedOrderIds.map((orderId) => ({
+        metadata: {
+          deliveryTripId: input.tripId,
+          driverUserId: input.driverUserId,
+          scheduledDate: input.scheduledDate,
+          sequenceNumber: input.orderedStopIds.indexOf(orderId) + 1
+        },
+        orderId,
+        summary: "Pedido agregado al viaje de entrega.",
+        type: "order_assigned_to_trip"
+      }))
+    );
   }
 
   for (const [index, orderId] of input.orderedStopIds.entries()) {

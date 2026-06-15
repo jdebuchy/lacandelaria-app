@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { recordOrderActivity } from "@/lib/order-activities";
 import type { ExpectedPaymentMethod, PaymentMethod, PaymentStatus } from "@/lib/types";
 
 export const RECEIVED_PAYMENT_STATUS = "received";
@@ -260,7 +261,21 @@ export async function recordReceivedPayment({
     throw new Error("payment_insert_failed");
   }
 
-  return reconcileOrderPaymentStatus(supabase, orderId);
+  const summary = await reconcileOrderPaymentStatus(supabase, orderId);
+
+  await recordOrderActivity(supabase, {
+    actorUserId: receivedByUserId,
+    metadata: {
+      amount: roundMoney(amount),
+      method,
+      reference: reference?.trim() || null
+    },
+    orderId,
+    summary: "Pago registrado.",
+    type: "payment_received"
+  });
+
+  return summary;
 }
 
 export async function voidReceivedPayment({
@@ -276,7 +291,7 @@ export async function voidReceivedPayment({
 }) {
   const { data: payment, error: paymentError } = await supabase
     .from("payments")
-    .select("id, order_id, status")
+    .select("id, order_id, status, amount, method")
     .eq("id", paymentId)
     .single();
 
@@ -303,5 +318,20 @@ export async function voidReceivedPayment({
     throw new Error("payment_void_failed");
   }
 
-  return reconcileOrderPaymentStatus(supabase, payment.order_id);
+  const summary = await reconcileOrderPaymentStatus(supabase, payment.order_id);
+
+  await recordOrderActivity(supabase, {
+    actorUserId: voidedByUserId,
+    metadata: {
+      amount: Number(payment.amount ?? 0),
+      method: payment.method,
+      paymentId,
+      reason: reason?.trim() || null
+    },
+    orderId: payment.order_id,
+    summary: "Pago anulado.",
+    type: "payment_voided"
+  });
+
+  return summary;
 }

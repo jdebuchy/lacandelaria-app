@@ -267,6 +267,16 @@ create table if not exists public.payments (
   reference text
 );
 
+create table if not exists public.order_activities (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  actor_user_id uuid references public.profiles(id) on delete set null,
+  activity_type text not null,
+  summary text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.commissions (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete cascade,
@@ -372,6 +382,8 @@ create index if not exists payments_order_id_idx
   on public.payments(order_id);
 create index if not exists payments_received_at_idx
   on public.payments(received_at desc);
+create index if not exists order_activities_order_created_idx
+  on public.order_activities(order_id, created_at desc);
 create index if not exists product_families_active_display_order_idx
   on public.product_families(active, display_order, name);
 create index if not exists product_variants_family_display_order_idx

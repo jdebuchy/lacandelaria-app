@@ -318,7 +318,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
                   <Link
-                    href={`/panel/orders/${order.id}/edit`}
+                    href={`/panel/orders/${order.id}`}
                     className="absolute inset-0 z-0"
                     aria-label={`Ver pedido de ${order.customerName}`}
                   />
@@ -379,12 +379,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                         Editar
                       </Link>
                     ) : (
-                      <span
-                        title="El pedido está en ruta o entregado y no puede editarse"
-                        className="inline-flex h-9 cursor-help items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-500"
+                      <Link
+                        href={`/panel/orders/${order.id}`}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-400 transition hover:border-stone-600 hover:text-stone-100"
                       >
-                        Bloqueado
-                      </span>
+                        Ver
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -444,7 +444,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href={`/panel/orders/${order.id}`}
+                      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                    >
+                      Ver pedido
+                    </Link>
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}

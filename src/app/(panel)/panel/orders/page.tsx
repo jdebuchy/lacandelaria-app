@@ -313,8 +313,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               visibleOrderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
+                  <Link
+                    href={`/panel/orders/${order.id}/edit`}
+                    className="absolute inset-0 z-0"
+                    aria-label={`Ver pedido de ${order.customerName}`}
+                  />
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-stone-100">{order.customerName}</p>
@@ -350,7 +355,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     )}
                   </div>
                   <div>{formatDate(order.created_at)}</div>
-                  <div className="flex justify-end">
+                  <div className="relative z-10 flex justify-end">
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}
@@ -359,7 +364,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                         Editar
                       </Link>
                     ) : (
-                      <span className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-500">
+                      <span
+                        title="El pedido está en ruta o entregado y no puede editarse"
+                        className="inline-flex h-9 cursor-help items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-500"
+                      >
                         Bloqueado
                       </span>
                     )}

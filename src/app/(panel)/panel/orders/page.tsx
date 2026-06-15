@@ -335,7 +335,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                       {formatWhatsAppPhone(order.customerPhone)}
                     </p>
                   </div>
-                  <div>{getDeliveryAreaLabel(order.deliveryArea)}</div>
+                  <div>
+                    <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
+                    {order.addressSummary !== "-" && (
+                      <p className="mt-0.5 text-xs text-stone-500">{order.addressSummary}</p>
+                    )}
+                  </div>
                   <div>
                     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
                       {getOrderStatusLabel(order.status)}
@@ -343,6 +348,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     <p className="mt-1.5 text-xs text-stone-500">
                       {getPaymentMethodLabel(order.paymentMethodExpected)}
                     </p>
+                    {order.tripId && (
+                      <Link
+                        href={`/panel/logistics/delivery/${order.tripId}`}
+                        className="relative z-10 mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
+                      >
+                        Viaje {order.tripId.slice(0, 8)}
+                      </Link>
+                    )}
                   </div>
                   <div>{order.itemsSummary}</div>
                   <div>
@@ -409,6 +422,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                       <p className="mt-1 text-xs text-stone-500">
                         {getPaymentMethodLabel(order.paymentMethodExpected)}
                       </p>
+                      {order.tripId && (
+                        <Link
+                          href={`/panel/logistics/delivery/${order.tripId}`}
+                          className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
+                        >
+                          Viaje {order.tripId.slice(0, 8)}
+                        </Link>
+                      )}
                     </div>
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>

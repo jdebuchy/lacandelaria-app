@@ -91,6 +91,25 @@ function getDeliveryAreaLabel(area: string) {
   }
 }
 
+function getStatusBadgeClass(status: string) {
+  switch (status) {
+    case "pending_confirmation":
+      return "border-amber-700 bg-amber-950/60 text-amber-300";
+    case "confirmed":
+      return "border-sky-700 bg-sky-950/60 text-sky-300";
+    case "assigned":
+      return "border-violet-700 bg-violet-950/60 text-violet-300";
+    case "in_route":
+      return "border-emerald-700 bg-emerald-950/60 text-emerald-300";
+    case "delivered":
+      return "border-stone-700 bg-stone-950/60 text-stone-400";
+    case "cancelled":
+      return "border-red-800 bg-red-950/60 text-red-400";
+    default:
+      return "border-stone-700 bg-stone-900 text-stone-400";
+  }
+}
+
 function normalizeSearchTerm(value?: string) {
   return value?.trim() ?? "";
 }
@@ -311,12 +330,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   </div>
                   <div>{getDeliveryAreaLabel(order.deliveryArea)}</div>
                   <div>
-                    <p>{getOrderStatusLabel(order.status)}</p>
-                    {order.tripId ? (
-                      <p className="mt-1 text-xs text-sky-300">Viaje {order.tripId.slice(0, 8)}</p>
-                    ) : null}
-                    <p className="mt-1 text-xs text-stone-500">
-                      {getPaymentStatusLabel(order.paymentStatus)} ·{" "}
+                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                      {getOrderStatusLabel(order.status)}
+                    </span>
+                    <p className="mt-1.5 text-xs text-stone-500">
                       {getPaymentMethodLabel(order.paymentMethodExpected)}
                     </p>
                   </div>
@@ -374,8 +391,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   <div className="mt-4 grid gap-3 text-sm">
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
-                      <p className="mt-1 text-stone-200">{getOrderStatusLabel(order.status)}</p>
-                      {order.tripId ? <p className="mt-1 text-xs text-sky-300">Viaje {order.tripId.slice(0, 8)}</p> : null}
+                      <div className="mt-1">
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                          {getOrderStatusLabel(order.status)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-stone-500">
+                        {getPaymentMethodLabel(order.paymentMethodExpected)}
+                      </p>
                     </div>
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>

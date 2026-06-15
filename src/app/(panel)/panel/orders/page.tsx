@@ -57,7 +57,6 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString("es-AR", {
     day: "numeric",
     month: "short",
-    year: "numeric",
     timeZone: "America/Argentina/Buenos_Aires"
   });
 }
@@ -269,13 +268,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
           </div>
 
           <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
               <div>Cliente</div>
               <div>Canal</div>
               <div>Área</div>
               <div>Estado</div>
               <div>Ítems</div>
-              <div>Cant.</div>
               <div>Total</div>
               <div>Alta</div>
               <div></div>
@@ -284,7 +282,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               visibleOrderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr_0.7fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
                 >
                   <div>
                     <p className="font-medium text-stone-100">{order.customerName}</p>
@@ -308,15 +306,16 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     </p>
                   </div>
                   <div>{order.itemsSummary}</div>
-                  <div>{order.itemsCount}</div>
                   <div>
                     <p>{formatCurrency(order.totalAmount)}</p>
                     <p className="mt-1 text-xs text-stone-500">
                       Cobrado {formatCurrency(order.paidAmount)}
                     </p>
-                    <p className="mt-1 text-xs text-amber-300">
-                      Saldo {formatCurrency(order.paymentBalanceAmount)}
-                    </p>
+                    {order.paymentBalanceAmount > 0 && (
+                      <p className="mt-1 text-xs text-amber-300">
+                        Saldo {formatCurrency(order.paymentBalanceAmount)}
+                      </p>
+                    )}
                   </div>
                   <div>{formatDate(order.created_at)}</div>
                   <div className="flex justify-end">

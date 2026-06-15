@@ -19,7 +19,7 @@ import {
   normalizeInstagramUsername
 } from "@/lib/contact";
 import { getDefaultSellableVariantId } from "@/lib/products";
-import type { OrderItemInput, ProductFamily } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderItemInput, ProductFamily } from "@/lib/types";
 
 export type CustomerMatch = {
   id: string;
@@ -55,7 +55,7 @@ type ManualOrderFormInitialData = {
   address: StructuredAddress;
   deliveryNotes: string;
   items: OrderItemInput[];
-  paymentMethodExpected: "cash" | "transfer";
+  paymentMethodExpected: ExpectedPaymentMethod;
   deliveryDate: string;
   deliveryWindowStart: string;
   deliveryWindowEnd: string;
@@ -120,7 +120,7 @@ export function ManualOrderForm({
       : EMPTY_STRUCTURED_ADDRESS
   );
   const initialDeliveryNotes = initialData?.deliveryNotes ?? initialCustomer?.delivery_notes ?? "";
-  const initialPaymentMethodExpected = initialData?.paymentMethodExpected ?? "cash";
+  const initialPaymentMethodExpected = initialData?.paymentMethodExpected ?? "unknown";
   const initialDeliveryDate = initialData?.deliveryDate ?? "";
   const initialDeliveryWindowStart = initialData?.deliveryWindowStart ?? "";
   const initialDeliveryWindowEnd = initialData?.deliveryWindowEnd ?? "";
@@ -141,7 +141,7 @@ export function ManualOrderForm({
   const [address, setAddress] = useState<StructuredAddress>(initialAddress);
   const [deliveryNotes, setDeliveryNotes] = useState(initialDeliveryNotes);
   const [items, setItems] = useState<OrderItemInput[]>(initialItems);
-  const [paymentMethodExpected, setPaymentMethodExpected] = useState<"cash" | "transfer">(
+  const [paymentMethodExpected, setPaymentMethodExpected] = useState<ExpectedPaymentMethod>(
     initialPaymentMethodExpected
   );
   const [deliveryDate, setDeliveryDate] = useState(initialDeliveryDate);
@@ -261,7 +261,7 @@ export function ManualOrderForm({
     setAddress(EMPTY_STRUCTURED_ADDRESS);
     setDeliveryNotes("");
     setItems(fallbackItems);
-    setPaymentMethodExpected("cash");
+    setPaymentMethodExpected("unknown");
     setDeliveryDate("");
     setDeliveryWindowStart("");
     setDeliveryWindowEnd("");
@@ -470,9 +470,10 @@ export function ManualOrderForm({
               <select
                 name="paymentMethodExpected"
                 value={paymentMethodExpected}
-                onChange={(event) => setPaymentMethodExpected(event.target.value as "cash" | "transfer")}
+                onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
                 className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
               >
+                <option value="unknown">No definido</option>
                 <option value="cash">Efectivo</option>
                 <option value="transfer">Transferencia</option>
               </select>

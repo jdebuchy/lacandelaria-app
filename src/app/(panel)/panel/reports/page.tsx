@@ -23,7 +23,7 @@ import {
   type ReportTrip
 } from "@/lib/reports";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { OrderStatus, PaymentMethod, PaymentStatus, SalesChannel } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderStatus, PaymentMethod, PaymentStatus, SalesChannel } from "@/lib/types";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -71,7 +71,7 @@ type RawOrder = {
   id: string;
   is_complimentary?: boolean | null;
   order_items?: RelatedOrderItem[] | null;
-  payment_method_expected: PaymentMethod;
+  payment_method_expected: ExpectedPaymentMethod;
   payment_status: PaymentStatus;
   resellers?: RelatedReseller | RelatedReseller[] | null;
   sales_channel: SalesChannel;

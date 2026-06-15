@@ -116,7 +116,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (parsed.data.payment && order.payment_method_expected !== "cash") {
+  if (
+    parsed.data.payment &&
+    order.payment_method_expected !== "cash" &&
+    order.payment_method_expected !== "unknown"
+  ) {
     return NextResponse.json(
       { success: false, message: "El repartidor solo puede registrar cobros en efectivo." },
       { status: 400 }

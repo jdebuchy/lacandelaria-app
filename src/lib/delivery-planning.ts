@@ -13,7 +13,7 @@ import { formatItemsSummary } from "@/lib/products";
 import type {
   DeliveryStatus,
   DeliveryTripStatus,
-  PaymentMethod,
+  ExpectedPaymentMethod,
   PaymentStatus,
   SalesChannel
 } from "@/lib/types";
@@ -94,7 +94,7 @@ type TripOrderWithRelations = {
   items_count?: number | null;
   notes?: string | null;
   order_items?: RelatedOrderItem[] | null;
-  payment_method_expected: PaymentMethod;
+  payment_method_expected: ExpectedPaymentMethod;
   payment_status: PaymentStatus;
   reseller_id?: string | null;
   resellers?: RelatedReseller | RelatedReseller[] | null;
@@ -129,7 +129,7 @@ export type DeliveryPlanningStop = {
   notes: string | null;
   orderId: string;
   orderStatus: string;
-  paymentMethodExpected: PaymentMethod;
+  paymentMethodExpected: ExpectedPaymentMethod;
   paymentStatus: PaymentStatus;
   resellerName: string | null;
   sequenceNumber: number;

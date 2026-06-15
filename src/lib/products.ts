@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type {
-  PaymentMethod,
+  ExpectedPaymentMethod,
   ProductFamily,
   ProductVariant,
   ProductVariantComponent
@@ -593,7 +593,7 @@ export function buildVariantLookup(families: ProductFamily[]) {
   return lookup;
 }
 
-export function getProductUnitPrice(product: ProductVariantForOrder, paymentMethod: PaymentMethod) {
+export function getProductUnitPrice(product: ProductVariantForOrder, paymentMethod: ExpectedPaymentMethod) {
   return paymentMethod === "cash" ? product.cashPrice : product.transferPrice;
 }
 
@@ -613,7 +613,7 @@ export function consolidateOrderItems(items: OrderItemInput[]) {
 export function buildOrderItems(
   productsById: Map<string, ProductVariantForOrder>,
   items: OrderItemInput[],
-  paymentMethod: PaymentMethod
+  paymentMethod: ExpectedPaymentMethod
 ) {
   return consolidateOrderItems(items).map((item) => {
     const product = productsById.get(item.productId);
@@ -638,7 +638,7 @@ export function buildOrderItems(
 export function buildPublicOrderRequestItems(
   productsById: Map<string, ProductVariantForOrder>,
   items: OrderItemInput[],
-  paymentMethod: PaymentMethod
+  paymentMethod: ExpectedPaymentMethod
 ) {
   return consolidateOrderItems(items).map((item) => {
     const product = productsById.get(item.productId);

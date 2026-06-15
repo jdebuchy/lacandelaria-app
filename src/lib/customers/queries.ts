@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { OrderStatus, PaymentMethod, PaymentStatus, SalesChannel } from "@/lib/types";
+import type { ExpectedPaymentMethod, OrderStatus, PaymentStatus, SalesChannel } from "@/lib/types";
 
 export type CustomerDetail = {
   id: string;
@@ -34,7 +34,7 @@ export type CustomerOrderRow = {
   sales_channel: SalesChannel;
   items_count: number | string | null;
   total_amount: number | string | null;
-  payment_method_expected: PaymentMethod;
+  payment_method_expected: ExpectedPaymentMethod;
   payment_status: PaymentStatus;
   status: OrderStatus;
   delivery_date: string | null;

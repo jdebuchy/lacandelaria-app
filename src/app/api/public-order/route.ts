@@ -22,7 +22,7 @@ const publicOrderSchema = structuredAddressSchema
     administrativeAreaLevel1: z.string().min(2, "Ingresa una provincia."),
     postalCode: z.string().min(3, "Ingresa un código postal."),
     items: orderItemsInputSchema,
-    paymentMethodExpected: z.enum(["cash", "transfer"]),
+    paymentMethodExpected: z.enum(["unknown", "cash", "transfer"]),
     notes: z.string().max(500).optional().or(z.literal("")),
     leadSource: z.enum(["instagram", "whatsapp", "direct_link", "reseller"]).default("direct_link"),
     website: z.string().optional().or(z.literal("")),

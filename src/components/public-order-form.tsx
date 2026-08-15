@@ -111,59 +111,59 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
       </div>
 
       {!activeProducts.length ? (
-        <div className="rounded-card border border-warn-line bg-warn-bg p-4 text-sm text-warn-fg">
+        <div className="rounded-card border border-warn-line bg-warn-bg p-4 text-body text-warn-fg">
           No hay productos activos en el catálogo. Cargalos desde el panel antes de recibir pedidos.
         </div>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Nombre
           <input
             name="firstName"
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
             placeholder="Jose"
-            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Apellido
           <input
             name="lastName"
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
             placeholder="Debuchy"
-            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
         <PhoneInput name="phone" required value={phone} onChange={setPhone} />
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Instagram
           <input
             name="instagram"
             value={instagram}
             onChange={(event) => setInstagram(event.target.value)}
             placeholder="usuario"
-            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
-          <span aria-hidden="true" className="text-xs text-transparent">
+          <span aria-hidden="true" className="text-meta text-transparent">
             .
           </span>
         </label>
 
         <AddressInput required value={address} onChange={setAddress} className="md:col-span-2" />
 
-        <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
+        <label className="grid gap-2 text-body text-ink-soft md:col-span-2">
           Forma de pago
           <select
             name="paymentMethodExpected"
             value={paymentMethodExpected}
             onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
-            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           >
             <option value="unknown">No definido</option>
             <option value="cash">Efectivo</option>
@@ -180,14 +180,14 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
           />
         ) : null}
 
-        <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
+        <label className="grid gap-2 text-body text-ink-soft md:col-span-2">
           Notas de entrega
           <textarea
             name="notes"
             rows={4}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-base text-ink outline-hidden focus:border-accent"
+            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
       </div>
@@ -196,13 +196,13 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
         <button
           type="submit"
           disabled={pending || !activeProducts.length}
-          className="inline-flex h-12 items-center justify-center rounded-control bg-accent px-5 text-base font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-control bg-accent px-5 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Enviando..." : "Enviar pedido"}
         </button>
 
         {state.message ? (
-          <p className={state.success ? "text-sm text-accent" : "text-sm text-danger-fg"}>
+          <p className={state.success ? "text-body text-accent" : "text-body text-danger-fg"}>
             {state.message}
           </p>
         ) : null}

@@ -84,15 +84,15 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
     <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <form onSubmit={handleSubmit} className="rounded-card border border-line bg-paper p-5">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-ink">Nuevo usuario interno</h2>
-          <p className="text-sm leading-6 text-ink-soft">
+          <h2 className="text-title font-semibold text-ink">Nuevo usuario interno</h2>
+          <p className="text-body leading-6 text-ink-soft">
             Puedes cargar repartidores con mails ficticios como <span className="text-ink">reparto1@fake.local</span>.
             Servirán para asignación interna, aunque no podrán iniciar sesión con Google.
           </p>
         </div>
 
         <div className="mt-5 grid gap-4">
-          <label className="grid gap-2 text-sm text-ink-soft">
+          <label className="grid gap-2 text-body text-ink-soft">
             Nombre completo
             <input
               type="text"
@@ -104,7 +104,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-ink-soft">
+          <label className="grid gap-2 text-body text-ink-soft">
             Email
             <input
               type="email"
@@ -116,7 +116,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-ink-soft">
+          <label className="grid gap-2 text-body text-ink-soft">
             Rol
             <select
               value={role}
@@ -131,7 +131,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
             </select>
           </label>
 
-          <label className="flex items-center gap-3 rounded-card border border-line bg-paper-muted px-4 py-3 text-sm text-ink-soft">
+          <label className="flex items-center gap-3 rounded-card border border-line bg-paper-muted px-4 py-3 text-body text-ink-soft">
             <input
               type="checkbox"
               checked={active}
@@ -143,7 +143,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
         </div>
 
         <div className="mt-5 flex items-center justify-between gap-4">
-          <div className="min-h-5 text-sm">
+          <div className="min-h-5 text-body">
             {state.message ? (
               <p className={state.success ? "text-accent" : "text-danger-fg"}>{state.message}</p>
             ) : null}
@@ -151,7 +151,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending ? "Creando..." : "Crear usuario"}
           </button>
@@ -161,13 +161,13 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
       <section className="rounded-card border border-line bg-paper">
         <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-ink">Usuarios internos</h2>
-            <p className="text-sm text-ink-faint">{users.length} perfiles registrados</p>
+            <h2 className="text-title font-semibold text-ink">Usuarios internos</h2>
+            <p className="text-body text-ink-faint">{users.length} perfiles registrados</p>
           </div>
         </div>
 
         <div className="hidden lg:block">
-          <div className="grid grid-cols-[1.1fr_1.2fr_0.8fr_0.8fr_0.8fr] border-b border-line px-5 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
+          <div className="grid grid-cols-[1.1fr_1.2fr_0.8fr_0.8fr_0.8fr] border-b border-line px-5 py-3 text-meta text-ink-soft">
             <div>Nombre</div>
             <div>Email</div>
             <div>Rol</div>
@@ -178,14 +178,14 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
             users.map((user) => (
               <div
                 key={user.id}
-                className="grid grid-cols-[1.1fr_1.2fr_0.8fr_0.8fr_0.8fr] border-b border-line px-5 py-4 text-sm text-ink-soft last:border-b-0"
+                className="grid grid-cols-[1.1fr_1.2fr_0.8fr_0.8fr_0.8fr] border-b border-line px-5 py-4 text-body text-ink-soft last:border-b-0"
               >
                 <div>
                   <p className="font-medium text-ink">{user.full_name}</p>
                   {user.auth_user_id ? (
-                    <p className="mt-1 text-xs text-accent">Linked con Google</p>
+                    <p className="mt-1 text-meta text-accent">Linked con Google</p>
                   ) : (
-                    <p className="mt-1 text-xs text-ink-faint">Sin login vinculado</p>
+                    <p className="mt-1 text-meta text-ink-faint">Sin login vinculado</p>
                   )}
                 </div>
                 <div className="break-all">{user.email ?? "-"}</div>
@@ -195,7 +195,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
               </div>
             ))
           ) : (
-            <div className="px-5 py-8 text-center text-sm text-ink-faint">Todavía no hay usuarios internos.</div>
+            <div className="px-5 py-8 text-center text-body text-ink-faint">Todavía no hay usuarios internos.</div>
           )}
         </div>
 
@@ -205,14 +205,14 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
               <article key={user.id} className="rounded-card border border-line bg-paper-muted p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-base font-semibold text-ink">{user.full_name}</p>
-                    <p className="mt-1 text-sm text-ink-soft break-all">{user.email ?? "-"}</p>
+                    <p className="text-body font-semibold text-ink">{user.full_name}</p>
+                    <p className="mt-1 text-body text-ink-soft break-all">{user.email ?? "-"}</p>
                   </div>
-                  <span className="rounded-control border border-line bg-paper px-3 py-1 text-xs text-ink-soft">
+                  <span className="rounded-control border border-line bg-paper px-3 py-1 text-meta text-ink-soft">
                     {getRoleLabel(user.role)}
                   </span>
                 </div>
-                <div className="mt-4 grid gap-2 text-sm text-ink-soft">
+                <div className="mt-4 grid gap-2 text-body text-ink-soft">
                   <p>Estado: {user.active ? "Activo" : "Inactivo"}</p>
                   <p>Alta: {formatDate(user.created_at)}</p>
                   <p>{user.auth_user_id ? "Linked con Google" : "Sin login vinculado"}</p>
@@ -220,7 +220,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
               </article>
             ))
           ) : (
-            <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-sm text-ink-faint">
+            <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-body text-ink-faint">
               Todavía no hay usuarios internos.
             </div>
           )}

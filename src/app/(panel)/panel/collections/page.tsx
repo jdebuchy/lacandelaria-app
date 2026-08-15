@@ -230,53 +230,53 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
     <main>
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-3">
-          <span className="inline-flex w-fit rounded-control border border-accent bg-accent-soft px-3 py-1 text-sm text-accent">
+          <span className="inline-flex w-fit rounded-control border border-accent bg-accent-soft px-3 py-1 text-body text-accent">
             Cobranza
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1 className="text-display font-semibold tracking-tight text-ink">
             Seguimiento de pagos
           </h1>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Saldo pendiente</p>
-            <p className="mt-2 text-2xl font-semibold text-warn-fg sm:text-3xl">
+            <p className="text-body text-ink-soft">Saldo pendiente</p>
+            <p className="mt-2 text-title font-semibold text-warn-fg">
               {formatCurrency(pendingBalanceTotal)}
             </p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Recaudado hoy</p>
-            <p className="mt-2 text-2xl font-semibold text-accent sm:text-3xl">
+            <p className="text-body text-ink-soft">Recaudado hoy</p>
+            <p className="mt-2 text-title font-semibold text-accent">
               {formatCurrency(collectedToday)}
             </p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Pendientes</p>
-            <p className="mt-2 text-2xl font-semibold text-info-fg sm:text-3xl">{pendingCount}</p>
+            <p className="text-body text-ink-soft">Pendientes</p>
+            <p className="mt-2 text-title font-semibold text-info-fg">{pendingCount}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Parciales</p>
-            <p className="mt-2 text-2xl font-semibold text-danger-fg sm:text-3xl">{partialCount}</p>
+            <p className="text-body text-ink-soft">Parciales</p>
+            <p className="mt-2 text-title font-semibold text-danger-fg">{partialCount}</p>
           </article>
         </div>
 
         <form className="grid gap-3 rounded-card border border-line bg-paper p-4 md:grid-cols-[1.2fr_0.8fr_0.8fr_auto]">
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Buscar
             <input
               name="q"
               defaultValue={getSearchValue(resolvedSearchParams, "q")}
               placeholder="Cliente o telefono"
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition placeholder:text-ink-faint focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition placeholder:text-ink-faint focus:border-info-line"
             />
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Estado
             <select
               name="status"
               defaultValue={statusFilter}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="open">Pendientes y parciales</option>
               <option value="pending">Pendientes</option>
@@ -285,12 +285,12 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
               <option value="all">Todos</option>
             </select>
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Metodo
             <select
               name="method"
               defaultValue={methodFilter}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="all">Todos</option>
               <option value="unknown">No definido</option>
@@ -300,7 +300,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           </label>
           <button
             type="submit"
-            className="h-11 self-end rounded-control bg-info-bg px-4 text-sm font-medium text-accent-fg transition hover:bg-info-bg"
+            className="h-11 self-end rounded-control bg-info-bg px-4 text-body font-medium text-accent-fg transition hover:bg-info-bg"
           >
             Filtrar
           </button>
@@ -312,16 +312,16 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
               <article key={row.id} className="rounded-card border border-line bg-paper p-4 lg:p-5">
                 <div className="grid gap-5 xl:grid-cols-[1.2fr_2fr_360px]">
                   <div>
-                    <p className="text-lg font-semibold text-ink">{row.customerName}</p>
-                    <p className="mt-1 text-sm text-ink-soft">{formatWhatsAppPhone(row.customerPhone)}</p>
+                    <p className="text-title font-semibold text-ink">{row.customerName}</p>
+                    <p className="mt-1 text-body text-ink-soft">{formatWhatsAppPhone(row.customerPhone)}</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
+                      <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                         {getOrderStatusLabel(row.orderStatus)}
                       </span>
-                      <span className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-xs text-info-fg">
+                      <span className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-meta text-info-fg">
                         {getPaymentMethodLabel(row.paymentMethodExpected)}
                       </span>
-                      <span className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-xs text-accent">
+                      <span className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-meta text-accent">
                         {getPaymentStatusLabel(row.paymentStatus)}
                       </span>
                     </div>
@@ -329,20 +329,20 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
 
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Total</p>
-                      <p className="mt-1 text-sm font-medium text-ink">{formatCurrency(row.totalAmount)}</p>
+                      <p className="text-meta text-ink-faint">Total</p>
+                      <p className="mt-1 text-body font-medium text-ink">{formatCurrency(row.totalAmount)}</p>
                     </div>
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Cobrado</p>
-                      <p className="mt-1 text-sm font-medium text-accent">{formatCurrency(row.paidAmount)}</p>
+                      <p className="text-meta text-ink-faint">Cobrado</p>
+                      <p className="mt-1 text-body font-medium text-accent">{formatCurrency(row.paidAmount)}</p>
                     </div>
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Saldo</p>
-                      <p className="mt-1 text-sm font-medium text-warn-fg">{formatCurrency(row.balanceAmount)}</p>
+                      <p className="text-meta text-ink-faint">Saldo</p>
+                      <p className="mt-1 text-body font-medium text-warn-fg">{formatCurrency(row.balanceAmount)}</p>
                     </div>
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Ultimo pago</p>
-                      <p className="mt-1 text-sm font-medium text-ink">
+                      <p className="text-meta text-ink-faint">Ultimo pago</p>
+                      <p className="mt-1 text-body font-medium text-ink">
                         {formatDateTime(row.lastPayment?.received_at ?? null)}
                       </p>
                     </div>
@@ -358,7 +358,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                     />
                     <Link
                       href={`/panel/orders/${row.id}`}
-                      className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong"
+                      className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong"
                     >
                       Ver pedido
                     </Link>
@@ -366,21 +366,21 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 </div>
                 {row.payments.length ? (
                   <div className="mt-5 border-t border-line pt-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">
+                    <p className="text-meta text-ink-faint">
                       Pagos registrados
                     </p>
                     <div className="mt-3 grid gap-2">
                       {row.payments.map((payment) => (
                         <div
                           key={payment.id}
-                          className="grid gap-3 rounded-card bg-paper-muted p-3 text-sm text-ink-soft sm:grid-cols-[1fr_auto]"
+                          className="grid gap-3 rounded-card bg-paper-muted p-3 text-body text-ink-soft sm:grid-cols-[1fr_auto]"
                         >
                           <div>
                             <p className="font-medium text-ink">
                               {formatCurrency(Number(payment.amount ?? 0))} ·{" "}
                               {getPaymentMethodLabel(payment.method)}
                             </p>
-                            <p className="mt-1 text-xs text-ink-faint">
+                            <p className="mt-1 text-meta text-ink-faint">
                               {formatDateTime(payment.received_at)}
                               {payment.reference ? ` · ${payment.reference}` : ""}
                             </p>
@@ -399,7 +399,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
               </article>
             ))
           ) : (
-            <div className="rounded-card border border-dashed border-line bg-paper px-6 py-10 text-sm text-ink-soft">
+            <div className="rounded-card border border-dashed border-line bg-paper px-6 py-10 text-body text-ink-soft">
               No hay pedidos para los filtros seleccionados.
             </div>
           )}

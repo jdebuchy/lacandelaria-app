@@ -45,13 +45,13 @@ export default async function DeliveryTripDetailPage(context: Params) {
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <span className="inline-flex rounded-control border border-info-line bg-info-bg px-3 py-1 text-sm text-info-fg">
+            <span className="inline-flex rounded-control border border-info-line bg-info-bg px-3 py-1 text-body text-info-fg">
               Planificación de viaje
             </span>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            <h1 className="mt-3 text-display font-semibold tracking-tight text-ink">
               {formatTripNumber(trip.tripNumber)}
             </h1>
-            <p className="mt-2 text-base text-ink-soft">
+            <p className="mt-2 text-body text-ink-soft">
               {formatDate(trip.scheduledDate)} · {getDeliveryTripStatusLabel(trip.status)}
             </p>
           </div>

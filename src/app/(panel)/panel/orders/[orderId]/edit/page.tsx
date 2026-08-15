@@ -139,13 +139,13 @@ export default async function EditOrderPage(context: Params) {
     <main>
       <section className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1 className="text-display font-semibold tracking-tight text-ink">
             Editar pedido
           </h1>
         </div>
 
         {!orderIsEditable ? (
-          <div className="rounded-card border border-warn-line bg-warn-bg p-6 text-sm text-warn-fg">
+          <div className="rounded-card border border-warn-line bg-warn-bg p-6 text-body text-warn-fg">
             <p className="font-medium">Este pedido no se puede editar.</p>
             <p className="mt-2 text-warn-fg">
               Estado actual: {getOrderStatusLabel(order.status)}.

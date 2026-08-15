@@ -107,10 +107,10 @@ export default async function CustomerDetailPage({
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4">
           <div>
-            <Link href="/panel/customers" className="text-sm text-ink-faint transition hover:text-ink-soft">
+            <Link href="/panel/customers" className="text-body text-ink-faint transition hover:text-ink-soft">
               ← Volver a clientes
             </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            <h1 className="mt-3 text-display font-semibold tracking-tight text-ink">
               {customerName}
             </h1>
             <p className="mt-2 text-ink-soft">{formatWhatsAppPhone(customer.whatsapp_phone || customer.phone)}</p>
@@ -121,8 +121,8 @@ export default async function CustomerDetailPage({
         {activeTab === "profile" ? (
           <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <article className="rounded-card border border-line bg-paper p-6">
-              <h2 className="text-xl font-semibold text-ink">Perfil</h2>
-              <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+              <h2 className="text-title font-semibold text-ink">Perfil</h2>
+              <dl className="mt-5 grid gap-4 text-body sm:grid-cols-2">
                 <div>
                   <dt className="text-ink-faint">Nombre</dt>
                   <dd className="mt-1 text-ink">{customerName}</dd>
@@ -160,8 +160,8 @@ export default async function CustomerDetailPage({
             </article>
 
             <article className="rounded-card border border-line bg-paper p-6">
-              <h2 className="text-xl font-semibold text-ink">WhatsApp</h2>
-              <dl className="mt-5 grid gap-4 text-sm">
+              <h2 className="text-title font-semibold text-ink">WhatsApp</h2>
+              <dl className="mt-5 grid gap-4 text-body">
                 <div>
                   <dt className="text-ink-faint">Teléfono WhatsApp</dt>
                   <dd className="mt-1 text-ink">{formatWhatsAppPhone(customer.whatsapp_phone || customer.phone)}</dd>
@@ -203,28 +203,28 @@ export default async function CustomerDetailPage({
                   <article key={order.id} className="border-b border-line p-5 last:border-b-0">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-lg font-semibold text-ink">{formatItemsSummary(order.order_items ?? [])}</p>
-                        <p className="mt-1 text-sm text-ink-soft">
+                        <p className="text-title font-semibold text-ink">{formatItemsSummary(order.order_items ?? [])}</p>
+                        <p className="mt-1 text-body text-ink-soft">
                           {getSalesChannelLabel(order.sales_channel)} · {getOrderStatusLabel(order.status)} · {formatDate(order.created_at)}
                         </p>
-                        <p className="mt-1 text-sm text-ink-faint">
+                        <p className="mt-1 text-body text-ink-faint">
                           {getPaymentStatusLabel(paymentSummary.paymentStatus)} · {getPaymentMethodLabel(order.payment_method_expected)}
                         </p>
                       </div>
-                      <div className="text-sm sm:text-right">
-                        <p className="text-lg font-semibold text-ink">{formatCurrency(paymentSummary.totalAmount)}</p>
+                      <div className="text-body sm:text-right">
+                        <p className="text-title font-semibold text-ink">{formatCurrency(paymentSummary.totalAmount)}</p>
                         <p className="mt-1 text-ink-faint">Saldo {formatCurrency(paymentSummary.balanceAmount)}</p>
                         <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                           <Link
                             href={`/panel/orders/${order.id}`}
-                            className="inline-flex rounded-control border border-line px-3 py-1 text-xs text-ink transition hover:border-line-strong hover:text-ink"
+                            className="inline-flex rounded-control border border-line px-3 py-1 text-meta text-ink transition hover:border-line-strong hover:text-ink"
                           >
                             Ver pedido
                           </Link>
                           {isEditable ? (
                             <Link
                               href={`/panel/orders/${order.id}/edit`}
-                              className="inline-flex rounded-control border border-line px-3 py-1 text-xs text-ink transition hover:border-line-strong hover:text-ink"
+                              className="inline-flex rounded-control border border-line px-3 py-1 text-meta text-ink transition hover:border-line-strong hover:text-ink"
                             >
                               Editar
                             </Link>
@@ -236,7 +236,7 @@ export default async function CustomerDetailPage({
                 );
               })
             ) : (
-              <div className="px-5 py-10 text-center text-sm text-ink-faint">
+              <div className="px-5 py-10 text-center text-body text-ink-faint">
                 Este cliente todavía no tiene pedidos.
               </div>
             )}
@@ -246,18 +246,18 @@ export default async function CustomerDetailPage({
         {activeTab === "whatsapp" ? (
           <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
             <section className="rounded-card border border-line bg-paper p-6">
-              <h2 className="text-xl font-semibold text-ink">Conversaciones</h2>
+              <h2 className="text-title font-semibold text-ink">Conversaciones</h2>
               <div className="mt-5 grid gap-3">
                 {conversations.length ? (
                   conversations.map((conversation) => (
-                    <article key={conversation.id} className="rounded-card border border-line bg-paper-muted p-4 text-sm">
+                    <article key={conversation.id} className="rounded-card border border-line bg-paper-muted p-4 text-body">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-medium text-ink">{getWhatsappStatusLabel(conversation.status)}</p>
                           <p className="mt-1 text-ink-faint">{formatDateTime(conversation.updated_at)}</p>
                         </div>
                         {conversation.requires_human ? (
-                          <span className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-xs text-danger-fg">
+                          <span className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-meta text-danger-fg">
                             Humano
                           </span>
                         ) : null}
@@ -268,7 +268,7 @@ export default async function CustomerDetailPage({
                     </article>
                   ))
                 ) : (
-                  <p className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-center text-sm text-ink-faint">
+                  <p className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-center text-body text-ink-faint">
                     No hay conversaciones asociadas.
                   </p>
                 )}
@@ -276,34 +276,34 @@ export default async function CustomerDetailPage({
             </section>
 
             <section className="rounded-card border border-line bg-paper p-6">
-              <h2 className="text-xl font-semibold text-ink">Mensajes</h2>
+              <h2 className="text-title font-semibold text-ink">Mensajes</h2>
               <div className="mt-5 grid gap-3">
                 {messages.length ? (
                   messages.map((message) => (
                     <article
                       key={message.id}
-                      className={`rounded-card border p-4 text-sm ${
+                      className={`rounded-card border p-4 text-body ${
                         message.direction === "inbound"
                           ? "border-info-line bg-info-bg"
                           : "border-accent bg-accent-soft"
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-xs uppercase tracking-[0.18em] text-ink-soft">
+                        <p className="text-meta text-ink-soft">
                           {message.direction === "inbound" ? "Cliente" : "Sistema"} · {getWhatsappMessageTypeLabel(message.message_type)}
                         </p>
-                        <p className="text-xs text-ink-faint">{formatDateTime(message.created_at)}</p>
+                        <p className="text-meta text-ink-faint">{formatDateTime(message.created_at)}</p>
                       </div>
                       <p className="mt-3 whitespace-pre-line text-ink">{message.body}</p>
                       {message.ai_intent ? (
-                        <p className="mt-3 text-xs text-ink-soft">
+                        <p className="mt-3 text-meta text-ink-soft">
                           IA: {getWhatsappIntentLabel(message.ai_intent)} · {formatConfidence(message.ai_confidence)}
                         </p>
                       ) : null}
                     </article>
                   ))
                 ) : (
-                  <p className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-center text-sm text-ink-faint">
+                  <p className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-center text-body text-ink-faint">
                     No hay mensajes asociados.
                   </p>
                 )}

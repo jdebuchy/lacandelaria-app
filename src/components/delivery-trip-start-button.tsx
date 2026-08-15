@@ -42,11 +42,11 @@ export function DeliveryTripStartButton({
         type="button"
         onClick={handleClick}
         disabled={disabled || isPending}
-        className="inline-flex h-10 items-center justify-center rounded-control bg-info-bg px-4 text-sm font-medium text-accent-fg transition hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-10 items-center justify-center rounded-control bg-info-bg px-4 text-body font-medium text-accent-fg transition hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Iniciando..." : label}
       </button>
-      {message ? <p className="text-xs text-ink-soft">{message}</p> : null}
+      {message ? <p className="text-meta text-ink-soft">{message}</p> : null}
     </div>
   );
 }

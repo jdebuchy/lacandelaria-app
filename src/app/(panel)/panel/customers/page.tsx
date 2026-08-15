@@ -278,7 +278,7 @@ function Pagination({
         <Link
           href={hrefForPage(Math.max(1, currentPage - 1))}
           aria-disabled={currentPage === 1}
-          className={`relative inline-flex items-center rounded-control border px-4 py-2 text-sm font-medium ${
+          className={`relative inline-flex items-center rounded-control border px-4 py-2 text-body font-medium ${
             currentPage === 1
               ? "pointer-events-none border-line bg-paper-muted text-ink-faint"
               : "border-line bg-paper-muted text-ink hover:bg-paper-raised"
@@ -289,7 +289,7 @@ function Pagination({
         <Link
           href={hrefForPage(Math.min(totalPages, currentPage + 1))}
           aria-disabled={currentPage === totalPages}
-          className={`relative ml-3 inline-flex items-center rounded-control border px-4 py-2 text-sm font-medium ${
+          className={`relative ml-3 inline-flex items-center rounded-control border px-4 py-2 text-body font-medium ${
             currentPage === totalPages
               ? "pointer-events-none border-line bg-paper-muted text-ink-faint"
               : "border-line bg-paper-muted text-ink hover:bg-paper-raised"
@@ -300,7 +300,7 @@ function Pagination({
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-ink-soft">
+          <p className="text-body text-ink-soft">
             Mostrando <span className="font-medium text-ink">{start}</span> a{" "}
             <span className="font-medium text-ink">{end}</span> de{" "}
             <span className="font-medium text-ink">{totalCount}</span> clientes
@@ -327,14 +327,14 @@ function Pagination({
               return (
                 <div key={page} className="inline-flex">
                   {needsGap ? (
-                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-ink-faint inset-ring inset-ring-line">
+                    <span className="relative inline-flex items-center px-4 py-2 text-body font-semibold text-ink-faint inset-ring inset-ring-line">
                       ...
                     </span>
                   ) : null}
                   <Link
                     href={hrefForPage(page)}
                     aria-current={page === currentPage ? "page" : undefined}
-                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold inset-ring inset-ring-line ${
+                    className={`relative inline-flex items-center px-4 py-2 text-body font-semibold inset-ring inset-ring-line ${
                       page === currentPage
                         ? "z-10 bg-accent text-accent-fg"
                         : "text-ink hover:bg-paper-raised"
@@ -435,16 +435,16 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
         <div className="space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <h1 className="text-display font-semibold tracking-tight text-ink">
                 Listado de clientes
               </h1>
               <p className="mt-2 text-ink-soft">
                 {totalCount} {normalizedQuery ? "resultado(s) para la búsqueda" : "clientes registrados"}
               </p>
-              <p className="mt-1 text-sm text-ink-faint">
+              <p className="mt-1 text-body text-ink-faint">
                 Orden actual: {sortKey === "updated_at" ? "última actualización" : sortKey === "last_name" ? "apellido" : "alta"} ({sortDirection === "asc" ? "ascendente" : "descendente"}). Filtro actual: {AREA_LABELS[areaFilter]}.
               </p>
-              <p className="mt-1 text-sm text-ink-faint">
+              <p className="mt-1 text-body text-ink-faint">
                 Mostrando {showingFrom} a {showingTo} de {totalCount}. Límite por página: {pageSize}.
               </p>
             </div>

@@ -162,13 +162,13 @@ export default async function BackofficePage() {
     <main>
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-12">
         <div className="space-y-3">
-          <span className="inline-flex rounded-control border border-info-line bg-info-bg px-3 py-1 text-sm text-info-fg">
+          <span className="inline-flex rounded-control border border-info-line bg-info-bg px-3 py-1 text-body text-info-fg">
             Centro de operación
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1 className="text-display font-semibold tracking-tight text-ink">
             Pedidos, catálogo y operación diaria
           </h1>
-          <p className="max-w-3xl text-base leading-7 text-ink-soft">
+          <p className="max-w-3xl text-body leading-7 text-ink-soft">
             Vista interna para revisar solicitudes públicas, monitorear pedidos y validar que el
             catálogo multi-producto esté listo para vender.
           </p>
@@ -176,20 +176,20 @@ export default async function BackofficePage() {
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Por confirmar</p>
-            <p className="mt-2 text-2xl font-semibold text-warn-fg sm:text-3xl">{pendingCount ?? 0}</p>
+            <p className="text-body text-ink-soft">Por confirmar</p>
+            <p className="mt-2 text-title font-semibold text-warn-fg">{pendingCount ?? 0}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Solicitudes convertidas</p>
-            <p className="mt-2 text-2xl font-semibold text-accent sm:text-3xl">{convertedCount ?? 0}</p>
+            <p className="text-body text-ink-soft">Solicitudes convertidas</p>
+            <p className="mt-2 text-title font-semibold text-accent">{convertedCount ?? 0}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Pedidos internos</p>
-            <p className="mt-2 text-2xl font-semibold text-info-fg sm:text-3xl">{orderCount ?? 0}</p>
+            <p className="text-body text-ink-soft">Pedidos internos</p>
+            <p className="mt-2 text-title font-semibold text-info-fg">{orderCount ?? 0}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Productos activos</p>
-            <p className="mt-2 text-2xl font-semibold text-danger-fg sm:text-3xl">{productCount ?? 0}</p>
+            <p className="text-body text-ink-soft">Productos activos</p>
+            <p className="mt-2 text-title font-semibold text-danger-fg">{productCount ?? 0}</p>
           </article>
         </div>
 
@@ -198,24 +198,24 @@ export default async function BackofficePage() {
             <article key={order.id} className="rounded-card border border-line bg-paper p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-base font-semibold text-ink">{order.customerName}</p>
-                  <p className="mt-1 text-sm text-ink-soft">{order.customerPhone}</p>
+                  <p className="text-body font-semibold text-ink">{order.customerName}</p>
+                  <p className="mt-1 text-body text-ink-soft">{order.customerPhone}</p>
                 </div>
-                <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft">
+                <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                   {order.status}
                 </span>
               </div>
-              <div className="mt-4 grid gap-3 text-sm">
+              <div className="mt-4 grid gap-3 text-body">
                 <div className="rounded-card bg-paper-muted p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Ítems</p>
+                  <p className="text-meta text-ink-faint">Ítems</p>
                   <p className="mt-1 text-ink">{order.itemsSummary}</p>
                 </div>
                 <div className="rounded-card bg-paper-muted p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Total</p>
+                  <p className="text-meta text-ink-faint">Total</p>
                   <p className="mt-1 text-ink">${order.totalAmount.toLocaleString("es-AR")}</p>
                 </div>
               </div>
-              <p className="mt-3 text-sm text-ink-faint">{order.addressSummary}</p>
+              <p className="mt-3 text-body text-ink-faint">{order.addressSummary}</p>
             </article>
           ))}
         </section>
@@ -226,17 +226,17 @@ export default async function BackofficePage() {
               <article key={row.id} className="rounded-card border border-line bg-paper p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-base font-semibold text-ink">
+                    <p className="text-body font-semibold text-ink">
                       {formatPersonName(row.first_name, row.last_name)}
                     </p>
-                    <p className="mt-1 text-sm text-ink-soft">{formatWhatsAppPhone(row.phone)}</p>
+                    <p className="mt-1 text-body text-ink-soft">{formatWhatsAppPhone(row.phone)}</p>
                   </div>
-                  <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft">
+                  <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                     {row.status}
                   </span>
                 </div>
-                <div className="mt-4 rounded-card bg-paper-muted p-3 text-sm">
-                  <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Ítems</p>
+                <div className="mt-4 rounded-card bg-paper-muted p-3 text-body">
+                  <p className="text-meta text-ink-faint">Ítems</p>
                   <p className="mt-1 text-ink">
                     {formatItemsSummary((row.public_order_request_items ?? []) as RequestItem[])}
                   </p>
@@ -251,14 +251,14 @@ export default async function BackofficePage() {
               </article>
             ))
           ) : (
-            <div className="rounded-card border border-line bg-paper px-4 py-6 text-sm text-ink-soft">
+            <div className="rounded-card border border-line bg-paper px-4 py-6 text-body text-ink-soft">
               Todavía no hay solicitudes públicas.
             </div>
           )}
         </div>
 
         <div className="hidden overflow-hidden rounded-card border border-line bg-paper md:block">
-          <div className="grid grid-cols-6 border-b border-line bg-paper px-4 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
+          <div className="grid grid-cols-6 border-b border-line bg-paper px-4 py-3 text-meta text-ink-soft">
             {columns.map((column) => (
               <div key={column}>{column}</div>
             ))}
@@ -267,7 +267,7 @@ export default async function BackofficePage() {
             rows.map((row) => (
               <div
                 key={row.id}
-                className="grid grid-cols-6 border-b border-line px-4 py-4 text-sm text-ink-soft last:border-b-0"
+                className="grid grid-cols-6 border-b border-line px-4 py-4 text-body text-ink-soft last:border-b-0"
               >
                 <div>{formatPersonName(row.first_name, row.last_name)}</div>
                 <div>{formatWhatsAppPhone(row.phone)}</div>
@@ -290,7 +290,7 @@ export default async function BackofficePage() {
               </div>
             ))
           ) : (
-            <div className="px-4 py-6 text-sm text-ink-soft">Todavía no hay solicitudes públicas.</div>
+            <div className="px-4 py-6 text-body text-ink-soft">Todavía no hay solicitudes públicas.</div>
           )}
         </div>
       </section>

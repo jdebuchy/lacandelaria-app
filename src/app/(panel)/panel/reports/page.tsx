@@ -158,9 +158,9 @@ function toneClasses(tone: ReportMetric["tone"]) {
 function MetricCard({ metric }: { metric: ReportMetric }) {
   return (
     <article className="rounded-card border border-line bg-paper p-5">
-      <p className="text-sm text-ink-soft">{metric.label}</p>
-      <p className={`mt-2 text-2xl font-semibold sm:text-3xl ${toneClasses(metric.tone)}`}>{metric.value}</p>
-      <p className="mt-2 text-sm text-ink-faint">{metric.detail}</p>
+      <p className="text-body text-ink-soft">{metric.label}</p>
+      <p className={`mt-2 text-title font-semibold ${toneClasses(metric.tone)}`}>{metric.value}</p>
+      <p className="mt-2 text-body text-ink-faint">{metric.detail}</p>
     </article>
   );
 }
@@ -176,20 +176,20 @@ function KpiCard({ metric }: { metric: ReportKpi }) {
   return (
     <article className="rounded-card border border-line bg-paper p-5">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-ink-soft">{metric.label}</p>
-        <span className={`rounded-control border border-line bg-paper-muted px-2.5 py-1 text-xs ${trendClass}`}>
+        <p className="text-body text-ink-soft">{metric.label}</p>
+        <span className={`rounded-control border border-line bg-paper-muted px-2.5 py-1 text-meta ${trendClass}`}>
           {formatDelta(metric.delta)}
         </span>
       </div>
-      <p className={`mt-3 text-2xl font-semibold sm:text-3xl ${toneClasses(metric.tone)}`}>{metric.value}</p>
-      <p className="mt-2 text-sm text-ink-faint">{metric.detail}</p>
+      <p className={`mt-3 text-title font-semibold ${toneClasses(metric.tone)}`}>{metric.value}</p>
+      <p className="mt-2 text-body text-ink-faint">{metric.detail}</p>
     </article>
   );
 }
 
 function EmptyPanel({ label }: { label: string }) {
   return (
-    <div className="flex min-h-56 items-center justify-center rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-sm text-ink-faint">
+    <div className="flex min-h-56 items-center justify-center rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-body text-ink-faint">
       <span className="max-w-sm">{label}</span>
     </div>
   );
@@ -226,7 +226,7 @@ function LineChart({ points }: { points: ReportPoint[] }) {
 
   return (
     <div className="overflow-hidden rounded-card border border-line bg-paper-muted p-4">
-      <div className="mb-3 flex flex-wrap items-center gap-4 text-sm">
+      <div className="mb-3 flex flex-wrap items-center gap-4 text-body">
         <span className="inline-flex items-center gap-2 text-ink-soft">
           <span className="h-2.5 w-2.5 rounded-full bg-accent" />
           Ventas
@@ -246,7 +246,7 @@ function LineChart({ points }: { points: ReportPoint[] }) {
           return <circle key={`${point.label}-${index}`} cx={x} cy={y} r="3.5" className="fill-emerald-200" />;
         })}
       </svg>
-      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-ink-faint">
+      <div className="mt-2 flex items-center justify-between gap-3 text-meta text-ink-faint">
         {visibleLabels.map((point) => (
           <div key={point.label} className="truncate">
             {point.label}
@@ -277,7 +277,7 @@ function BarChart({ points }: { points: ReportPoint[] }) {
                 title={`${point.orders} pedidos`}
               />
             </div>
-            <span className="w-full truncate text-center text-xs text-ink-faint">{point.label}</span>
+            <span className="w-full truncate text-center text-meta text-ink-faint">{point.label}</span>
           </div>
         ))}
       </div>
@@ -334,7 +334,7 @@ function DonutChart({ segments }: { segments: ReportSegment[] }) {
       <div className="space-y-3">
         {segments.map((segment) => (
           <div key={segment.label}>
-            <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+            <div className="mb-1 flex items-center justify-between gap-3 text-body">
               <span className="inline-flex min-w-0 items-center gap-2 text-ink-soft">
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${segment.colorClass}`} />
                 <span className="truncate">{segment.label}</span>
@@ -372,7 +372,7 @@ function RankingTable({
 
   return (
     <div className="overflow-hidden rounded-card border border-line bg-paper">
-      <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr] border-b border-line bg-paper px-4 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
+      <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr] border-b border-line bg-paper px-4 py-3 text-meta text-ink-soft">
         <div>Nombre</div>
         <div>{metricLabel}</div>
         <div>{secondaryLabel}</div>
@@ -380,10 +380,10 @@ function RankingTable({
       {rows.map((row) => (
         <div key={row.label} className="grid grid-cols-[1.4fr_0.8fr_0.8fr] items-center gap-3 border-b border-line px-4 py-3 last:border-0">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-ink">{row.label}</p>
-            <p className="mt-1 truncate text-xs text-ink-faint">{row.detail}</p>
+            <p className="truncate text-body font-medium text-ink">{row.label}</p>
+            <p className="mt-1 truncate text-meta text-ink-faint">{row.detail}</p>
           </div>
-          <div className="text-sm text-ink">
+          <div className="text-body text-ink">
             {metricFormat === "currency"
               ? new Intl.NumberFormat("es-AR", {
                   currency: "ARS",
@@ -393,7 +393,7 @@ function RankingTable({
               : row.metric.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
           </div>
           <div>
-            <p className="text-sm text-ink-soft">{row.secondary}</p>
+            <p className="text-body text-ink-soft">{row.secondary}</p>
             <div className="mt-1 h-1.5 overflow-hidden rounded-control bg-paper-raised">
               <div className="h-full bg-info-bg" style={{ width: `${Math.max(4, row.share)}%` }} />
             </div>
@@ -654,15 +654,15 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     <main>
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-3">
-          <span className="inline-flex w-fit rounded-control border border-info-line bg-info-bg px-3 py-1 text-sm text-info-fg">
+          <span className="inline-flex w-fit rounded-control border border-info-line bg-info-bg px-3 py-1 text-body text-info-fg">
             Reportes
           </span>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <h1 className="text-display font-semibold tracking-tight text-ink">
                 Reportes comerciales y operativos
               </h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-soft">
+              <p className="mt-2 max-w-3xl text-body leading-6 text-ink-soft">
                 {formatShortDate(filters.startDate)} - {formatShortDate(filters.endDate)} comparado contra{" "}
                 {formatShortDate(range.previousStartDate)} - {formatShortDate(range.previousEndDate)}.
               </p>
@@ -678,7 +678,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                 <Link
                   key={preset}
                   href={buildFilterHref(filters, { preset: preset as ReportFilters["preset"] })}
-                  className={`rounded-control border px-3 py-2 text-sm transition ${
+                  className={`rounded-control border px-3 py-2 text-body transition ${
                     filters.preset === preset
                       ? "border-info-line bg-info-bg text-info-fg"
                       : "border-line bg-paper text-ink-soft hover:border-line hover:text-ink"
@@ -693,42 +693,42 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
         <form className="grid gap-3 rounded-card border border-line bg-paper p-4 md:grid-cols-2 xl:grid-cols-8">
           <input type="hidden" name="preset" value="custom" />
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Desde
             <input
               name="start"
               type="date"
               defaultValue={filters.startDate}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             />
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Hasta
             <input
               name="end"
               type="date"
               defaultValue={filters.endDate}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             />
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Agrupar
             <select
               name="groupBy"
               defaultValue={searchValue(filters, "groupBy")}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="day">Día</option>
               <option value="week">Semana</option>
               <option value="month">Mes</option>
             </select>
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Canal
             <select
               name="channel"
               defaultValue={searchValue(filters, "channel")}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="all">Todos</option>
               {Object.entries(CHANNEL_LABELS).map(([value, label]) => (
@@ -738,12 +738,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Estado
             <select
               name="status"
               defaultValue={searchValue(filters, "status")}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="all">Todos</option>
               {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
@@ -753,12 +753,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Pago
             <select
               name="method"
               defaultValue={searchValue(filters, "method")}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="all">Todos</option>
               {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
@@ -768,12 +768,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Zona
             <select
               name="zone"
               defaultValue={searchValue(filters, "zone")}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="all">Todas</option>
               {zoneOptions.map((zone) => (
@@ -783,12 +783,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-xs text-ink-soft">
+          <label className="grid gap-1 text-meta text-ink-soft">
             Producto
             <select
               name="product"
               defaultValue={filters.productId}
-              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+              className="h-11 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
             >
               <option value="all">Todos</option>
               {productOptions.map((product) => (
@@ -801,13 +801,13 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           <div className="flex gap-2 md:col-span-2 xl:col-span-8">
             <button
               type="submit"
-              className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
+              className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
             >
               Aplicar filtros
             </button>
             <Link
               href="/panel/reports"
-              className="inline-flex h-11 items-center justify-center rounded-control border border-line bg-paper-muted px-4 text-sm font-medium text-ink-soft transition hover:border-line hover:text-ink"
+              className="inline-flex h-11 items-center justify-center rounded-control border border-line bg-paper-muted px-4 text-body font-medium text-ink-soft transition hover:border-line hover:text-ink"
             >
               Limpiar
             </Link>
@@ -823,12 +823,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         <section className="rounded-card border border-line bg-paper p-5">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-ink">Tendencia de ventas y cobranza</h2>
-              <p className="mt-1 text-sm text-ink-faint">
+              <h2 className="text-title font-semibold text-ink">Tendencia de ventas y cobranza</h2>
+              <p className="mt-1 text-body text-ink-faint">
                 Agrupado por {filters.groupBy === "day" ? "día" : filters.groupBy === "week" ? "semana" : "mes"}
               </p>
             </div>
-            <span className="text-sm text-ink-faint">{reports.series.length} períodos</span>
+            <span className="text-body text-ink-faint">{reports.series.length} períodos</span>
           </div>
           <LineChart points={reports.series} />
         </section>
@@ -836,31 +836,31 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         <section className="grid gap-4 xl:grid-cols-2">
           <div className="rounded-card border border-line bg-paper p-5">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-ink">Pedidos por período</h2>
-              <p className="mt-1 text-sm text-ink-faint">Solo se muestran períodos con pedidos.</p>
+              <h2 className="text-title font-semibold text-ink">Pedidos por período</h2>
+              <p className="mt-1 text-body text-ink-faint">Solo se muestran períodos con pedidos.</p>
             </div>
             <BarChart points={reports.series} />
           </div>
           <div className="rounded-card border border-line bg-paper p-5">
-            <h2 className="mb-4 text-lg font-semibold text-ink">Ventas por canal</h2>
+            <h2 className="mb-4 text-title font-semibold text-ink">Ventas por canal</h2>
             <DonutChart segments={reports.channelMix} />
           </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-card border border-line bg-paper p-5">
-            <h2 className="mb-4 text-lg font-semibold text-ink">Método esperado</h2>
+            <h2 className="mb-4 text-title font-semibold text-ink">Método esperado</h2>
             <DonutChart segments={reports.methodMix} />
           </div>
           <div className="rounded-card border border-line bg-paper p-5">
-            <h2 className="mb-4 text-lg font-semibold text-ink">Estado de cobranza</h2>
+            <h2 className="mb-4 text-title font-semibold text-ink">Estado de cobranza</h2>
             <DonutChart segments={reports.paymentStatusMix} />
           </div>
         </section>
 
         <section className="grid gap-4 xl:grid-cols-3">
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Productos</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Productos</h2>
             <RankingTable
               emptyLabel="No hay productos vendidos en el rango."
               metricLabel="Unidades"
@@ -869,7 +869,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             />
           </div>
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Zonas</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Zonas</h2>
             <RankingTable
               emptyLabel="No hay zonas para este rango."
               metricFormat="currency"
@@ -879,7 +879,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             />
           </div>
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Clientes</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Clientes</h2>
             <RankingTable
               emptyLabel="No hay clientes para este rango."
               metricFormat="currency"
@@ -893,7 +893,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         {canSeeCollections ? (
           <section className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
             <div>
-              <h2 className="mb-3 text-lg font-semibold text-ink">Antigüedad de deuda</h2>
+              <h2 className="mb-3 text-title font-semibold text-ink">Antigüedad de deuda</h2>
               <div className="grid grid-cols-2 gap-3">
                 {reports.aging.map((metric) => (
                   <MetricCard key={metric.label} metric={metric} />
@@ -901,21 +901,21 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               </div>
             </div>
             <div>
-              <h2 className="mb-3 text-lg font-semibold text-ink">Cobranza completa</h2>
-              <div className="rounded-card border border-line bg-paper p-5 text-sm leading-6 text-ink-soft">
+              <h2 className="mb-3 text-title font-semibold text-ink">Cobranza completa</h2>
+              <div className="rounded-card border border-line bg-paper p-5 text-body leading-6 text-ink-soft">
                 El detalle sensible de cobranza queda visible para administración y cobranza. Los pagos anulados quedan excluidos y el saldo se calcula contra pedidos no cancelados del rango.
               </div>
             </div>
           </section>
         ) : (
-          <section className="rounded-card border border-line bg-paper p-5 text-sm text-ink-soft">
+          <section className="rounded-card border border-line bg-paper p-5 text-body text-ink-soft">
             El detalle completo de cobranza está restringido a administración y cobranza.
           </section>
         )}
 
         <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Operación</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Operación</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {reports.operationMetrics.map((metric) => (
                 <MetricCard key={metric.label} metric={metric} />
@@ -923,7 +923,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             </div>
           </div>
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Logística</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Logística</h2>
             <div className="grid grid-cols-2 gap-3">
               {reports.logisticsMetrics.map((metric) => (
                 <MetricCard key={metric.label} metric={metric} />
@@ -934,7 +934,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
         <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Reparto por chofer</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Reparto por chofer</h2>
             <RankingTable
               emptyLabel="No hay entregas por repartidor en el rango."
               metricLabel="Entregas"
@@ -943,7 +943,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             />
           </div>
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-ink">Stock futuro</h2>
+            <h2 className="mb-3 text-title font-semibold text-ink">Stock futuro</h2>
             <div className="grid grid-cols-2 gap-3">
               {reports.stockPreview.map((metric) => (
                 <MetricCard key={metric.label} metric={metric} />

@@ -60,8 +60,8 @@ export default async function RepartoHomePage() {
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Mi reparto</h1>
-        <p className="mt-1 text-[15px] text-ink-soft">{auth.profile.full_name}</p>
+        <h1 className="text-display font-bold tracking-tight text-ink">Mi reparto</h1>
+        <p className="mt-1 text-body text-ink-soft">{auth.profile.full_name}</p>
       </header>
 
       {tripRows.length ? (
@@ -76,11 +76,11 @@ export default async function RepartoHomePage() {
                 key={trip.id}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xl font-bold text-ink first-letter:uppercase">
+                  <p className="text-title font-bold text-ink first-letter:uppercase">
                     {formatTripDate(trip.scheduled_date)}
                   </p>
                   <span
-                    className={`rounded-control px-2.5 py-1 text-xs font-bold uppercase ${
+                    className={`rounded-control px-2.5 py-1 text-meta font-bold uppercase ${
                       trip.status === "in_route"
                         ? "bg-info-bg text-accent-fg"
                         : "bg-paper-raised text-ink"
@@ -89,7 +89,7 @@ export default async function RepartoHomePage() {
                     {getDeliveryTripStatusLabel(trip.status)}
                   </span>
                 </div>
-                <p className="mt-2 text-[15px] tabular-nums text-ink-soft">
+                <p className="mt-2 text-body tabular-nums text-ink-soft">
                   {counts.resolved} de {counts.total} paradas ·{" "}
                   {formatTripNumber(trip.trip_number)}
                 </p>
@@ -98,7 +98,7 @@ export default async function RepartoHomePage() {
           })}
         </div>
       ) : (
-        <p className="rounded-card border border-dashed border-line px-5 py-10 text-center text-[15px] leading-6 text-ink-soft">
+        <p className="rounded-card border border-dashed border-line px-5 py-10 text-center text-body leading-6 text-ink-soft">
           No tenés viajes asignados.
         </p>
       )}

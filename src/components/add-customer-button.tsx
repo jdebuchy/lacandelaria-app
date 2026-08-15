@@ -81,14 +81,14 @@ export function AddCustomerButton() {
   }
 
   const inputClass =
-    "h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent";
+    "h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent";
 
   return (
     <>
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent"
+        className="rounded-control bg-accent px-4 py-2 text-body font-medium text-accent-fg transition hover:bg-accent"
       >
         + Nuevo cliente
       </button>
@@ -97,7 +97,7 @@ export function AddCustomerButton() {
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-xs">
           <div className="my-8 w-full max-w-3xl rounded-card border border-line bg-paper-muted p-7 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-ink">Nuevo cliente</h2>
+              <h2 className="text-title font-semibold text-ink">Nuevo cliente</h2>
               <button
                 type="button"
                 onClick={handleClose}
@@ -109,7 +109,7 @@ export function AddCustomerButton() {
 
             <form onSubmit={handleSubmit} autoComplete="off" className="mt-6 grid gap-4 md:grid-cols-2">
               <AutofillDecoy />
-              <label className="grid gap-2 text-sm text-ink-soft">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Nombre
                 <input
                   value={fields.firstName}
@@ -119,7 +119,7 @@ export function AddCustomerButton() {
                 />
               </label>
 
-              <label className="grid gap-2 text-sm text-ink-soft">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Apellido
                 <input
                   value={fields.lastName}
@@ -134,7 +134,7 @@ export function AddCustomerButton() {
                 onChange={(v) => set("phone", v)}
               />
 
-              <label className="grid gap-2 text-sm text-ink-soft">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Instagram
                 <input
                   value={fields.instagram}
@@ -142,7 +142,7 @@ export function AddCustomerButton() {
                   className={inputClass}
                   placeholder="usuario"
                 />
-                <span aria-hidden="true" className="text-xs text-transparent">
+                <span aria-hidden="true" className="text-meta text-transparent">
                   .
                 </span>
               </label>
@@ -169,20 +169,20 @@ export function AddCustomerButton() {
                 }
               />
 
-              <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
+              <label className="grid gap-2 text-body text-ink-soft md:col-span-2">
                 Notas de entrega
                 <textarea
                   value={fields.deliveryNotes}
                   onChange={(e) => set("deliveryNotes", e.target.value)}
                   rows={3}
                   maxLength={500}
-                  className="rounded-control border border-line bg-paper-muted px-4 py-3 text-sm text-ink outline-hidden focus:border-accent"
+                  className="rounded-control border border-line bg-paper-muted px-4 py-3 text-body text-ink outline-hidden focus:border-accent"
                   placeholder="Ej: Dejar en portería, timbre 2B"
                 />
               </label>
 
               <div className="flex flex-col gap-3 md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-h-5 text-sm">
+                <div className="min-h-5 text-body">
                   {state ? (
                     <p className={state.success ? "text-accent" : "text-danger-fg"}>
                       {state.message}
@@ -193,14 +193,14 @@ export function AddCustomerButton() {
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
+                    className="rounded-control border border-line px-4 py-2 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={pending}
-                    className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-control bg-accent px-4 py-2 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pending ? "Guardando..." : "Crear cliente"}
                   </button>

@@ -54,11 +54,11 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
         type="button"
         onClick={() => setDialogOpen(true)}
         disabled={isPending}
-        className="inline-flex h-8 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-3 text-xs font-medium text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-8 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-3 text-meta font-medium text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Anulando..." : "Anular"}
       </button>
-      {feedback ? <p className="text-xs text-ink-faint">{feedback}</p> : null}
+      {feedback ? <p className="text-meta text-ink-faint">{feedback}</p> : null}
 
       {dialogOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-paper-muted px-4 py-5 backdrop-blur-sm sm:items-center">
@@ -70,10 +70,10 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id={`void-payment-title-${paymentId}`} className="text-lg font-semibold text-ink">
+                <h2 id={`void-payment-title-${paymentId}`} className="text-title font-semibold text-ink">
                   Anular pago
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-ink-soft">
+                <p className="mt-1 text-body leading-6 text-ink-soft">
                   El movimiento queda en el historial como anulado y el estado del pedido se recalcula.
                 </p>
               </div>
@@ -88,14 +88,14 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
               </button>
             </div>
 
-            <div className="mt-4 rounded-card bg-paper p-3 text-sm">
+            <div className="mt-4 rounded-card bg-paper p-3 text-body">
               <p className="font-medium text-ink">
                 {formatCurrency(amount)} · {getPaymentMethodLabel(method)}
               </p>
-              <p className="mt-1 text-xs text-ink-faint">{receivedAt}</p>
+              <p className="mt-1 text-meta text-ink-faint">{receivedAt}</p>
             </div>
 
-            <label className="mt-4 grid gap-2 text-sm text-ink-soft">
+            <label className="mt-4 grid gap-2 text-body text-ink-soft">
               Motivo
               <textarea
                 value={reason}
@@ -103,7 +103,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 rows={3}
                 maxLength={240}
                 placeholder="Ej: cargado por error, pedido equivocado, importe incorrecto"
-                className="resize-none rounded-card border border-line bg-paper-muted px-3 py-3 text-sm text-ink outline-hidden transition placeholder:text-ink-faint focus:border-danger-line"
+                className="resize-none rounded-card border border-line bg-paper-muted px-3 py-3 text-body text-ink outline-hidden transition placeholder:text-ink-faint focus:border-danger-line"
               />
             </label>
 
@@ -112,7 +112,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 type="button"
                 onClick={() => setDialogOpen(false)}
                 disabled={isPending}
-                className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancelar
               </button>
@@ -120,7 +120,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 type="button"
                 onClick={handleVoidPayment}
                 disabled={isPending}
-                className="inline-flex h-11 items-center justify-center rounded-control bg-danger-bg px-4 text-sm font-medium text-accent-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center rounded-control bg-danger-bg px-4 text-body font-medium text-accent-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isPending ? "Anulando..." : "Confirmar anulacion"}
               </button>

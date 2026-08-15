@@ -38,8 +38,8 @@ export default async function WhatsappQueuePage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-ink-faint">CRM · WhatsApp</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <p className="text-body text-ink-faint">CRM · WhatsApp</p>
+              <h1 className="mt-2 text-display font-semibold tracking-tight text-ink">
                 Cola de mensajes
               </h1>
             </div>
@@ -51,8 +51,8 @@ export default async function WhatsappQueuePage() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {["pending", "sent", "failed", "cancelled"].map((status) => (
             <article key={status} className="rounded-card border border-line bg-paper p-5">
-              <p className="text-sm text-ink-soft">{getWhatsappQueueStatusLabel(status)}</p>
-              <p className="mt-2 text-2xl font-semibold text-ink">
+              <p className="text-body text-ink-soft">{getWhatsappQueueStatusLabel(status)}</p>
+              <p className="mt-2 text-title font-semibold text-ink">
                 {rows.filter((row) => row.status === status).length}
               </p>
             </article>
@@ -60,7 +60,7 @@ export default async function WhatsappQueuePage() {
         </div>
 
         <section className="overflow-hidden rounded-card border border-line bg-paper">
-          <div className="grid grid-cols-[1.1fr_1fr_1fr_1fr_1fr_1fr_1.2fr] border-b border-line bg-paper px-5 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft max-lg:hidden">
+          <div className="grid grid-cols-[1.1fr_1fr_1fr_1fr_1fr_1fr_1.2fr] border-b border-line bg-paper px-5 py-3 text-meta text-ink-soft max-lg:hidden">
             <div>Tipo</div>
             <div>Cliente</div>
             <div>Teléfono</div>
@@ -79,7 +79,7 @@ export default async function WhatsappQueuePage() {
               return (
                 <article
                   key={row.id}
-                  className="grid gap-3 border-b border-line px-5 py-4 text-sm text-ink-soft last:border-b-0 lg:grid-cols-[1.1fr_1fr_1fr_1fr_1fr_1fr_1.2fr]"
+                  className="grid gap-3 border-b border-line px-5 py-4 text-body text-ink-soft last:border-b-0 lg:grid-cols-[1.1fr_1fr_1fr_1fr_1fr_1fr_1.2fr]"
                 >
                   <div>{getWhatsappMessageTypeLabel(row.message_type)}</div>
                   <div>{customerName}</div>
@@ -92,7 +92,7 @@ export default async function WhatsappQueuePage() {
               );
             })
           ) : (
-            <div className="px-5 py-10 text-center text-sm text-ink-faint">
+            <div className="px-5 py-10 text-center text-body text-ink-faint">
               No hay mensajes en cola.
             </div>
           )}

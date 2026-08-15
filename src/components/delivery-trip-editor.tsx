@@ -87,7 +87,7 @@ export function DeliveryTripEditor({
   return (
     <form onSubmit={handleSubmit} className="rounded-card border border-line bg-paper p-5">
       <div className="grid gap-4 lg:grid-cols-3">
-        <label className="flex flex-col gap-2 text-sm text-ink-soft">
+        <label className="flex flex-col gap-2 text-body text-ink-soft">
           <span>Fecha del viaje</span>
           <DateInput
             value={scheduledDate}
@@ -96,7 +96,7 @@ export function DeliveryTripEditor({
             required
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-ink-soft">
+        <label className="flex flex-col gap-2 text-body text-ink-soft">
           <span>Repartidor</span>
           <select
             value={driverUserId}
@@ -111,7 +111,7 @@ export function DeliveryTripEditor({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-2 text-sm text-ink-soft lg:col-span-1">
+        <label className="flex flex-col gap-2 text-body text-ink-soft lg:col-span-1">
           <span>Notas</span>
           <input
             type="text"
@@ -130,10 +130,10 @@ export function DeliveryTripEditor({
             className="flex items-center justify-between gap-4 rounded-card border border-line bg-paper-muted px-4 py-3"
           >
             <div>
-              <p className="text-sm font-medium text-ink">{stop.customerName}</p>
-              <p className="text-xs text-ink-faint">Pedido {stop.orderId.slice(0, 8)}</p>
+              <p className="text-body font-medium text-ink">{stop.customerName}</p>
+              <p className="text-meta text-ink-faint">Pedido {stop.orderId.slice(0, 8)}</p>
             </div>
-            <label className="flex items-center gap-2 text-sm text-ink-soft">
+            <label className="flex items-center gap-2 text-body text-ink-soft">
               <span>Orden</span>
               <input
                 type="number"
@@ -151,11 +151,11 @@ export function DeliveryTripEditor({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Guardando..." : "Guardar viaje"}
         </button>
-        {message ? <p className="text-sm text-ink-soft">{message}</p> : null}
+        {message ? <p className="text-body text-ink-soft">{message}</p> : null}
       </div>
     </form>
   );

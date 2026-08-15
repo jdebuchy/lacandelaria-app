@@ -64,20 +64,20 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               aria-hidden
               className="h-2.5 w-2.5 rounded-full bg-accent shadow-[0_0_18px_2px_rgba(52,211,153,0.55)]"
             />
-            <p className="text-xs uppercase tracking-[0.28em] text-accent">Paltas</p>
+            <p className="text-meta text-accent">Paltas</p>
           </div>
 
-          <h1 className="mt-3 text-4xl font-semibold leading-none tracking-tight text-ink">
+          <h1 className="mt-3 text-display font-semibold leading-none tracking-tight text-ink">
             La Candelaria
           </h1>
-          <p className="mt-3 text-sm leading-6 text-ink-soft">
+          <p className="mt-3 text-body leading-6 text-ink-soft">
             Panel interno de pedidos y reparto.
           </p>
 
           {notice ? (
             <div
               role="status"
-              className={`mt-6 rounded-card border p-4 text-sm ${NOTICE_TONE_CLASS[notice.tone]}`}
+              className={`mt-6 rounded-card border p-4 text-body ${NOTICE_TONE_CLASS[notice.tone]}`}
             >
               <p className="font-medium">{notice.title}</p>
               <p className="mt-1 opacity-80">{notice.body}</p>
@@ -89,7 +89,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs uppercase tracking-[0.22em] text-ink-faint">
+        <p className="mt-6 text-center text-meta text-ink-faint">
           Pedidos · Reparto · Cobranzas
         </p>
       </section>

@@ -147,7 +147,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
   }
 
   const base =
-    "h-11 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden focus:border-accent text-sm";
+    "h-11 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden focus:border-accent text-body";
 
   const areaPlaceholder = "11";
   const localPlaceholder =
@@ -156,7 +156,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
     : "0000 0000";
 
   return (
-    <label className={`grid gap-2 text-sm text-ink-soft${className ? ` ${className}` : ""}`}>
+    <label className={`grid gap-2 text-body text-ink-soft${className ? ` ${className}` : ""}`}>
       {label}
       {name ? <input type="hidden" name={name} value={value} /> : null}
       <div className="flex gap-2">
@@ -173,7 +173,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
               </option>
             ))}
           </select>
-          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-ink-soft">
+          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-meta text-ink-soft">
             ▾
           </span>
         </div>
@@ -223,7 +223,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
         )}
       </div>
       {isAR ? (
-        <p className={`text-xs ${triedLeadingNine ? "text-danger-fg" : "text-ink-faint"}`}>
+        <p className={`text-meta ${triedLeadingNine ? "text-danger-fg" : "text-ink-faint"}`}>
           {triedLeadingNine
             ? "El código de área no puede empezar con 9. No lo escribas: lo agregamos automáticamente al guardar."
             : "No escribas el 9. Lo agregamos automáticamente al guardar en WhatsApp."}

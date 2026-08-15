@@ -398,8 +398,8 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
       <section className="rounded-card border border-line bg-paper p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-ink">Planificador de viaje</p>
-            <p className="mt-2 text-sm text-ink-soft">
+            <p className="text-display font-semibold tracking-tight text-ink">Planificador de viaje</p>
+            <p className="mt-2 text-body text-ink-soft">
               Sumá pedidos, ordená las paradas y revisá la ruta antes de guardar.
             </p>
           </div>
@@ -408,7 +408,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               type="button"
               disabled={!canEditTrip || savePending}
               onClick={() => void handleSave()}
-              className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
             >
               {savePending ? "Guardando..." : "Guardar viaje"}
             </button>
@@ -416,8 +416,8 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-7">
-          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-sm text-ink-soft">
-            <span className="text-xs uppercase tracking-[0.18em] text-ink-faint">Fecha del viaje</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft">
+            <span className="text-meta text-ink-faint">Fecha del viaje</span>
             <DateInput
               value={scheduledDate}
               onChange={setScheduledDate}
@@ -425,8 +425,8 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               className="h-10 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden focus:border-info-line disabled:opacity-60"
             />
           </label>
-          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-sm text-ink-soft">
-            <span className="text-xs uppercase tracking-[0.18em] text-ink-faint">Repartidor</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft">
+            <span className="text-meta text-ink-faint">Repartidor</span>
             <select
               value={driverUserId}
               onChange={(event) => setDriverUserId(event.target.value)}
@@ -442,11 +442,11 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
             </select>
           </label>
           <div className="rounded-card border border-line bg-paper-muted p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Estado</p>
-            <p className="mt-2 text-sm font-medium text-ink">{getDeliveryTripStatusLabel(trip.status)}</p>
+            <p className="text-meta text-ink-faint">Estado</p>
+            <p className="mt-2 text-body font-medium text-ink">{getDeliveryTripStatusLabel(trip.status)}</p>
           </div>
-          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-sm text-ink-soft">
-            <span className="text-xs uppercase tracking-[0.18em] text-ink-faint">Depósito</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft">
+            <span className="text-meta text-ink-faint">Depósito</span>
             <select
               value={depotId}
               onChange={(event) => handleDepotChange(event.target.value)}
@@ -459,26 +459,26 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </option>
               ))}
             </select>
-            <span className="text-xs text-ink-faint">{formatLogisticsDepotAddress(selectedDepot)}</span>
+            <span className="text-meta text-ink-faint">{formatLogisticsDepotAddress(selectedDepot)}</span>
           </label>
           <div className="rounded-card border border-line bg-paper-muted p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Pedidos</p>
-            <p className="mt-2 text-sm font-medium text-ink">{stops.length}</p>
+            <p className="text-meta text-ink-faint">Pedidos</p>
+            <p className="mt-2 text-body font-medium text-ink">{stops.length}</p>
           </div>
           <div className="rounded-card border border-line bg-paper-muted p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Distancia</p>
-            <p className="mt-2 text-sm font-medium text-ink">
+            <p className="text-meta text-ink-faint">Distancia</p>
+            <p className="mt-2 text-body font-medium text-ink">
               {formatDistance(displayedRoute?.totalDistanceMeters ?? 0)}
             </p>
           </div>
           <div className="rounded-card border border-line bg-paper-muted p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Duración</p>
-            <p className="mt-2 text-sm font-medium text-ink">
+            <p className="text-meta text-ink-faint">Duración</p>
+            <p className="mt-2 text-body font-medium text-ink">
               {formatDuration(displayedRoute?.totalDurationSeconds ?? 0)}
             </p>
           </div>
-          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-sm text-ink-soft md:col-span-2 xl:col-span-6">
-            <span className="text-xs uppercase tracking-[0.18em] text-ink-faint">Notas del viaje</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft md:col-span-2 xl:col-span-6">
+            <span className="text-meta text-ink-faint">Notas del viaje</span>
             <textarea
               rows={2}
               value={notes}
@@ -489,17 +489,17 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           </label>
         </div>
 
-        {message ? <p className="mt-4 text-sm text-ink-soft">{message}</p> : null}
+        {message ? <p className="mt-4 text-body text-ink-soft">{message}</p> : null}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(280px,0.9fr)_minmax(320px,1fr)_minmax(360px,1.15fr)]">
         <section className="rounded-card border border-line bg-paper p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-semibold text-ink">Pedidos disponibles</p>
-              <p className="mt-1 text-sm text-ink-soft">Agregá pedidos al viaje.</p>
+              <p className="text-title font-semibold text-ink">Pedidos disponibles</p>
+              <p className="mt-1 text-body text-ink-soft">Agregá pedidos al viaje.</p>
             </div>
-            <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
+            <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
               {availableOrders.length}
             </span>
           </div>
@@ -508,7 +508,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
             value={availableQuery}
             onChange={(event) => setAvailableQuery(event.target.value)}
             placeholder="Buscar por cliente o dirección..."
-            className="mt-4 h-11 w-full rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-info-line"
+            className="mt-4 h-11 w-full rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-info-line"
           />
 
           <div className="mt-4 grid gap-3">
@@ -517,22 +517,22 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 <article key={order.orderId} className="rounded-card border border-line bg-paper-muted p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-ink">
+                      <p className="text-body font-semibold text-ink">
                         <span className="text-ink-faint">{formatOrderNumber(order.orderNumber)}</span>{" "}
                         {order.customerName}
                       </p>
-                      <p className="mt-1 text-xs text-ink-faint">{order.addressSummary}</p>
+                      <p className="mt-1 text-meta text-ink-faint">{order.addressSummary}</p>
                     </div>
                     <button
                       type="button"
                       disabled={!canEditTrip}
                       onClick={() => addOrderToTrip(order)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-line text-lg text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-line text-title text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       +
                     </button>
                   </div>
-                  <div className="mt-3 grid gap-2 text-xs text-ink-soft">
+                  <div className="mt-3 grid gap-2 text-meta text-ink-soft">
                     <p>{order.itemsSummary}</p>
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-control bg-paper px-2.5 py-1">{order.deliveryArea}</span>
@@ -545,7 +545,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </article>
               ))
             ) : (
-              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-sm text-ink-soft">
+              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-body text-ink-soft">
                 No hay pedidos disponibles con ese filtro.
               </div>
             )}
@@ -555,14 +555,14 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         <section className="rounded-card border border-line bg-paper p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-semibold text-ink">Paradas del viaje</p>
-              <p className="mt-1 text-sm text-ink-soft">Arrastrá para reordenar las paradas del recorrido.</p>
+              <p className="text-title font-semibold text-ink">Paradas del viaje</p>
+              <p className="mt-1 text-body text-ink-soft">Arrastrá para reordenar las paradas del recorrido.</p>
             </div>
             <button
               type="button"
               disabled={!canEditTrip || previewPending || optimizePending || !stops.length}
               onClick={() => void handleOptimize()}
-              className="inline-flex h-10 items-center justify-center rounded-control bg-info-bg px-4 text-sm font-medium text-accent-fg transition hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-10 items-center justify-center rounded-control bg-info-bg px-4 text-body font-medium text-accent-fg transition hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-60"
             >
               {optimizePending ? "Optimizando..." : "Optimizar trayecto"}
             </button>
@@ -586,16 +586,16 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-start gap-3">
-                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-paper text-sm font-semibold text-ink">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-paper text-body font-semibold text-ink">
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-ink">
+                        <p className="truncate text-body font-semibold text-ink">
                           <span className="text-ink-faint">{formatOrderNumber(stop.orderNumber)}</span>{" "}
                           {stop.customerName}
                         </p>
-                        <p className="mt-1 text-xs text-ink-faint">{stop.addressSummary}</p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-ink-soft">
+                        <p className="mt-1 text-meta text-ink-faint">{stop.addressSummary}</p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-meta text-ink-soft">
                           <span className="rounded-control bg-paper px-2.5 py-1">{stop.itemsSummary}</span>
                           <span className="rounded-control bg-paper px-2.5 py-1">
                             {formatWindow(stop.deliveryWindowStart, stop.deliveryWindowEnd)}
@@ -607,7 +607,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                       type="button"
                       disabled={!canEditTrip || stops.length === 1}
                       onClick={() => removeStopFromTrip(stop)}
-                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line text-lg text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line text-title text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       −
                     </button>
@@ -615,7 +615,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </article>
               ))
             ) : (
-              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-sm text-ink-soft">
+              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-body text-ink-soft">
                 Todavía no sumaste pedidos al viaje.
               </div>
             )}
@@ -627,33 +627,33 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
 
           {proposal ? (
             <div className="rounded-card border border-accent bg-accent-soft p-5">
-              <p className="text-lg font-semibold text-accent">Resumen de optimización</p>
-              <p className="mt-1 text-sm text-accent">
+              <p className="text-title font-semibold text-accent">Resumen de optimización</p>
+              <p className="mt-1 text-body text-accent">
                 Compará la ruta actual con la propuesta optimizada antes de aplicarla.
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-card border border-accent bg-paper-muted p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-accent">Distancia actual</p>
-                  <p className="mt-2 text-base font-medium text-accent">
+                  <p className="text-meta text-accent">Distancia actual</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDistance(route?.totalDistanceMeters ?? 0)}
                   </p>
                 </div>
                 <div className="rounded-card border border-accent bg-paper-muted p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-accent">Distancia optimizada</p>
-                  <p className="mt-2 text-base font-medium text-accent">
+                  <p className="text-meta text-accent">Distancia optimizada</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDistance(proposal.totalDistanceMeters)}
                   </p>
                 </div>
                 <div className="rounded-card border border-accent bg-paper-muted p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-accent">Tiempo actual</p>
-                  <p className="mt-2 text-base font-medium text-accent">
+                  <p className="text-meta text-accent">Tiempo actual</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDuration(route?.totalDurationSeconds ?? 0)}
                   </p>
                 </div>
                 <div className="rounded-card border border-accent bg-paper-muted p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-accent">Tiempo optimizado</p>
-                  <p className="mt-2 text-base font-medium text-accent">
+                  <p className="text-meta text-accent">Tiempo optimizado</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDuration(proposal.totalDurationSeconds)}
                   </p>
                 </div>
@@ -663,14 +663,14 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 <button
                   type="button"
                   onClick={handleApplyOptimization}
-                  className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
+                  className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
                 >
                   Aplicar propuesta
                 </button>
                 <button
                   type="button"
                   onClick={() => setProposal(null)}
-                  className="inline-flex h-11 items-center justify-center rounded-control border border-accent px-4 text-sm text-accent transition hover:border-accent"
+                  className="inline-flex h-11 items-center justify-center rounded-control border border-accent px-4 text-body text-accent transition hover:border-accent"
                 >
                   Descartar
                 </button>

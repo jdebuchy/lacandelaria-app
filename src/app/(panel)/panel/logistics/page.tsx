@@ -178,19 +178,19 @@ export default async function LogisticsPage() {
     <main>
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="space-y-3">
-          <span className="inline-flex rounded-control border border-warn-line bg-warn-bg px-3 py-1 text-sm text-warn-fg">
+          <span className="inline-flex rounded-control border border-warn-line bg-warn-bg px-3 py-1 text-body text-warn-fg">
             Logística
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1 className="text-display font-semibold tracking-tight text-ink">
             Armado de pedidos
           </h1>
-          <p className="max-w-3xl text-base leading-7 text-ink-soft">
+          <p className="max-w-3xl text-body leading-7 text-ink-soft">
             Crea el viaje desde los pedidos pendientes y, una vez armado, termina de ordenar el recorrido
             dentro del detalle del viaje.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap gap-3 text-body">
           <span className="rounded-control border border-line bg-paper px-3 py-1 text-ink">
             {pendingOrders.length} pedidos pendientes
           </span>
@@ -209,12 +209,12 @@ export default async function LogisticsPage() {
         <section className="rounded-card border border-line bg-paper p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-ink">Viajes creados hoy o pendientes</h2>
-              <p className="mt-1 text-sm text-ink-soft">
+              <h2 className="text-title font-semibold text-ink">Viajes creados hoy o pendientes</h2>
+              <p className="mt-1 text-body text-ink-soft">
                 Lista compacta para volver rápido al armado de cada recorrido.
               </p>
             </div>
-            <span className="text-sm text-ink-faint">{visibleTrips.length}</span>
+            <span className="text-body text-ink-faint">{visibleTrips.length}</span>
           </div>
 
           <div className="mt-5 divide-y divide-line">
@@ -226,17 +226,17 @@ export default async function LogisticsPage() {
                   className="grid gap-3 px-1 py-4 transition hover:bg-paper md:grid-cols-[minmax(0,1fr)_auto_auto]"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-ink">{formatTripNumber(trip.trip_number)}</p>
-                    <p className="mt-1 text-sm text-ink-soft">{formatDate(trip.scheduled_date)}</p>
+                    <p className="text-body font-semibold text-ink">{formatTripNumber(trip.trip_number)}</p>
+                    <p className="mt-1 text-body text-ink-soft">{formatDate(trip.scheduled_date)}</p>
                   </div>
-                  <p className="text-sm text-ink-soft">{tripCounts.get(trip.id) ?? 0} pedidos</p>
-                  <span className="justify-self-start rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
+                  <p className="text-body text-ink-soft">{tripCounts.get(trip.id) ?? 0} pedidos</p>
+                  <span className="justify-self-start rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                     {getDeliveryTripStatusLabel(trip.status)}
                   </span>
                 </Link>
               ))
             ) : (
-              <div className="px-1 py-6 text-sm text-ink-soft">
+              <div className="px-1 py-6 text-body text-ink-soft">
                 Todavía no hay viajes creados hoy ni recorridos pendientes.
               </div>
             )}

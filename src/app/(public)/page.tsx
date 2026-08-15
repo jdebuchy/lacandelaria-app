@@ -56,22 +56,22 @@ export default function HomePage() {
       <section className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 sm:gap-10 sm:px-6 sm:py-16">
         <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="space-y-6">
-            <span className="inline-flex rounded-control border border-accent bg-accent-soft px-3 py-1 text-sm text-accent">
+            <span className="inline-flex rounded-control border border-accent bg-accent-soft px-3 py-1 text-body text-accent">
               Paltas La Candelaria
             </span>
-            <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl md:text-7xl">
+            <h1 className="max-w-4xl text-display font-semibold tracking-tight text-ink md:text-7xl">
               Venta, reparto y cobranza en una sola aplicación.
             </h1>
-            <p className="max-w-2xl text-base leading-7 text-ink-soft sm:text-lg sm:leading-8">
+            <p className="max-w-2xl text-body leading-7 text-ink-soft sm:leading-8">
               La primera versión resuelve el flujo central: tomar pedidos, vender distintos
               productos, despachar por zona, registrar pagos y controlar comisiones sin depender de
               planillas sueltas.
             </p>
           </div>
           <div className="rounded-card border border-line bg-paper p-6 shadow-2xl shadow-black/20">
-            <p className="text-sm uppercase tracking-[0.2em] text-ink-soft">Decision</p>
-            <p className="mt-4 text-3xl font-semibold text-ink">Arrancar con PWA</p>
-            <ul className="mt-6 space-y-3 text-sm leading-6 text-ink-soft">
+            <p className="text-body text-ink-soft">Decision</p>
+            <p className="mt-4 text-display font-semibold text-ink">Arrancar con PWA</p>
+            <ul className="mt-6 space-y-3 text-body leading-6 text-ink-soft">
               <li>Instalable en iPhone desde Safari.</li>
               <li>Una sola base de codigo.</li>
               <li>Salida rapida sin App Store.</li>
@@ -86,16 +86,16 @@ export default function HomePage() {
               key={metric.label}
               className="rounded-card border border-line bg-paper p-5"
             >
-              <p className="text-sm text-ink-soft">{metric.label}</p>
-              <p className="mt-2 text-2xl font-semibold text-accent sm:text-3xl">{metric.value}</p>
-              <p className="mt-2 text-sm text-ink-soft">{metric.detail}</p>
+              <p className="text-body text-ink-soft">{metric.label}</p>
+              <p className="mt-2 text-title font-semibold text-accent">{metric.value}</p>
+              <p className="mt-2 text-body text-ink-soft">{metric.detail}</p>
             </article>
           ))}
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-card border border-line bg-linear-to-br from-paper to-paper-muted p-8">
-            <h2 className="text-2xl font-semibold text-ink">Modulos del MVP</h2>
+            <h2 className="text-title font-semibold text-ink">Modulos del MVP</h2>
             <ul className="mt-6 grid gap-3 text-ink-soft">
               {modules.map((module) => (
                 <li key={module} className="rounded-card border border-line bg-paper p-4">
@@ -106,12 +106,12 @@ export default function HomePage() {
           </article>
 
           <article className="rounded-card border border-line bg-linear-to-br from-accent-soft to-paper-muted p-8">
-            <h2 className="text-2xl font-semibold text-ink">Roles y permisos</h2>
+            <h2 className="text-title font-semibold text-ink">Roles y permisos</h2>
             <div className="mt-6 grid gap-3">
               {roles.map((role) => (
                 <div key={role.name} className="rounded-card border border-accent bg-black/10 p-4">
-                  <p className="text-lg font-medium text-accent">{role.name}</p>
-                  <p className="mt-1 text-sm text-ink-soft">{role.detail}</p>
+                  <p className="text-title font-medium text-accent">{role.name}</p>
+                  <p className="mt-1 text-body text-ink-soft">{role.detail}</p>
                 </div>
               ))}
             </div>
@@ -125,15 +125,15 @@ export default function HomePage() {
               href={route.href}
               className="rounded-card border border-line bg-paper p-6 transition hover:border-accent hover:bg-paper"
             >
-              <p className="text-lg font-semibold text-ink">{route.label}</p>
-              <p className="mt-2 text-sm text-ink-soft">{route.detail}</p>
-              <p className="mt-4 text-sm text-accent">{route.href}</p>
+              <p className="text-title font-semibold text-ink">{route.label}</p>
+              <p className="mt-2 text-body text-ink-soft">{route.detail}</p>
+              <p className="mt-4 text-body text-accent">{route.href}</p>
             </a>
           ))}
         </section>
 
         <section className="rounded-card border border-line bg-paper p-8">
-          <h2 className="text-2xl font-semibold text-ink">Proximo paso tecnico</h2>
+          <h2 className="text-title font-semibold text-ink">Proximo paso tecnico</h2>
           <p className="mt-4 max-w-3xl text-ink-soft">
             Implementar autenticacion interna con permisos por rol. Admin ve todo; reseller ve sus
             pedidos, comisiones y entregas relacionadas; repartidor ve solo sus entregas asignadas

@@ -16,11 +16,11 @@ export default async function WhatsappSettingsPage() {
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-ink-faint">CRM · WhatsApp</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            <p className="text-body text-ink-faint">CRM · WhatsApp</p>
+            <h1 className="mt-2 text-display font-semibold tracking-tight text-ink">
               Configuración comercial
             </h1>
-            <p className="mt-2 max-w-3xl text-sm text-ink-soft">
+            <p className="mt-2 max-w-3xl text-body text-ink-soft">
               Contexto estructurado para IA. Precios, stock, zonas y fechas deben venir del ERP/Supabase, no del modelo.
             </p>
           </div>
@@ -33,15 +33,15 @@ export default async function WhatsappSettingsPage() {
               <article key={setting.id} className="rounded-card border border-line bg-paper p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-semibold text-ink">{setting.key}</h2>
-                    <p className="mt-1 text-sm text-ink-soft">
+                    <h2 className="text-title font-semibold text-ink">{setting.key}</h2>
+                    <p className="mt-1 text-body text-ink-soft">
                       {setting.requires_human
                         ? "Estas acciones requieren intervención humana."
                         : "Puede usarse como contexto estructurado."}
                     </p>
                   </div>
                   <span
-                    className={`rounded-full border px-3 py-1 text-xs ${
+                    className={`rounded-control border px-3 py-1 text-meta ${
                       setting.requires_human
                         ? "border-warn-line bg-warn-bg text-warn-fg"
                         : "border-accent bg-accent-soft text-accent"
@@ -50,13 +50,13 @@ export default async function WhatsappSettingsPage() {
                     {setting.requires_human ? "Humano" : "Automático"}
                   </span>
                 </div>
-                <pre className="mt-5 overflow-x-auto rounded-card border border-line bg-paper-muted p-4 text-xs text-ink-soft">
+                <pre className="mt-5 overflow-x-auto rounded-card border border-line bg-paper-muted p-4 text-meta text-ink-soft">
                   {formatJson(setting.value)}
                 </pre>
               </article>
             ))
           ) : (
-            <div className="rounded-card border border-dashed border-line bg-paper px-5 py-10 text-center text-sm text-ink-faint">
+            <div className="rounded-card border border-dashed border-line bg-paper px-5 py-10 text-center text-body text-ink-faint">
               No hay configuración comercial cargada. Aplicá `supabase/whatsapp_crm.sql`.
             </div>
           )}

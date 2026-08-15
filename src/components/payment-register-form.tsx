@@ -82,7 +82,7 @@ export function PaymentRegisterForm({
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 rounded-card border border-line bg-paper-muted p-3">
       <div className="grid gap-2 sm:grid-cols-[1fr_1fr]">
-        <label className="grid gap-1 text-xs text-ink-soft">
+        <label className="grid gap-1 text-meta text-ink-soft">
           Monto
           <input
             type="number"
@@ -90,10 +90,10 @@ export function PaymentRegisterForm({
             step="0.01"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
-            className="h-10 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+            className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
           />
         </label>
-        <label className="grid gap-1 text-xs text-ink-soft">
+        <label className="grid gap-1 text-meta text-ink-soft">
           Metodo
           <select
             value={method}
@@ -108,36 +108,36 @@ export function PaymentRegisterForm({
                 )
               );
             }}
-            className="h-10 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-info-line"
+            className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-info-line"
           >
             <option value="cash">{getPaymentMethodLabel("cash")}</option>
             <option value="transfer">{getPaymentMethodLabel("transfer")}</option>
           </select>
         </label>
       </div>
-      <label className="grid gap-1 text-xs text-ink-soft">
+      <label className="grid gap-1 text-meta text-ink-soft">
         Referencia
         <input
           type="text"
           value={reference}
           onChange={(event) => setReference(event.target.value)}
           placeholder="Nota, comprobante o aclaracion"
-          className="h-10 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition placeholder:text-ink-faint focus:border-info-line"
+          className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition placeholder:text-ink-faint focus:border-info-line"
         />
       </label>
       {exceedsBalance ? (
-        <p className="rounded-control border border-warn-line bg-warn-bg px-3 py-2 text-xs text-warn-fg">
+        <p className="rounded-control border border-warn-line bg-warn-bg px-3 py-2 text-meta text-warn-fg">
           El monto supera el saldo de {formatCurrency(currentBalanceAmount)}. El pedido quedara pagado.
         </p>
       ) : null}
       <button
         type="submit"
         disabled={!canSubmit}
-        className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
       >
         {buttonLabel}
       </button>
-      {feedback ? <p className="text-xs text-ink-soft">{feedback}</p> : null}
+      {feedback ? <p className="text-meta text-ink-soft">{feedback}</p> : null}
     </form>
   );
 }

@@ -147,7 +147,7 @@ export function DeliveryTripCreateForm({
   return (
     <form onSubmit={handleSubmit} className="rounded-card border border-line bg-paper p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-        <label className="flex min-w-[240px] flex-1 flex-col gap-2 text-sm text-ink-soft">
+        <label className="flex min-w-[240px] flex-1 flex-col gap-2 text-body text-ink-soft">
           <span>Depósito de salida</span>
           <select
             value={depotId}
@@ -163,7 +163,7 @@ export function DeliveryTripCreateForm({
           </select>
         </label>
 
-        <label className="flex min-w-[180px] flex-1 flex-col gap-2 text-sm text-ink-soft">
+        <label className="flex min-w-[180px] flex-1 flex-col gap-2 text-body text-ink-soft">
           <span>Fecha del viaje</span>
           <DateInput
             value={scheduledDate}
@@ -173,7 +173,7 @@ export function DeliveryTripCreateForm({
           />
         </label>
 
-        <label className="flex min-w-[220px] flex-1 flex-col gap-2 text-sm text-ink-soft">
+        <label className="flex min-w-[220px] flex-1 flex-col gap-2 text-body text-ink-soft">
           <span>Repartidor</span>
           <select
             value={driverUserId}
@@ -190,7 +190,7 @@ export function DeliveryTripCreateForm({
         </label>
       </div>
 
-      <label className="mt-4 flex flex-col gap-2 text-sm text-ink-soft">
+      <label className="mt-4 flex flex-col gap-2 text-body text-ink-soft">
         <span>Notas del viaje</span>
         <textarea
           value={notes}
@@ -202,24 +202,24 @@ export function DeliveryTripCreateForm({
       </label>
 
       <div className="mt-5 flex items-center justify-between gap-4">
-        <div className="text-sm text-ink-soft">
+        <div className="text-body text-ink-soft">
           {selectedOrderIds.length ? `${selectedOrderIds.length} pedidos seleccionados` : "Selecciona pedidos sin viaje"}
         </div>
         <button
           type="submit"
           disabled={isPending || !selectedOrderIds.length || !scheduledDate || !depotId}
-          className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Creando..." : "Crear viaje"}
         </button>
       </div>
 
-      {message ? <p className="mt-3 text-sm text-ink-soft">{message}</p> : null}
+      {message ? <p className="mt-3 text-body text-ink-soft">{message}</p> : null}
 
       <div className="mt-5 rounded-card border border-line bg-paper-muted">
         <div className="flex flex-col gap-3 border-b border-line px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2 text-sm text-ink-soft">
+            <label className="flex items-center gap-2 text-body text-ink-soft">
               <span>Zona</span>
               <select
                 value={areaFilter}
@@ -231,11 +231,11 @@ export function DeliveryTripCreateForm({
                 <option value="province">Provincia</option>
               </select>
             </label>
-            <span className="text-sm text-ink-faint">{filteredOrders.length} visibles</span>
+            <span className="text-body text-ink-faint">{filteredOrders.length} visibles</span>
           </div>
 
           {filteredOrders.length ? (
-            <label className="flex items-center gap-2 text-sm text-ink-soft">
+            <label className="flex items-center gap-2 text-body text-ink-soft">
               <input
                 type="checkbox"
                 checked={visibleSelectedCount > 0 && visibleSelectedCount === filteredOrders.length}
@@ -268,15 +268,15 @@ export function DeliveryTripCreateForm({
                     className="h-4 w-4 rounded-control border-line bg-paper-muted text-info-fg focus:ring-info-fg"
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-ink">{order.customerName}</p>
-                    <p className="truncate text-xs text-ink-faint">{order.label}</p>
+                    <p className="truncate text-body font-medium text-ink">{order.customerName}</p>
+                    <p className="truncate text-meta text-ink-faint">{order.label}</p>
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm text-ink-soft">{order.itemsSummary}</p>
+                    <p className="truncate text-body text-ink-soft">{order.itemsSummary}</p>
                   </div>
                   <div className="justify-self-end">
                     <span
-                      className={`rounded-full border px-3 py-1 text-xs ${
+                      className={`rounded-control border px-3 py-1 text-meta ${
                         order.area === "capital_federal"
                           ? "border-warn-line bg-warn-bg text-warn-fg"
                           : "border-accent bg-accent-soft text-accent"
@@ -290,7 +290,7 @@ export function DeliveryTripCreateForm({
             })}
           </div>
         ) : (
-          <div className="px-4 py-6 text-sm text-ink-faint">
+          <div className="px-4 py-6 text-body text-ink-faint">
             No hay pedidos pendientes para consolidar con ese filtro.
           </div>
         )}

@@ -288,16 +288,16 @@ export default async function LogisticsDeliveryPage({
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg font-semibold text-ink">{formatTripNumber(trip.tripNumber)}</h3>
-              <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
+              <h3 className="text-title font-semibold text-ink">{formatTripNumber(trip.tripNumber)}</h3>
+              <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                 {getDeliveryTripStatusLabel(trip.status)}
               </span>
             </div>
-            <p className="mt-2 text-sm text-ink-soft">{formatDate(trip.scheduledDate)}</p>
+            <p className="mt-2 text-body text-ink-soft">{formatDate(trip.scheduledDate)}</p>
           </div>
           <Link
             href={`/panel/logistics/delivery/${trip.id}`}
-            className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong"
+            className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong"
           >
             Ver viaje
           </Link>
@@ -305,23 +305,23 @@ export default async function LogisticsDeliveryPage({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-card bg-paper-muted p-3">
-            <p className="text-xs uppercase tracking-[0.16em] text-ink-faint">Repartidor</p>
-            <p className="mt-1 text-sm text-ink">{trip.driverName}</p>
+            <p className="text-meta text-ink-faint">Repartidor</p>
+            <p className="mt-1 text-body text-ink">{trip.driverName}</p>
           </div>
           <div className="rounded-card bg-paper-muted p-3">
-            <p className="text-xs uppercase tracking-[0.16em] text-ink-faint">Pedidos</p>
-            <p className="mt-1 text-sm text-ink">{metricLabel(trip.totalStops, "pedido", "pedidos")}</p>
+            <p className="text-meta text-ink-faint">Pedidos</p>
+            <p className="mt-1 text-body text-ink">{metricLabel(trip.totalStops, "pedido", "pedidos")}</p>
           </div>
           <div className="rounded-card bg-paper-muted p-3">
-            <p className="text-xs uppercase tracking-[0.16em] text-ink-faint">Incidencias</p>
-            <p className="mt-1 text-sm text-ink">
+            <p className="text-meta text-ink-faint">Incidencias</p>
+            <p className="mt-1 text-body text-ink">
               {trip.failedCount ? metricLabel(trip.failedCount, "incidencia", "incidencias") : "Sin incidencias"}
             </p>
           </div>
         </div>
 
         <div className="mt-4">
-          <div className="flex items-center justify-between gap-3 text-sm text-ink-soft">
+          <div className="flex items-center justify-between gap-3 text-body text-ink-soft">
             <span>{trip.progressLabel}</span>
             <span>{trip.unresolvedCount ? `${trip.unresolvedCount} pendientes` : "Todo resuelto"}</span>
           </div>
@@ -347,17 +347,17 @@ export default async function LogisticsDeliveryPage({
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            <h1 className="text-display font-semibold tracking-tight text-ink">
               Viajes de entrega
             </h1>
-            <p className="mt-2 max-w-3xl text-base leading-7 text-ink-soft">
+            <p className="mt-2 max-w-3xl text-body leading-7 text-ink-soft">
               Visualizá y gestioná todos los viajes de entrega. Abrí cada viaje para registrar entregas,
               no entregados y cobros en efectivo.
             </p>
           </div>
           <Link
             href="/panel/logistics"
-            className="inline-flex h-11 items-center justify-center rounded-control bg-ink px-4 text-sm font-medium text-accent-fg transition hover:bg-white"
+            className="inline-flex h-11 items-center justify-center rounded-control bg-ink px-4 text-body font-medium text-accent-fg transition hover:bg-white"
           >
             Iniciar nuevo viaje
           </Link>
@@ -365,20 +365,20 @@ export default async function LogisticsDeliveryPage({
 
         <div className="grid gap-3 md:grid-cols-4">
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Activos hoy</p>
-            <p className="mt-2 text-3xl font-semibold text-ink">{activeToday}</p>
+            <p className="text-body text-ink-soft">Activos hoy</p>
+            <p className="mt-2 text-display font-semibold text-ink">{activeToday}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Proximos</p>
-            <p className="mt-2 text-3xl font-semibold text-ink">{upcoming}</p>
+            <p className="text-body text-ink-soft">Proximos</p>
+            <p className="mt-2 text-display font-semibold text-ink">{upcoming}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Completados</p>
-            <p className="mt-2 text-3xl font-semibold text-ink">{completed}</p>
+            <p className="text-body text-ink-soft">Completados</p>
+            <p className="mt-2 text-display font-semibold text-ink">{completed}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Con incidencias</p>
-            <p className="mt-2 text-3xl font-semibold text-ink">{withIncidents}</p>
+            <p className="text-body text-ink-soft">Con incidencias</p>
+            <p className="mt-2 text-display font-semibold text-ink">{withIncidents}</p>
           </article>
         </div>
 
@@ -390,13 +390,13 @@ export default async function LogisticsDeliveryPage({
                 name="q"
                 defaultValue={params.q ?? ""}
                 placeholder="Buscar por ID de viaje, repartidor o cliente"
-                className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden transition focus:border-line-strong"
+                className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden transition focus:border-line-strong"
               />
             </div>
             <select
               name="status"
               defaultValue={statusFilter}
-              className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-line-strong"
+              className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-line-strong"
             >
               <option value="all">Estado: Todos</option>
               <option value="assigned">Estado: Asignados</option>
@@ -406,7 +406,7 @@ export default async function LogisticsDeliveryPage({
             <select
               name="date"
               defaultValue={dateFilter}
-              className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-line-strong"
+              className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-line-strong"
             >
               <option value="all">Fecha: Todas</option>
               <option value="today">Fecha: Hoy</option>
@@ -417,7 +417,7 @@ export default async function LogisticsDeliveryPage({
             <select
               name="driver"
               defaultValue={driverFilter}
-              className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-3 text-sm text-ink outline-hidden transition focus:border-line-strong"
+              className="h-11 w-full min-w-0 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-line-strong"
             >
               <option value="all">Reparto: Todos</option>
               {(drivers ?? []).map((driver: DriverProfile) => (
@@ -428,7 +428,7 @@ export default async function LogisticsDeliveryPage({
             </select>
             <button
               type="submit"
-              className="inline-flex h-11 min-w-[120px] items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong"
+              className="inline-flex h-11 min-w-[120px] items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong"
             >
               Filtrar
             </button>
@@ -438,13 +438,13 @@ export default async function LogisticsDeliveryPage({
         <div className="space-y-8">
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-ink">Hoy</h2>
-              <span className="text-sm text-ink-faint">{sections.today.length}</span>
+              <h2 className="text-title font-semibold text-ink">Hoy</h2>
+              <span className="text-body text-ink-faint">{sections.today.length}</span>
             </div>
             {sections.today.length ? (
               <div className="grid gap-4 xl:grid-cols-3">{sections.today.map(renderTripCard)}</div>
             ) : (
-              <div className="rounded-card border border-dashed border-line bg-paper px-6 py-8 text-sm text-ink-soft">
+              <div className="rounded-card border border-dashed border-line bg-paper px-6 py-8 text-body text-ink-soft">
                 No hay viajes para hoy con los filtros actuales.
               </div>
             )}
@@ -452,8 +452,8 @@ export default async function LogisticsDeliveryPage({
 
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-ink">Mañana</h2>
-              <span className="text-sm text-ink-faint">{sections.tomorrow.length}</span>
+              <h2 className="text-title font-semibold text-ink">Mañana</h2>
+              <span className="text-body text-ink-faint">{sections.tomorrow.length}</span>
             </div>
             {sections.tomorrow.length ? (
               <div className="grid gap-4 xl:grid-cols-3">{sections.tomorrow.map(renderTripCard)}</div>
@@ -462,8 +462,8 @@ export default async function LogisticsDeliveryPage({
 
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-ink">Proximos dias</h2>
-              <span className="text-sm text-ink-faint">{sections.future.length}</span>
+              <h2 className="text-title font-semibold text-ink">Proximos dias</h2>
+              <span className="text-body text-ink-faint">{sections.future.length}</span>
             </div>
             {sections.future.length ? (
               <div className="grid gap-4 xl:grid-cols-3">{sections.future.map(renderTripCard)}</div>
@@ -472,14 +472,14 @@ export default async function LogisticsDeliveryPage({
 
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-ink">Viajes anteriores</h2>
-              <span className="text-sm text-ink-faint">{sections.previous.length}</span>
+              <h2 className="text-title font-semibold text-ink">Viajes anteriores</h2>
+              <span className="text-body text-ink-faint">{sections.previous.length}</span>
             </div>
             {sections.previous.length ? (
               <div className="overflow-hidden rounded-card border border-line bg-paper">
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-line text-sm">
-                    <thead className="bg-paper-muted text-left text-xs uppercase tracking-[0.16em] text-ink-faint">
+                  <table className="min-w-full divide-y divide-line text-body">
+                    <thead className="bg-paper-muted text-left text-meta text-ink-faint">
                       <tr>
                         <th className="px-4 py-3">ID de viaje</th>
                         <th className="px-4 py-3">Fecha</th>
@@ -499,7 +499,7 @@ export default async function LogisticsDeliveryPage({
                           <td className="px-4 py-4">{trip.totalStops}</td>
                           <td className="px-4 py-4">
                             <div className="min-w-[160px]">
-                              <div className="flex items-center justify-between gap-3 text-xs text-ink-soft">
+                              <div className="flex items-center justify-between gap-3 text-meta text-ink-soft">
                                 <span>{trip.progressLabel}</span>
                                 <span>{trip.failedCount ? `${trip.failedCount} incid.` : "Sin incidencias"}</span>
                               </div>
@@ -515,7 +515,7 @@ export default async function LogisticsDeliveryPage({
                           </td>
                           <td className="px-4 py-4">
                             <span
-                              className={`inline-flex rounded-control border px-3 py-1 text-xs ${statusTone(trip.status)}`}
+                              className={`inline-flex rounded-control border px-3 py-1 text-meta ${statusTone(trip.status)}`}
                             >
                               {getDeliveryTripStatusLabel(trip.status)}
                             </span>
@@ -523,7 +523,7 @@ export default async function LogisticsDeliveryPage({
                           <td className="px-4 py-4 text-right">
                             <Link
                               href={`/panel/logistics/delivery/${trip.id}`}
-                              className="inline-flex h-9 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong"
+                              className="inline-flex h-9 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong"
                             >
                               Ver viaje
                             </Link>

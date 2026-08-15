@@ -14,7 +14,7 @@ export function WhatsappCrmNav({ activeHref }: { activeHref: string }) {
         <Link
           key={link.href}
           href={link.href}
-          className={`rounded-full border px-4 py-2 text-sm transition ${
+          className={`rounded-control border px-4 py-2 text-body transition ${
             activeHref === link.href
               ? "border-accent bg-accent-soft text-accent"
               : "border-line bg-paper text-ink-soft hover:border-line hover:text-ink"

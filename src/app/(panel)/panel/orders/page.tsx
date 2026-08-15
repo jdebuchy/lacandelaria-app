@@ -271,13 +271,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            <h1 className="text-display font-semibold tracking-tight text-ink">
               Pedidos
             </h1>
           </div>
           <Link
             href="/panel/orders/new"
-            className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
+            className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
           >
             Nuevo pedido
           </Link>
@@ -288,8 +288,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
             href="/panel/orders?status=confirmed"
             className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
           >
-            <p className="text-sm text-ink-soft">Esperando viaje</p>
-            <p className="mt-2 text-2xl font-semibold text-warn-fg sm:text-3xl">
+            <p className="text-body text-ink-soft">Esperando viaje</p>
+            <p className="mt-2 text-title font-semibold text-warn-fg">
               {awaitingTripCount}
             </p>
           </Link>
@@ -297,8 +297,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
             href="/panel/orders?status=in_route"
             className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
           >
-            <p className="text-sm text-ink-soft">En ruta</p>
-            <p className="mt-2 text-2xl font-semibold text-accent sm:text-3xl">
+            <p className="text-body text-ink-soft">En ruta</p>
+            <p className="mt-2 text-title font-semibold text-accent">
               {inRouteOrders ?? 0}
             </p>
           </Link>
@@ -306,34 +306,34 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
             href="/panel/orders?status=pending_confirmation"
             className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
           >
-            <p className="text-sm text-ink-soft">A confirmar</p>
-            <p className="mt-2 text-2xl font-semibold text-info-fg sm:text-3xl">
+            <p className="text-body text-ink-soft">A confirmar</p>
+            <p className="mt-2 text-title font-semibold text-info-fg">
               {pendingOrders ?? 0}
             </p>
           </Link>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Pedidos</p>
-            <p className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">
+            <p className="text-body text-ink-soft">Pedidos</p>
+            <p className="mt-2 text-title font-semibold text-ink">
               {totalOrders ?? 0}
             </p>
           </article>
         </div>
 
         {ordersError ? (
-          <div className="rounded-card border border-danger-line bg-danger-bg p-4 text-sm text-danger-fg">
+          <div className="rounded-card border border-danger-line bg-danger-bg p-4 text-body text-danger-fg">
             <p className="font-medium">No se pudieron cargar los pedidos.</p>
             <p className="mt-1 text-danger-fg">
               La lista de abajo está vacía por este error, no porque no haya pedidos.
             </p>
-            <p className="mt-2 font-mono text-xs text-danger-fg">{ordersError.message}</p>
+            <p className="mt-2 font-mono text-meta text-danger-fg">{ordersError.message}</p>
           </div>
         ) : null}
 
         <section className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-ink">Todos los pedidos</h2>
-              <p className="mt-1 text-sm text-ink-faint">
+              <h2 className="text-title font-semibold text-ink">Todos los pedidos</h2>
+              <p className="mt-1 text-body text-ink-faint">
                 {visibleOrderRows.length} {normalizedQuery ? "resultado(s)" : "pedido(s)"}
               </p>
             </div>
@@ -347,7 +347,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
           </Suspense>
 
           <div className="hidden overflow-hidden rounded-card border border-line bg-paper lg:block">
-            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-line bg-paper px-4 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
+            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-line bg-paper px-4 py-3 text-meta text-ink-soft">
               <div>Cliente</div>
               <div>Área</div>
               <div>Estado</div>
@@ -360,7 +360,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               pagedOrderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-line px-4 py-4 text-sm text-ink-soft last:border-b-0 hover:bg-paper"
+                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-line px-4 py-4 text-body text-ink-soft last:border-b-0 hover:bg-paper"
                 >
                   <Link
                     href={`/panel/orders/${order.id}`}
@@ -369,34 +369,34 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-ink-faint">
+                      <span className="text-meta font-medium text-ink-faint">
                         {formatOrderNumber(order.orderNumber)}
                       </span>
                       <p className="font-medium text-ink">{order.customerName}</p>
                       {order.channel !== "internal" && (
-                        <span className="rounded-control border border-line px-2 py-0.5 text-xs text-ink-soft">
+                        <span className="rounded-control border border-line px-2 py-0.5 text-meta text-ink-soft">
                           {getChannelLabel(order.channel)}
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-xs text-ink-faint">
+                    <p className="mt-1 text-meta text-ink-faint">
                       {formatWhatsAppPhone(order.customerPhone)}
                     </p>
                   </div>
                   <div>
                     <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
                     {order.locality && (
-                      <p className="mt-0.5 truncate text-xs text-ink-faint">{order.locality}</p>
+                      <p className="mt-0.5 truncate text-meta text-ink-faint">{order.locality}</p>
                     )}
                   </div>
                   <div>
-                    <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                    <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-meta font-medium ${getStatusBadgeClass(order.status)}`}>
                       {getOrderStatusLabel(order.status)}
                     </span>
                     {order.trip && (
                       <Link
                         href={`/panel/logistics/delivery/${order.trip.id}`}
-                        className="relative z-10 mt-1.5 inline-block text-xs text-info-fg hover:text-info-fg"
+                        className="relative z-10 mt-1.5 inline-block text-meta text-info-fg hover:text-info-fg"
                       >
                         {formatTripNumber(order.trip.number)}
                       </Link>
@@ -407,11 +407,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     <p>{formatCurrency(order.totalAmount)}</p>
                     {order.paidAmount > 0 && (
                       <>
-                        <p className="mt-1 text-xs text-ink-faint">
+                        <p className="mt-1 text-meta text-ink-faint">
                           Cobrado {formatCurrency(order.paidAmount)}
                         </p>
                         {order.paymentBalanceAmount > 0 && (
-                          <p className="mt-1 text-xs text-warn-fg">
+                          <p className="mt-1 text-meta text-warn-fg">
                             Saldo {formatCurrency(order.paymentBalanceAmount)}
                           </p>
                         )}
@@ -423,14 +423,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-xs font-medium text-ink transition hover:border-line-strong hover:text-ink"
+                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-meta font-medium text-ink transition hover:border-line-strong hover:text-ink"
                       >
                         Editar
                       </Link>
                     ) : (
                       <Link
                         href={`/panel/orders/${order.id}`}
-                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-xs font-medium text-ink-soft transition hover:border-line hover:text-ink"
+                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-meta font-medium text-ink-soft transition hover:border-line hover:text-ink"
                       >
                         Ver
                       </Link>
@@ -439,7 +439,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                 </div>
               ))
             ) : (
-              <div className="px-4 py-8 text-center text-sm text-ink-faint">
+              <div className="px-4 py-8 text-center text-body text-ink-faint">
                 {ordersError
                   ? "No se pudo cargar la lista."
                   : normalizedQuery
@@ -455,44 +455,44 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                 <article key={order.id} className="rounded-card border border-line bg-paper p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-medium text-ink-faint">
+                      <p className="text-meta font-medium text-ink-faint">
                         {formatOrderNumber(order.orderNumber)}
                       </p>
-                      <p className="text-base font-semibold text-ink">{order.customerName}</p>
-                      <p className="mt-1 text-sm text-ink-soft">
+                      <p className="text-body font-semibold text-ink">{order.customerName}</p>
+                      <p className="mt-1 text-body text-ink-soft">
                         {formatWhatsAppPhone(order.customerPhone)}
                       </p>
                     </div>
-                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft">
+                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                       {getChannelLabel(order.channel)}
                     </span>
                   </div>
-                  <div className="mt-4 grid gap-3 text-sm">
+                  <div className="mt-4 grid gap-3 text-body">
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Estado</p>
+                      <p className="text-meta text-ink-faint">Estado</p>
                       <div className="mt-1">
-                        <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                        <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-meta font-medium ${getStatusBadgeClass(order.status)}`}>
                           {getOrderStatusLabel(order.status)}
                         </span>
                       </div>
                       {order.trip && (
                         <Link
                           href={`/panel/logistics/delivery/${order.trip.id}`}
-                          className="mt-1 inline-block text-xs text-info-fg hover:text-info-fg"
+                          className="mt-1 inline-block text-meta text-info-fg hover:text-info-fg"
                         >
                           {formatTripNumber(order.trip.number)}
                         </Link>
                       )}
                     </div>
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Ítems</p>
+                      <p className="text-meta text-ink-faint">Ítems</p>
                       <p className="mt-1 text-ink">{order.itemsSummary}</p>
                     </div>
                     <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Total</p>
+                      <p className="text-meta text-ink-faint">Total</p>
                       <p className="mt-1 text-ink">{formatCurrency(order.totalAmount)}</p>
                       {order.paidAmount > 0 && (
-                        <p className="mt-1 text-xs text-ink-faint">
+                        <p className="mt-1 text-meta text-ink-faint">
                           Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
                           {formatCurrency(order.paymentBalanceAmount)}
                         </p>
@@ -502,19 +502,19 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href={`/panel/orders/${order.id}`}
-                      className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm text-ink transition hover:border-line-strong hover:text-ink"
+                      className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body text-ink transition hover:border-line-strong hover:text-ink"
                     >
                       Ver pedido
                     </Link>
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm text-ink transition hover:border-line-strong hover:text-ink"
+                        className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body text-ink transition hover:border-line-strong hover:text-ink"
                       >
                         Editar pedido
                       </Link>
                     ) : (
-                      <span className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm text-ink-faint">
+                      <span className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body text-ink-faint">
                         Pedido bloqueado
                       </span>
                     )}
@@ -522,7 +522,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                 </article>
               ))
             ) : (
-              <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-sm text-ink-faint">
+              <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-body text-ink-faint">
                 {ordersError
                   ? "No se pudo cargar la lista."
                   : normalizedQuery
@@ -533,7 +533,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
           </div>
 
           {totalPages > 1 ? (
-            <div className="flex items-center justify-between gap-3 text-sm">
+            <div className="flex items-center justify-between gap-3 text-body">
               <p className="text-ink-faint">
                 {pageStart + 1}–{pageStart + pagedOrderRows.length} de {visibleOrderRows.length}
               </p>

@@ -157,7 +157,7 @@ function getVariantSummary(variant: FormVariant | ProductFamily["variants"][numb
 function StatusPill({ active }: { active: boolean }) {
   return (
     <span
-      className={`rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] ${
+      className={`rounded-control border px-3 py-1 text-meta font-medium ${
         active
           ? "border-accent bg-accent-soft text-accent"
           : "border-line bg-paper text-ink-soft"
@@ -183,46 +183,46 @@ function ProductCard({ expanded, onToggle, product }: ProductCardProps) {
         <button
           type="button"
           onClick={onToggle}
-          className="mt-7 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-paper text-xl text-ink-soft transition hover:border-line hover:text-ink"
+          className="mt-7 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-paper text-title text-ink-soft transition hover:border-line hover:text-ink"
           aria-expanded={expanded}
           aria-label={expanded ? `Ocultar variantes de ${product.name}` : `Mostrar variantes de ${product.name}`}
         >
           {expanded ? "⌄" : "›"}
         </button>
 
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-card border border-line bg-paper text-[10px] uppercase tracking-[0.28em] text-ink-faint">
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-card border border-line bg-paper text-meta text-ink-faint">
           Foto
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
-              <p className="truncate text-lg font-semibold text-ink">{product.name}</p>
-              <p className="mt-1 text-sm text-ink-soft">
+              <p className="truncate text-title font-semibold text-ink">{product.name}</p>
+              <p className="mt-1 text-body text-ink-soft">
                 {product.variants.length} variante{product.variants.length === 1 ? "" : "s"}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
               <StatusPill active={product.active} />
-              <span className="rounded-control border border-line bg-paper px-3 py-1 text-xs text-ink-soft">
+              <span className="rounded-control border border-line bg-paper px-3 py-1 text-meta text-ink-soft">
                 {stats.sellableCount ? "Vendible" : "Interna"}
               </span>
               {stats.bundleCount ? (
-                <span className="rounded-control border border-line bg-paper px-3 py-1 text-xs text-ink-soft">
+                <span className="rounded-control border border-line bg-paper px-3 py-1 text-meta text-ink-soft">
                   Mix
                 </span>
               ) : null}
               <Link
                 href={`/panel/products/${product.id}/edit`}
-                className="inline-flex h-9 items-center justify-center rounded-control border border-line bg-paper px-3 text-sm text-ink transition hover:border-line-strong hover:text-ink"
+                className="inline-flex h-9 items-center justify-center rounded-control border border-line bg-paper px-3 text-body text-ink transition hover:border-line-strong hover:text-ink"
               >
                 Editar
               </Link>
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-ink-soft">
+          <div className="mt-3 flex flex-wrap gap-2 text-meta text-ink-soft">
             <span className="rounded-control border border-line bg-paper px-3 py-1">
               {stats.sellableCount} vendible{stats.sellableCount === 1 ? "" : "s"}
             </span>
@@ -242,7 +242,7 @@ function ProductCard({ expanded, onToggle, product }: ProductCardProps) {
 
       {expanded ? (
         <div className="mt-5 rounded-control-[24px] border border-line bg-paper">
-          <div className="hidden grid-cols-[minmax(0,1.5fr)_140px_minmax(0,1fr)_88px] gap-4 border-b border-line px-4 py-3 text-xs uppercase tracking-[0.14em] text-ink-faint sm:grid">
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_140px_minmax(0,1fr)_88px] gap-4 border-b border-line px-4 py-3 text-meta text-ink-faint sm:grid">
             <p>Variante</p>
             <p>Tipo</p>
             <p>Precios</p>
@@ -256,32 +256,32 @@ function ProductCard({ expanded, onToggle, product }: ProductCardProps) {
                 className="grid gap-4 px-4 py-4 sm:grid-cols-[minmax(0,1.5fr)_140px_minmax(0,1fr)_88px] sm:items-center"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control border border-line bg-paper-muted text-[8px] uppercase tracking-[0.24em] text-ink-faint">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control border border-line bg-paper-muted text-meta text-ink-faint">
                     Img
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-ink">
+                    <p className="truncate text-body font-medium text-ink">
                       {variant.label}
                       {variant.isDefault ? " · default" : ""}
                     </p>
-                    <p className="mt-1 text-xs text-ink-faint sm:hidden">{getVariantSummary(variant)}</p>
+                    <p className="mt-1 text-meta text-ink-faint sm:hidden">{getVariantSummary(variant)}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-control border px-2.5 py-1 text-[11px] ${getVariantTone(variant)}`}>
+                  <span className={`rounded-control border px-2.5 py-1 text-meta ${getVariantTone(variant)}`}>
                     {variant.visibility === "sellable" ? "Vendible" : "Interna"}
                   </span>
                 </div>
 
-                <p className="text-sm text-ink-soft">
+                <p className="text-body text-ink-soft">
                   {formatCurrency(variant.cashPrice)} · {formatCurrency(variant.transferPrice)}
                 </p>
 
                 <button
                   type="button"
                   onClick={onToggle}
-                  className="inline-flex h-9 items-center justify-center justify-self-end rounded-control border border-line bg-paper-muted px-3 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
+                  className="inline-flex h-9 items-center justify-center justify-self-end rounded-control border border-line bg-paper-muted px-3 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
                   aria-label={`Ocultar variantes de ${product.name}`}
                 >
                   Ocultar
@@ -326,85 +326,85 @@ function VariantFields({
     <div className="rounded-control-[26px] border border-line bg-paper-muted p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-base font-semibold text-ink">{variant.label || `Variante ${index + 1}`}</p>
-          <p className="mt-1 text-sm text-ink-soft">Presentación, precios y composición interna.</p>
+          <p className="text-body font-semibold text-ink">{variant.label || `Variante ${index + 1}`}</p>
+          <p className="mt-1 text-body text-ink-soft">Presentación, precios y composición interna.</p>
         </div>
         <button
           type="button"
           onClick={() => onRemoveVariant(index)}
           disabled={isOnlyVariant}
-          className="rounded-control border border-danger-line bg-danger-bg px-3 py-2 text-sm text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-control border border-danger-line bg-danger-bg px-3 py-2 text-body text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-50"
         >
           Quitar
         </button>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Nombre de variante
           <input
             value={variant.label}
             onChange={(event) => onSetVariantField(index, { label: event.target.value })}
             placeholder="Ej: 500 g"
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Slug
           <input
             value={variant.slug}
             onChange={(event) => onSetVariantField(index, { slug: event.target.value })}
             placeholder="ej-500g"
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft sm:col-span-2">
+        <label className="grid gap-2 text-body text-ink-soft sm:col-span-2">
           Descripción
           <textarea
             rows={isMobile ? 3 : 2}
             value={variant.description}
             onChange={(event) => onSetVariantField(index, { description: event.target.value })}
-            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-sm text-ink outline-hidden focus:border-accent"
+            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Precio efectivo
           <input
             type="number"
             min="1"
             value={variant.cashPrice}
             onChange={(event) => onSetVariantField(index, { cashPrice: event.target.value })}
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Precio transferencia
           <input
             type="number"
             min="1"
             value={variant.transferPrice}
             onChange={(event) => onSetVariantField(index, { transferPrice: event.target.value })}
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Estado
           <select
             value={variant.active ? "active" : "inactive"}
             onChange={(event) => onSetVariantField(index, { active: event.target.value === "active" })}
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           >
             <option value="active">Activa</option>
             <option value="inactive">Inactiva</option>
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Visibilidad
           <select
             value={variant.visibility}
@@ -415,14 +415,14 @@ function VariantFields({
                   event.target.value === "internal" && variant.isDefault ? false : variant.isDefault
               })
             }
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           >
             <option value="sellable">Vendible</option>
             <option value="internal">Solo interna</option>
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Tipo
           <select
             value={variant.compositionType}
@@ -432,25 +432,25 @@ function VariantFields({
                 components: event.target.value === "bundle" ? variant.components : []
               })
             }
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           >
             <option value="simple">Simple</option>
             <option value="bundle">Compuesta</option>
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Orden
           <input
             type="number"
             min="0"
             value={variant.displayOrder}
             onChange={(event) => onSetVariantField(index, { displayOrder: event.target.value })}
-            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="flex items-center gap-3 rounded-card border border-line bg-paper px-4 py-3 text-sm text-ink-soft sm:col-span-2">
+        <label className="flex items-center gap-3 rounded-card border border-line bg-paper px-4 py-3 text-body text-ink-soft sm:col-span-2">
           <input
             type="radio"
             name="defaultVariant"
@@ -466,15 +466,15 @@ function VariantFields({
         <div className="mt-5 rounded-card border border-line bg-paper p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-ink">Componentes del mix</p>
-              <p className="mt-1 text-xs text-ink-faint">
+              <p className="text-body font-semibold text-ink">Componentes del mix</p>
+              <p className="mt-1 text-meta text-ink-faint">
                 El cliente compra esta variante y el sistema descuenta sus componentes simples.
               </p>
             </div>
             <button
               type="button"
               onClick={() => onAddComponent(index)}
-              className="rounded-control border border-warn-line bg-warn-bg px-4 py-2 text-xs text-warn-fg transition hover:border-warn-line hover:bg-warn-bg"
+              className="rounded-control border border-warn-line bg-warn-bg px-4 py-2 text-meta text-warn-fg transition hover:border-warn-line hover:bg-warn-bg"
             >
               Agregar componente
             </button>
@@ -494,7 +494,7 @@ function VariantFields({
                         componentVariantId: event.target.value
                       })
                     }
-                    className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+                    className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                   >
                     <option value="">Elegir variante simple</option>
                     {componentOptions.map((option) => (
@@ -514,20 +514,20 @@ function VariantFields({
                         quantity: event.target.value
                       })
                     }
-                    className="h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent"
+                    className="h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                   />
 
                   <button
                     type="button"
                     onClick={() => onRemoveComponent(index, componentIndex)}
-                    className="h-11 rounded-control border border-danger-line bg-danger-bg px-4 text-sm text-danger-fg transition hover:bg-danger-bg"
+                    className="h-11 rounded-control border border-danger-line bg-danger-bg px-4 text-body text-danger-fg transition hover:bg-danger-bg"
                   >
                     Quitar
                   </button>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-ink-faint">Todavía no definiste componentes para esta variante compuesta.</p>
+              <p className="text-body text-ink-faint">Todavía no definiste componentes para esta variante compuesta.</p>
             )}
           </div>
         </div>
@@ -833,27 +833,27 @@ export function ProductCatalogManager({
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Productos</h1>
-                <p className="mt-2 text-sm text-ink-soft sm:text-base">
+                <h1 className="text-display font-semibold tracking-tight text-ink">Productos</h1>
+                <p className="mt-2 text-body text-ink-soft">
                   Productos y presentaciones. Gestioná variantes y precios desde un solo lugar.
                 </p>
               </div>
               <Link
                 href="/panel/products/new"
-                className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
+                className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
               >
                 Nuevo producto
               </Link>
             </div>
 
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
-              <label className="grid gap-2 text-sm text-ink-soft">
+              <label className="grid gap-2 text-body text-ink-soft">
                 <span className="sr-only">Buscar productos</span>
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Buscar productos"
-                  className="h-12 rounded-card border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+                  className="h-12 rounded-card border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                 />
               </label>
               <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -866,7 +866,7 @@ export function ProductCatalogManager({
                     key={option.value}
                     type="button"
                     onClick={() => setStatusFilter(option.value as typeof statusFilter)}
-                    className={`rounded-full border px-4 py-2 text-sm transition ${
+                    className={`rounded-control border px-4 py-2 text-body transition ${
                       statusFilter === option.value
                         ? "border-ink bg-ink text-accent-fg"
                         : "border-line bg-paper text-ink-soft hover:border-line-strong"
@@ -876,7 +876,7 @@ export function ProductCatalogManager({
                   </button>
                 ))}
               </div>
-              <div className="hidden items-center justify-end text-sm text-ink-faint lg:flex">
+              <div className="hidden items-center justify-end text-body text-ink-faint lg:flex">
                 {filteredProducts.length} producto{filteredProducts.length === 1 ? "" : "s"}
               </div>
             </div>
@@ -893,7 +893,7 @@ export function ProductCatalogManager({
                 />
               ))
             ) : (
-              <div className="rounded-control-[28px] border border-dashed border-line bg-paper-muted px-4 py-10 text-sm text-ink-faint">
+              <div className="rounded-control-[28px] border border-dashed border-line bg-paper-muted px-4 py-10 text-body text-ink-faint">
                 No encontramos productos con ese filtro.
               </div>
             )}
@@ -916,21 +916,21 @@ export function ProductCatalogManager({
               <div className="border-b border-line px-5 py-4 sm:px-6 lg:px-7">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-3 text-sm text-ink-soft">
+                    <div className="flex items-center gap-3 text-body text-ink-soft">
                       <Link href="/panel/products" className="transition hover:text-ink">
                         ← Volver
                       </Link>
                     </div>
-                    <h2 className="mt-3 text-2xl font-semibold text-ink">
+                    <h2 className="mt-3 text-title font-semibold text-ink">
                       {editingId ? "Editar producto" : "Nuevo producto"}
                     </h2>
-                    <p className="mt-2 max-w-xl text-sm text-ink-soft">
+                    <p className="mt-2 max-w-xl text-body text-ink-soft">
                       Ajustá la información general, las variantes vendibles o internas y la composición de bundles.
                     </p>
                   </div>
                   <Link
                     href="/panel/products"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-control border border-line text-xl text-ink-soft transition hover:border-line-strong hover:text-ink"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-control border border-line text-title text-ink-soft transition hover:border-line-strong hover:text-ink"
                     aria-label="Cerrar editor"
                   >
                     ×
@@ -941,7 +941,7 @@ export function ProductCatalogManager({
                   <button
                     type="button"
                     onClick={() => setMobileEditorScreen("general")}
-                    className={`rounded-full px-4 py-2 text-sm transition ${
+                    className={`rounded-control px-4 py-2 text-body transition ${
                       mobileEditorScreen === "general"
                         ? "bg-ink text-accent-fg"
                         : "border border-line bg-paper text-ink-soft"
@@ -952,7 +952,7 @@ export function ProductCatalogManager({
                   <button
                     type="button"
                     onClick={() => setMobileEditorScreen("variants")}
-                    className={`rounded-full px-4 py-2 text-sm transition ${
+                    className={`rounded-control px-4 py-2 text-body transition ${
                       mobileEditorScreen === "variants" || mobileEditorScreen === "variant-form"
                         ? "bg-ink text-accent-fg"
                         : "border border-line bg-paper text-ink-soft"
@@ -968,58 +968,58 @@ export function ProductCatalogManager({
                   <div className={mobileEditorScreen === "general" ? "block" : "hidden lg:block"}>
                     <div className="rounded-control-[28px] border border-line bg-paper-muted p-4 sm:p-5">
                       <div>
-                        <h3 className="text-lg font-semibold text-ink">Información general</h3>
-                        <p className="mt-1 text-sm text-ink-soft">
+                        <h3 className="text-title font-semibold text-ink">Información general</h3>
+                        <p className="mt-1 text-body text-ink-soft">
                           Configurá el nombre comercial, descripción y estado del producto.
                         </p>
                       </div>
 
                       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                        <label className="grid gap-2 text-sm text-ink-soft sm:col-span-2">
+                        <label className="grid gap-2 text-body text-ink-soft sm:col-span-2">
                           Nombre del producto
                           <input
                             value={form.name}
                             onChange={(event) => setForm({ ...form, name: event.target.value })}
-                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                           />
                         </label>
 
-                        <label className="grid gap-2 text-sm text-ink-soft sm:col-span-2">
+                        <label className="grid gap-2 text-body text-ink-soft sm:col-span-2">
                           Slug
                           <input
                             value={form.slug}
                             onChange={(event) => setForm({ ...form, slug: event.target.value })}
-                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                           />
                         </label>
 
-                        <label className="grid gap-2 text-sm text-ink-soft sm:col-span-2">
+                        <label className="grid gap-2 text-body text-ink-soft sm:col-span-2">
                           Descripción
                           <textarea
                             rows={4}
                             value={form.description}
                             onChange={(event) => setForm({ ...form, description: event.target.value })}
-                            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-base text-ink outline-hidden focus:border-accent"
+                            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-body text-ink outline-hidden focus:border-accent"
                           />
                         </label>
 
-                        <label className="grid gap-2 text-sm text-ink-soft">
+                        <label className="grid gap-2 text-body text-ink-soft">
                           Orden
                           <input
                             type="number"
                             min="0"
                             value={form.displayOrder}
                             onChange={(event) => setForm({ ...form, displayOrder: event.target.value })}
-                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                           />
                         </label>
 
-                        <label className="grid gap-2 text-sm text-ink-soft">
+                        <label className="grid gap-2 text-body text-ink-soft">
                           Estado
                           <select
                             value={form.active ? "active" : "inactive"}
                             onChange={(event) => setForm({ ...form, active: event.target.value === "active" })}
-                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
+                            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                           >
                             <option value="active">Activo</option>
                             <option value="inactive">Inactivo</option>
@@ -1033,15 +1033,15 @@ export function ProductCatalogManager({
                     <div className="rounded-control-[28px] border border-line bg-paper-muted p-4 sm:p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="text-lg font-semibold text-ink">Variantes</h3>
-                          <p className="mt-1 text-sm text-ink-soft">
+                          <h3 className="text-title font-semibold text-ink">Variantes</h3>
+                          <p className="mt-1 text-body text-ink-soft">
                             Gestioná presentaciones, precios, visibilidad y componentes de cada variante.
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={addVariant}
-                          className="rounded-control border border-info-line bg-info-bg px-4 py-2 text-sm text-info-fg transition hover:border-info-line hover:bg-info-bg"
+                          className="rounded-control border border-info-line bg-info-bg px-4 py-2 text-body text-info-fg transition hover:border-info-line hover:bg-info-bg"
                         >
                           Agregar variante
                         </button>
@@ -1053,7 +1053,7 @@ export function ProductCatalogManager({
                             <button
                               type="button"
                               onClick={() => setMobileEditorScreen("variants")}
-                              className="text-sm text-ink-soft transition hover:text-ink"
+                              className="text-body text-ink-soft transition hover:text-ink"
                             >
                               ← Volver a variantes
                             </button>
@@ -1075,7 +1075,7 @@ export function ProductCatalogManager({
                             <button
                               type="button"
                               onClick={() => setMobileEditorScreen("variants")}
-                              className="inline-flex h-12 w-full items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-base text-ink-soft transition hover:border-line hover:text-ink"
+                              className="inline-flex h-12 w-full items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-body text-ink-soft transition hover:border-line hover:text-ink"
                             >
                               Listo
                             </button>
@@ -1091,28 +1091,28 @@ export function ProductCatalogManager({
                               >
                                 <div className="flex items-start justify-between gap-3">
                                   <div>
-                                    <p className="text-base font-semibold text-ink">
+                                    <p className="text-body font-semibold text-ink">
                                       {variant.label || `Variante ${index + 1}`}
                                     </p>
                                     <div className="mt-2 flex flex-wrap gap-2">
-                                      <span className={`rounded-control border px-2.5 py-1 text-[11px] ${getVariantTone(variant)}`}>
+                                      <span className={`rounded-control border px-2.5 py-1 text-meta ${getVariantTone(variant)}`}>
                                         {variant.active ? "Activa" : "Inactiva"}
                                       </span>
-                                      <span className="rounded-control border border-line bg-paper px-2.5 py-1 text-[11px] text-ink-soft">
+                                      <span className="rounded-control border border-line bg-paper px-2.5 py-1 text-meta text-ink-soft">
                                         {getVariantSummary(variant)}
                                       </span>
                                       {variant.isDefault ? (
-                                        <span className="rounded-control border border-warn-line bg-warn-bg px-2.5 py-1 text-[11px] text-warn-fg">
+                                        <span className="rounded-control border border-warn-line bg-warn-bg px-2.5 py-1 text-meta text-warn-fg">
                                           Default
                                         </span>
                                       ) : null}
                                     </div>
-                                    <p className="mt-3 text-sm text-ink-soft">
+                                    <p className="mt-3 text-body text-ink-soft">
                                       {formatCurrency(variant.cashPrice)} efectivo ·{" "}
                                       {formatCurrency(variant.transferPrice)} transf.
                                     </p>
                                   </div>
-                                  <span className="text-xl text-ink-faint">›</span>
+                                  <span className="text-title text-ink-faint">›</span>
                                 </div>
                               </button>
                             ))}
@@ -1148,14 +1148,14 @@ export function ProductCatalogManager({
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <Link
                       href="/panel/products"
-                      className="inline-flex h-12 items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-base text-ink-soft transition hover:border-line hover:text-ink"
+                      className="inline-flex h-12 items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-body text-ink-soft transition hover:border-line hover:text-ink"
                     >
                       Cancelar
                     </Link>
                     <button
                       type="submit"
                       disabled={isPending}
-                      className="inline-flex h-12 items-center justify-center rounded-control bg-accent px-5 text-base font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-12 items-center justify-center rounded-control bg-accent px-5 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isPending ? "Guardando..." : editingId ? "Guardar cambios" : "Crear producto"}
                     </button>
@@ -1164,7 +1164,7 @@ export function ProductCatalogManager({
                         type="button"
                         onClick={handleDelete}
                         disabled={isPending}
-                        className="inline-flex h-12 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-5 text-base text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-12 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-5 text-body text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Borrar producto
                       </button>
@@ -1172,7 +1172,7 @@ export function ProductCatalogManager({
                       <button
                         type="button"
                         onClick={resetToNewProduct}
-                        className="hidden lg:inline-flex h-12 items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-base text-ink-soft transition hover:border-line hover:text-ink"
+                        className="hidden lg:inline-flex h-12 items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-body text-ink-soft transition hover:border-line hover:text-ink"
                       >
                         Limpiar
                       </button>
@@ -1180,9 +1180,9 @@ export function ProductCatalogManager({
                   </div>
 
                   {message ? (
-                    <p className="text-sm text-ink-soft sm:max-w-xs sm:text-right">{message}</p>
+                    <p className="text-body text-ink-soft sm:max-w-xs sm:text-right">{message}</p>
                   ) : (
-                    <p className="text-sm text-ink-faint">
+                    <p className="text-body text-ink-faint">
                       {form.variants.length} variante{form.variants.length === 1 ? "" : "s"} en este producto.
                     </p>
                   )}

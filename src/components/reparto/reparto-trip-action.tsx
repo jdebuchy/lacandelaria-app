@@ -43,7 +43,7 @@ export function RepartoTripAction({ action, tripId }: RepartoTripActionProps) {
   return (
     <div>
       <button
-        className={`inline-flex h-16 w-full items-center justify-center rounded-card text-lg font-bold transition disabled:opacity-50 ${
+        className={`inline-flex h-16 w-full items-center justify-center rounded-card text-title font-bold transition disabled:opacity-50 ${
           action === "start"
             ? "bg-accent text-accent-fg active:bg-accent"
             : "border-2 border-line-strong text-ink active:bg-paper-raised"
@@ -55,7 +55,7 @@ export function RepartoTripAction({ action, tripId }: RepartoTripActionProps) {
         {busy ? COPY[action].pending : COPY[action].idle}
       </button>
       {message ? (
-        <p className="mt-3 rounded-card border border-danger-line bg-danger-bg px-4 py-3 text-[15px] leading-6 text-danger-fg">
+        <p className="mt-3 rounded-card border border-danger-line bg-danger-bg px-4 py-3 text-body leading-6 text-danger-fg">
           {message}
         </p>
       ) : null}

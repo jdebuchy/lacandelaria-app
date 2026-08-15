@@ -42,7 +42,7 @@ export function OrderFilters({ activeStatus }: { activeStatus: string }) {
         <button
           key={opt.value}
           onClick={() => handleSelect(opt.value)}
-          className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+          className={`rounded-control border px-3 py-1 text-meta font-medium transition ${
             activeStatus === opt.value
               ? "border-line-strong bg-paper-raised text-ink"
               : "border-line bg-transparent text-ink-soft hover:border-line-strong hover:text-ink-soft"

@@ -510,16 +510,16 @@ export default async function OrderDetailPage(context: Params) {
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <Link href="/panel/orders" className="text-sm text-ink-soft transition hover:text-ink">
+            <Link href="/panel/orders" className="text-body text-ink-soft transition hover:text-ink">
               Pedidos
             </Link>
-            <p className="mt-2 text-sm font-medium text-ink-soft">
+            <p className="mt-2 text-body font-medium text-ink-soft">
               Pedido {formatOrderNumber(order.order_number)}
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            <h1 className="mt-1 text-display font-semibold tracking-tight text-ink">
               {customerName}
             </h1>
-            <p className="mt-2 text-sm text-ink-soft">
+            <p className="mt-2 text-body text-ink-soft">
               {formatWhatsAppPhone(customerPhone)} · {getChannelLabel(order.sales_channel)}
             </p>
           </div>
@@ -527,7 +527,7 @@ export default async function OrderDetailPage(context: Params) {
             {orderIsEditable ? (
               <Link
                 href={`/panel/orders/${order.id}/edit`}
-                className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
+                className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
               >
                 Editar pedido
               </Link>
@@ -537,32 +537,32 @@ export default async function OrderDetailPage(context: Params) {
 
         <div className="grid gap-3 md:grid-cols-4">
           <article className="rounded-card border border-line bg-paper p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Pedido</p>
-            <span className={`mt-3 inline-flex rounded-control border px-3 py-1 text-sm ${statusBadgeClass(orderStatus)}`}>
+            <p className="text-meta text-ink-faint">Pedido</p>
+            <span className={`mt-3 inline-flex rounded-control border px-3 py-1 text-body ${statusBadgeClass(orderStatus)}`}>
               {getOrderStatusLabel(orderStatus)}
             </span>
           </article>
           <article className="rounded-card border border-line bg-paper p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Cobro</p>
-            <span className={`mt-3 inline-flex rounded-control border px-3 py-1 text-sm ${paymentBadgeClass(paymentSummary.paymentStatus)}`}>
+            <p className="text-meta text-ink-faint">Cobro</p>
+            <span className={`mt-3 inline-flex rounded-control border px-3 py-1 text-body ${paymentBadgeClass(paymentSummary.paymentStatus)}`}>
               {getPaymentStatusLabel(paymentSummary.paymentStatus)}
             </span>
           </article>
           <article className="rounded-card border border-line bg-paper p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Total</p>
-            <p className="mt-3 text-2xl font-semibold text-ink">{formatCurrency(paymentSummary.totalAmount)}</p>
+            <p className="text-meta text-ink-faint">Total</p>
+            <p className="mt-3 text-title font-semibold text-ink">{formatCurrency(paymentSummary.totalAmount)}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Saldo</p>
-            <p className="mt-3 text-2xl font-semibold text-warn-fg">{formatCurrency(paymentSummary.balanceAmount)}</p>
+            <p className="text-meta text-ink-faint">Saldo</p>
+            <p className="mt-3 text-title font-semibold text-warn-fg">{formatCurrency(paymentSummary.balanceAmount)}</p>
           </article>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
           <div className="grid gap-6">
             <section className="rounded-card border border-line bg-paper p-5">
-              <h2 className="text-lg font-semibold text-ink">Detalle</h2>
-              <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+              <h2 className="text-title font-semibold text-ink">Detalle</h2>
+              <div className="mt-5 grid gap-4 text-body sm:grid-cols-2">
                 <div>
                   <p className="text-ink-faint">Productos</p>
                   <p className="mt-1 text-ink">{formatItemsSummary(itemSummaryRows)}</p>
@@ -609,12 +609,12 @@ export default async function OrderDetailPage(context: Params) {
             <section className="rounded-card border border-line bg-paper p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-ink">Cobros</h2>
-                  <p className="mt-1 text-sm text-ink-faint">
+                  <h2 className="text-title font-semibold text-ink">Cobros</h2>
+                  <p className="mt-1 text-body text-ink-faint">
                     Cobrado {formatCurrency(paymentSummary.paidAmount)} de {formatCurrency(paymentSummary.totalAmount)}
                   </p>
                 </div>
-                <span className="text-sm text-warn-fg">Saldo {formatCurrency(paymentSummary.balanceAmount)}</span>
+                <span className="text-body text-warn-fg">Saldo {formatCurrency(paymentSummary.balanceAmount)}</span>
               </div>
 
               {canManagePayments && paymentSummary.balanceAmount > 0 ? (
@@ -638,16 +638,16 @@ export default async function OrderDetailPage(context: Params) {
                           <p className="font-medium text-ink">
                             {formatCurrency(Number(payment.amount ?? 0))} · {getPaymentMethodLabel(payment.method)}
                           </p>
-                          <p className="mt-1 text-xs text-ink-faint">
+                          <p className="mt-1 text-meta text-ink-faint">
                             {payment.status === "voided"
                               ? `Anulado ${formatDateTime(payment.voided_at)}`
                               : formatDateTime(payment.received_at)}
                           </p>
                           {payment.reference ? (
-                            <p className="mt-2 text-sm text-ink-soft">{payment.reference}</p>
+                            <p className="mt-2 text-body text-ink-soft">{payment.reference}</p>
                           ) : null}
                           {payment.void_reason ? (
-                            <p className="mt-2 text-sm text-danger-fg">{payment.void_reason}</p>
+                            <p className="mt-2 text-body text-danger-fg">{payment.void_reason}</p>
                           ) : null}
                         </div>
                         {canManagePayments && payment.status === "received" ? (
@@ -662,7 +662,7 @@ export default async function OrderDetailPage(context: Params) {
                     </article>
                   ))
                 ) : (
-                  <p className="rounded-card border border-dashed border-line px-4 py-6 text-sm text-ink-faint">
+                  <p className="rounded-card border border-dashed border-line px-4 py-6 text-body text-ink-faint">
                     No hay cobros registrados.
                   </p>
                 )}
@@ -672,15 +672,15 @@ export default async function OrderDetailPage(context: Params) {
 
           <div className="grid content-start gap-6">
             <section className="rounded-card border border-line bg-paper p-5">
-              <h2 className="text-lg font-semibold text-ink">Logística</h2>
-              <div className="mt-5 grid gap-3 text-sm">
+              <h2 className="text-title font-semibold text-ink">Logística</h2>
+              <div className="mt-5 grid gap-3 text-body">
                 <div className="rounded-card bg-paper-muted p-3">
                   <p className="text-ink-faint">Entrega</p>
                   <p className="mt-1 text-ink">
                     {delivery?.delivery_status ? getDeliveryStatusLabel(delivery.delivery_status) : "-"}
                   </p>
                   {delivery?.failure_reason ? (
-                    <p className="mt-1 text-xs text-danger-fg">
+                    <p className="mt-1 text-meta text-danger-fg">
                       {getDeliveryFailureReasonLabel(delivery.failure_reason)}
                     </p>
                   ) : null}
@@ -706,31 +706,31 @@ export default async function OrderDetailPage(context: Params) {
                   (tripRows ?? []).map((row) => {
                     const trip = takeSingleRelation(row.delivery_trips);
                     return (
-                      <article key={row.id} className="rounded-card border border-line bg-paper-muted p-3 text-sm">
+                      <article key={row.id} className="rounded-card border border-line bg-paper-muted p-3 text-body">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-medium text-ink">
                               {formatTripNumber(trip?.trip_number)}
                             </p>
-                            <p className="mt-1 text-xs text-ink-faint">
+                            <p className="mt-1 text-meta text-ink-faint">
                               {trip ? `${formatDate(trip.scheduled_date)} · ${getDeliveryTripStatusLabel(trip.status)}` : "-"}
                             </p>
                           </div>
                           {!row.released_at ? (
                             <Link
                               href={`/panel/logistics/delivery/${row.delivery_trip_id}`}
-                              className="text-xs text-info-fg transition hover:text-info-fg"
+                              className="text-meta text-info-fg transition hover:text-info-fg"
                             >
                               Ver
                             </Link>
                           ) : null}
                         </div>
-                        <p className="mt-2 text-xs text-ink-soft">
+                        <p className="mt-2 text-meta text-ink-soft">
                           Parada {row.sequence_number}
                           {row.stop_status ? ` · ${getDeliveryStatusLabel(row.stop_status)}` : ""}
                         </p>
                         {row.released_at ? (
-                          <p className="mt-2 text-xs text-warn-fg">
+                          <p className="mt-2 text-meta text-warn-fg">
                             Liberado {formatDateTime(row.released_at)}
                           </p>
                         ) : null}
@@ -738,7 +738,7 @@ export default async function OrderDetailPage(context: Params) {
                     );
                   })
                 ) : (
-                  <p className="rounded-card border border-dashed border-line px-4 py-6 text-sm text-ink-faint">
+                  <p className="rounded-card border border-dashed border-line px-4 py-6 text-body text-ink-faint">
                     Sin viajes asociados.
                   </p>
                 )}
@@ -746,27 +746,27 @@ export default async function OrderDetailPage(context: Params) {
             </section>
 
             <section className="rounded-card border border-line bg-paper p-5">
-              <h2 className="text-lg font-semibold text-ink">Actividad</h2>
+              <h2 className="text-title font-semibold text-ink">Actividad</h2>
               <div className="mt-5">
                 {displayedActivities.length ? (
                   <ol className="divide-y divide-line overflow-hidden rounded-card border border-line bg-paper-muted">
                     {displayedActivities.map((activity) => (
-                      <li key={activity.id} className="px-3 py-3 text-sm">
+                      <li key={activity.id} className="px-3 py-3 text-body">
                         <p className="text-ink">
-                          <span className="font-mono text-xs text-ink-faint">
+                          <span className="font-mono text-meta text-ink-faint">
                             {formatActivityDateTime(activity.createdAt)}
                           </span>{" "}
                           <span className="font-medium">{activity.actorName}</span>{" "}
                           <span>{activity.action}</span>
                         </p>
                         {activity.detail ? (
-                          <p className="mt-1 pl-[5.8rem] text-xs text-ink-faint">{activity.detail}</p>
+                          <p className="mt-1 pl-[5.8rem] text-meta text-ink-faint">{activity.detail}</p>
                         ) : null}
                       </li>
                     ))}
                   </ol>
                 ) : (
-                  <p className="rounded-card border border-dashed border-line px-4 py-6 text-sm text-ink-faint">
+                  <p className="rounded-card border border-dashed border-line px-4 py-6 text-body text-ink-faint">
                     Todavía no hay actividades registradas para este pedido.
                   </p>
                 )}

@@ -261,7 +261,7 @@ export default async function DesignPage() {
         <Card>
           <div className="flex flex-wrap items-end gap-6">
             {[faTruck, faBoxOpen, faInbox, faMagnifyingGlass, faPencil, faPlus].map((icon, index) => (
-              <Icon className="text-2xl text-ink-soft" icon={icon} key={index} />
+              <Icon className="text-title text-ink-soft" icon={icon} key={index} />
             ))}
             <span className="text-body text-ink">
               <Icon className="text-ink-soft" icon={faTruck} /> dentro de texto body

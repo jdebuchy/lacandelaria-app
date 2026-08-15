@@ -9,8 +9,8 @@ export function ProductCatalogList({ products }: ProductCatalogListProps) {
   return (
     <section className="rounded-card border border-line bg-paper p-6">
       <div>
-        <h2 className="text-xl font-semibold text-ink">Catálogo actual</h2>
-        <p className="mt-1 text-sm text-ink-soft">
+        <h2 className="text-title font-semibold text-ink">Catálogo actual</h2>
+        <p className="mt-1 text-body text-ink-soft">
           Productos base con variantes vendibles, internas y bundles configurables.
         </p>
       </div>
@@ -25,13 +25,13 @@ export function ProductCatalogList({ products }: ProductCatalogListProps) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-base font-semibold text-ink">{product.name}</p>
-                  <p className="mt-1 text-sm text-ink-soft">
+                  <p className="text-body font-semibold text-ink">{product.name}</p>
+                  <p className="mt-1 text-body text-ink-soft">
                     {product.variants.length} variante{product.variants.length === 1 ? "" : "s"}
                   </p>
                 </div>
                 <span
-                  className={`rounded-full border px-3 py-1 text-xs ${
+                  className={`rounded-control border px-3 py-1 text-meta ${
                     product.active
                       ? "border-accent bg-accent-soft text-accent"
                       : "border-line bg-paper text-ink-soft"
@@ -43,7 +43,7 @@ export function ProductCatalogList({ products }: ProductCatalogListProps) {
 
               <div className="mt-4 space-y-2">
                 {product.variants.map((variant) => (
-                  <div key={variant.id} className="rounded-card bg-paper p-3 text-sm">
+                  <div key={variant.id} className="rounded-card bg-paper p-3 text-body">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-medium text-ink">
                         {variant.label}
@@ -59,7 +59,7 @@ export function ProductCatalogList({ products }: ProductCatalogListProps) {
                       {variant.transferPrice.toLocaleString("es-AR")} transferencia
                     </p>
                     {variant.components.length ? (
-                      <p className="mt-1 text-xs text-ink-faint">
+                      <p className="mt-1 text-meta text-ink-faint">
                         Componentes:{" "}
                         {variant.components
                           .map((component) => `${component.componentFamilyName} ${component.componentLabel}`)
@@ -72,7 +72,7 @@ export function ProductCatalogList({ products }: ProductCatalogListProps) {
             </Link>
           ))
         ) : (
-          <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-sm text-ink-faint">
+          <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-body text-ink-faint">
             Todavía no hay productos cargados.
           </div>
         )}

@@ -29,14 +29,14 @@ const FAILURE_REASONS: DeliveryFailureReason[] = [
 ];
 
 const PRIMARY_BUTTON =
-  "inline-flex h-16 w-full items-center justify-center rounded-card bg-accent text-lg font-bold text-accent-fg transition active:bg-accent disabled:opacity-50";
+  "inline-flex h-16 w-full items-center justify-center rounded-card bg-accent text-title font-bold text-accent-fg transition active:bg-accent disabled:opacity-50";
 const DANGER_BUTTON =
   "inline-flex h-14 w-full items-center justify-center rounded-card border-2 border-danger-line text-[17px] font-semibold text-danger-fg transition active:bg-danger-bg disabled:opacity-50";
 const CHOICE_BUTTON =
   "flex h-16 w-full flex-col items-center justify-center rounded-card bg-ink font-bold text-accent-fg transition active:bg-white disabled:opacity-50";
 const QUIET_BUTTON =
   "inline-flex h-14 w-full items-center justify-center rounded-card border border-line-strong text-[17px] font-semibold text-ink transition active:bg-paper-raised disabled:opacity-50";
-const LINK_BUTTON = "text-[15px] font-medium text-ink-soft underline underline-offset-4";
+const LINK_BUTTON = "text-body font-medium text-ink-soft underline underline-offset-4";
 
 export function StopSheet({
   canAct,
@@ -143,10 +143,10 @@ export function StopSheet({
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
           </svg>
         </button>
-        <p className="flex-1 text-sm font-medium text-ink-soft">
+        <p className="flex-1 text-body font-medium text-ink-soft">
           Parada {stop.sequenceNumber} de {totalStops}
         </p>
-        <p className="pr-2 text-sm font-semibold tabular-nums text-ink-soft">
+        <p className="pr-2 text-body font-semibold tabular-nums text-ink-soft">
           {formatOrderNumber(stop.orderNumber)}
         </p>
       </header>
@@ -155,8 +155,8 @@ export function StopSheet({
         {step === "cobro" ? (
           <>
             <p className="text-[17px] text-ink-soft">Entregaste a</p>
-            <p className="text-2xl font-bold text-ink">{stop.customerName}</p>
-            <h2 className="mt-8 text-xl font-bold text-ink">¿Cobraste?</h2>
+            <p className="text-title font-bold text-ink">{stop.customerName}</p>
+            <h2 className="mt-8 text-title font-bold text-ink">¿Cobraste?</h2>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 className={CHOICE_BUTTON}
@@ -164,8 +164,8 @@ export function StopSheet({
                 onClick={() => submitDelivered({ amount: cashAmount, method: "cash" })}
                 type="button"
               >
-                <span className="text-[15px]">EFECTIVO</span>
-                <span className="text-lg tabular-nums">{formatCurrency(cashAmount)}</span>
+                <span className="text-body">EFECTIVO</span>
+                <span className="text-title tabular-nums">{formatCurrency(cashAmount)}</span>
               </button>
               <button
                 className={CHOICE_BUTTON}
@@ -173,8 +173,8 @@ export function StopSheet({
                 onClick={() => submitDelivered({ amount: transferAmount, method: "transfer" })}
                 type="button"
               >
-                <span className="text-[15px]">TRANSFERENCIA</span>
-                <span className="text-lg tabular-nums">{formatCurrency(transferAmount)}</span>
+                <span className="text-body">TRANSFERENCIA</span>
+                <span className="text-title tabular-nums">{formatCurrency(transferAmount)}</span>
               </button>
             </div>
 
@@ -185,11 +185,11 @@ export function StopSheet({
             </div>
 
             {showAmountInput ? (
-              <label className="mt-6 block text-sm text-ink-soft">
+              <label className="mt-6 block text-body text-ink-soft">
                 Monto a cobrar
                 <input
                   autoFocus
-                  className="mt-2 h-14 w-full rounded-card border border-line-strong bg-paper px-4 text-xl tabular-nums text-ink outline-hidden focus:border-warn-line"
+                  className="mt-2 h-14 w-full rounded-card border border-line-strong bg-paper px-4 text-title tabular-nums text-ink outline-hidden focus:border-warn-line"
                   inputMode="decimal"
                   min="0"
                   onChange={(event) => setCustomAmount(event.target.value)}
@@ -217,7 +217,7 @@ export function StopSheet({
 
         {step === "motivo" ? (
           <>
-            <h2 className="text-xl font-bold text-ink">¿Qué pasó?</h2>
+            <h2 className="text-title font-bold text-ink">¿Qué pasó?</h2>
             <div className="mt-4 grid gap-2">
               {FAILURE_REASONS.map((reason) => (
                 <button
@@ -231,7 +231,7 @@ export function StopSheet({
                 </button>
               ))}
             </div>
-            <label className="mt-5 block text-sm text-ink-soft">
+            <label className="mt-5 block text-body text-ink-soft">
               Comentario (obligatorio solo en “Otro”)
               <input
                 className="mt-2 h-14 w-full rounded-card border border-line-strong bg-paper px-4 text-[17px] text-ink outline-hidden placeholder:text-ink-soft focus:border-line-strong"
@@ -241,7 +241,7 @@ export function StopSheet({
                 value={note}
               />
             </label>
-            <p className="mt-4 text-sm leading-6 text-ink-soft">
+            <p className="mt-4 text-body leading-6 text-ink-soft">
               El pedido vuelve a logística para reprogramarlo y sale de este viaje.
             </p>
             <div className="mt-5">
@@ -255,13 +255,13 @@ export function StopSheet({
         {step === "resuelta" ? (
           <>
             <span
-              className={`inline-flex items-center rounded-control px-3 py-1 text-sm font-bold text-accent-fg ${
+              className={`inline-flex items-center rounded-control px-3 py-1 text-body font-bold text-accent-fg ${
                 stop.deliveryStatus === "delivered" ? "bg-accent" : "bg-danger-bg"
               }`}
             >
               {stop.deliveryStatus === "delivered" ? "Entregado" : "No entregado"}
             </span>
-            <h2 className="mt-3 text-2xl font-bold uppercase leading-tight text-ink">
+            <h2 className="mt-3 text-title font-bold uppercase leading-tight text-ink">
               {stop.addressLine || stop.addressSummary}
             </h2>
             <p className="mt-1 text-[17px] text-ink-soft">{stop.customerName}</p>
@@ -275,7 +275,7 @@ export function StopSheet({
                 Cobrado {formatCurrency(stop.paidAmount)}
               </p>
             ) : null}
-            {stop.notes ? <p className="mt-3 text-[15px] text-ink-soft">{stop.notes}</p> : null}
+            {stop.notes ? <p className="mt-3 text-body text-ink-soft">{stop.notes}</p> : null}
 
             <div className="mt-8">
               {stop.deliveryStatus === "delivered" && canAct ? (
@@ -283,14 +283,14 @@ export function StopSheet({
                   <button className={QUIET_BUTTON} disabled={pending} onClick={reopenStop} type="button">
                     {pending ? "Corrigiendo…" : "Corregir: volver a pendiente"}
                   </button>
-                  <p className="mt-3 text-sm leading-6 text-ink-soft">
+                  <p className="mt-3 text-body leading-6 text-ink-soft">
                     {ownPayments.length
                       ? "Se anula el cobro que registraste y la parada vuelve a quedar pendiente."
                       : "La parada vuelve a quedar pendiente."}
                   </p>
                 </>
               ) : (
-                <p className="text-sm leading-6 text-ink-soft">
+                <p className="text-body leading-6 text-ink-soft">
                   {stop.deliveryStatus === "failed"
                     ? "Esta parada ya salió del viaje. Para corregirla, avisá a la oficina."
                     : "El viaje ya no está en curso."}
@@ -302,11 +302,11 @@ export function StopSheet({
 
         {step === "detalle" ? (
           <>
-            <h2 className="text-3xl font-bold uppercase leading-none tracking-tight text-ink">
+            <h2 className="text-display font-bold uppercase leading-none tracking-tight text-ink">
               {stop.addressLine || stop.addressSummary}
             </h2>
             {stop.locality ? <p className="mt-2 text-[17px] text-ink-soft">{stop.locality}</p> : null}
-            <p className="mt-3 text-xl font-semibold text-ink">{stop.customerName}</p>
+            <p className="mt-3 text-title font-semibold text-ink">{stop.customerName}</p>
             {stop.deliveryWindow ? (
               <p className="mt-2 text-[17px] font-semibold tabular-nums text-info-fg">
                 Franja {stop.deliveryWindow}
@@ -314,7 +314,7 @@ export function StopSheet({
             ) : null}
 
             {stop.deliveryNotes ? (
-              <p className="mt-4 rounded-card border border-info-line bg-info-bg px-4 py-3 text-[15px] leading-6 text-info-fg">
+              <p className="mt-4 rounded-card border border-info-line bg-info-bg px-4 py-3 text-body leading-6 text-info-fg">
                 ⚑ {stop.deliveryNotes}
               </p>
             ) : null}
@@ -329,14 +329,14 @@ export function StopSheet({
               }`}
             >
               <span
-                className={`text-sm font-bold uppercase tracking-wide ${
+                className={`text-body font-bold uppercase tracking-wide ${
                   nothingToCollect ? "text-ink-soft" : "text-accent-fg"
                 }`}
               >
                 {nothingToCollect ? "Ya pagó" : "A cobrar"}
               </span>
               {nothingToCollect ? null : (
-                <span className="text-2xl font-bold tabular-nums text-accent-fg">
+                <span className="text-title font-bold tabular-nums text-accent-fg">
                   {formatCurrency(
                     stop.paymentMethodExpected === "transfer"
                       ? stop.transferPaymentBalanceAmount
@@ -348,7 +348,7 @@ export function StopSheet({
 
             <div className="mt-4 flex gap-2">
               <a
-                className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-[15px] font-semibold text-ink transition active:bg-paper-raised"
+                className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-body font-semibold text-ink transition active:bg-paper-raised"
                 href={buildNavigationHref(stop)}
                 rel="noreferrer"
                 target="_blank"
@@ -357,7 +357,7 @@ export function StopSheet({
               </a>
               {whatsappHref ? (
                 <a
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-[15px] font-semibold text-ink transition active:bg-paper-raised"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-body font-semibold text-ink transition active:bg-paper-raised"
                   href={whatsappHref}
                   rel="noreferrer"
                   target="_blank"
@@ -370,7 +370,7 @@ export function StopSheet({
         ) : null}
 
         {error ? (
-          <p className="mt-5 rounded-card border border-danger-line bg-danger-bg px-4 py-3 text-[15px] leading-6 text-danger-fg">
+          <p className="mt-5 rounded-card border border-danger-line bg-danger-bg px-4 py-3 text-body leading-6 text-danger-fg">
             {error}
           </p>
         ) : null}
@@ -404,7 +404,7 @@ export function StopSheet({
               </button>
             </div>
           ) : (
-            <p className="py-2 text-center text-[15px] text-ink-soft">
+            <p className="py-2 text-center text-body text-ink-soft">
               Iniciá el reparto para marcar entregas.
             </p>
           )}

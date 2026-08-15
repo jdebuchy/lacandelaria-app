@@ -44,7 +44,7 @@ export function TripRibbon({ collectedAmount, onSelect, stops }: TripRibbonProps
           />
         ))}
       </div>
-      <div className="mt-2 flex items-baseline justify-between text-sm">
+      <div className="mt-2 flex items-baseline justify-between text-body">
         <p className="font-semibold tabular-nums text-ink">
           {resolved}
           <span className="text-ink-soft">/{stops.length}</span>
@@ -52,7 +52,7 @@ export function TripRibbon({ collectedAmount, onSelect, stops }: TripRibbonProps
         </p>
         <p className="font-semibold tabular-nums text-warn-fg">
           {formatCurrency(collectedAmount)}
-          <span className="ml-2 text-xs font-normal text-ink-soft">cobrado</span>
+          <span className="ml-2 text-meta font-normal text-ink-soft">cobrado</span>
         </p>
       </div>
     </div>

@@ -16,13 +16,13 @@ export default async function PublicOrderPage() {
     <main>
       <section className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-16">
         <div className="space-y-4">
-          <span className="inline-flex rounded-control border border-warn-line bg-warn-bg px-3 py-1 text-sm text-warn-fg">
+          <span className="inline-flex rounded-control border border-warn-line bg-warn-bg px-3 py-1 text-body text-warn-fg">
             Pedido publico sin login
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1 className="text-display font-semibold tracking-tight text-ink">
             Hace tu pedido
           </h1>
-          <p className="max-w-2xl text-base leading-7 text-ink-soft">
+          <p className="max-w-2xl text-body leading-7 text-ink-soft">
             El cliente no necesita usuario ni password. Completa sus datos y el pedido entra
             pendiente de confirmacion para que el equipo valide stock, zona y entrega.
           </p>

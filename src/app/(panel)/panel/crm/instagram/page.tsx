@@ -98,23 +98,23 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-ink-faint">CRM</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <p className="text-body text-ink-faint">CRM</p>
+              <h1 className="mt-2 text-display font-semibold tracking-tight text-ink">
                 Instagram Ads Inbox
               </h1>
-              <p className="mt-2 max-w-3xl text-sm text-ink-soft">
+              <p className="mt-2 max-w-3xl text-body text-ink-soft">
                 Bandeja de DMs iniciados por usuarios desde Instagram Direct y campanas Click to Message.
                 Fase 1 guarda webhooks y mensajes entrantes; no envia respuestas ni automatizaciones.
               </p>
             </div>
             <Link
               href="/panel/crm/whatsapp"
-              className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong hover:text-ink"
+              className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong hover:text-ink"
             >
               Ver WhatsApp
             </Link>
           </div>
-          <div className="flex flex-wrap gap-2 text-sm">
+          <div className="flex flex-wrap gap-2 text-body">
             <Link
               href="/panel/crm/whatsapp"
               className="rounded-control border border-line px-4 py-2 text-ink-soft transition hover:border-line hover:text-ink"
@@ -135,22 +135,22 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
             <div className="border-b border-line p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xl font-semibold text-ink">Instagram</p>
-                  <p className="mt-1 text-xs text-ink-faint">
+                  <p className="text-title font-semibold text-ink">Instagram</p>
+                  <p className="mt-1 text-meta text-ink-faint">
                     {conversations.length} conversaciones · {conversations.filter((row) => row.status === "human_needed").length} humanas
                   </p>
                 </div>
-                <span className="rounded-control border border-line bg-paper px-3 py-1.5 text-xs text-ink-soft">
+                <span className="rounded-control border border-line bg-paper px-3 py-1.5 text-meta text-ink-soft">
                   Solo lectura
                 </span>
               </div>
 
-              <div className="mt-5 flex h-12 items-center gap-3 rounded-control bg-paper px-4 text-sm text-ink-faint">
+              <div className="mt-5 flex h-12 items-center gap-3 rounded-control bg-paper px-4 text-body text-ink-faint">
                 <span aria-hidden="true">#</span>
                 <span>Campanas y mensajes entrantes</span>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2 text-sm">
+              <div className="mt-4 flex flex-wrap gap-2 text-body">
                 <span className="rounded-control border border-line bg-paper-raised px-4 py-2 text-ink">
                   Todas
                 </span>
@@ -176,33 +176,33 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                         isActive ? "bg-paper" : "hover:bg-paper"
                       }`}
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-paper-raised text-sm font-semibold text-ink">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-paper-raised text-body font-semibold text-ink">
                         {getCustomerName(conversation).replace(/^@/, "").slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-ink">
+                          <p className="truncate text-body font-semibold text-ink">
                             {getCustomerName(conversation)}
                           </p>
                           {conversation.status === "human_needed" ? (
-                            <span className="rounded-control bg-danger-bg px-2 py-0.5 text-[10px] text-danger-fg">
+                            <span className="rounded-control bg-danger-bg px-2 py-0.5 text-meta text-danger-fg">
                               Humano
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-1 truncate text-sm text-ink-faint">
+                        <p className="mt-1 truncate text-body text-ink-faint">
                           {getLatestMessage(conversation)}
                         </p>
-                        <p className="mt-1 truncate text-xs text-ink-faint">
+                        <p className="mt-1 truncate text-meta text-ink-faint">
                           {getInstagramStatusLabel(conversation.status)} · {getCampaignLabel(conversation)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-ink-faint">
+                        <p className="text-meta text-ink-faint">
                           {formatTime(conversation.last_message_at || conversation.updated_at)}
                         </p>
                         {!conversation.automation_enabled ? (
-                          <span className="mt-2 inline-flex rounded-control border border-line px-2 py-0.5 text-[10px] text-ink-faint">
+                          <span className="mt-2 inline-flex rounded-control border border-line px-2 py-0.5 text-meta text-ink-faint">
                             IA off
                           </span>
                         ) : null}
@@ -211,7 +211,7 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                   );
                 })
               ) : (
-                <div className="px-6 py-12 text-center text-sm text-ink-faint">
+                <div className="px-6 py-12 text-center text-body text-ink-faint">
                   Todavia no hay conversaciones. Cuando Meta envie un DM por webhook, va a aparecer aca.
                 </div>
               )}
@@ -223,17 +223,17 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
               <>
                 <header className="flex items-center justify-between gap-3 border-b border-line bg-paper-muted px-5 py-4">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper-raised text-sm font-semibold text-ink">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper-raised text-body font-semibold text-ink">
                       {getCustomerName(selectedConversation).replace(/^@/, "").slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-ink">{getCustomerName(selectedConversation)}</p>
-                      <p className="mt-0.5 truncate text-xs text-ink-faint">
+                      <p className="mt-0.5 truncate text-meta text-ink-faint">
                         {selectedConversation.instagram_scoped_user_id} · {getInstagramStatusLabel(selectedConversation.status)}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-meta">
                     {selectedConversation.customer_id ? (
                       <Link
                         href={`/panel/customers/${selectedConversation.customer_id}`}
@@ -258,7 +258,7 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                           return (
                             <article
                               key={message.id}
-                              className={`max-w-[82%] rounded-card px-4 py-3 text-sm shadow-lg ${
+                              className={`max-w-[82%] rounded-card px-4 py-3 text-body shadow-lg ${
                                 outbound
                                   ? "ml-auto rounded-br-control bg-accent text-white shadow-ink/10"
                                   : "mr-auto rounded-bl-control bg-paper-raised text-ink shadow-black/20"
@@ -267,7 +267,7 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                               <p className="whitespace-pre-line">
                                 {message.text || (message.message_type === "attachment" ? "Mensaje con adjunto" : "Sin texto")}
                               </p>
-                              <div className={`mt-2 flex flex-wrap items-center justify-end gap-2 text-[11px] ${
+                              <div className={`mt-2 flex flex-wrap items-center justify-end gap-2 text-meta ${
                                 outbound ? "text-ink" : "text-ink-faint"
                               }`}>
                                 <span>{getInstagramMessageTypeLabel(message.message_type)}</span>
@@ -278,8 +278,8 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                         })
                       ) : (
                         <div className="mx-auto mt-24 max-w-md rounded-card border border-dashed border-line bg-paper px-6 py-8 text-center">
-                          <p className="text-lg font-semibold text-ink">Sin mensajes guardados</p>
-                          <p className="mt-2 text-sm text-ink-faint">
+                          <p className="text-title font-semibold text-ink">Sin mensajes guardados</p>
+                          <p className="mt-2 text-body text-ink-faint">
                             La conversacion existe, pero todavia no hay mensajes inbound asociados.
                           </p>
                         </div>
@@ -288,10 +288,10 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                   </div>
 
                   <aside className="border-t border-line bg-paper-muted p-5 lg:border-l lg:border-t-0">
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-ink-faint">
+                    <h2 className="text-body font-semibold text-ink-faint">
                       Lead
                     </h2>
-                    <dl className="mt-5 space-y-4 text-sm">
+                    <dl className="mt-5 space-y-4 text-body">
                       <div>
                         <dt className="text-ink-faint">Estado</dt>
                         <dd className="mt-1 text-ink">{getInstagramStatusLabel(selectedConversation.status)}</dd>
@@ -325,8 +325,8 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
             ) : (
               <div className="flex flex-1 items-center justify-center p-8">
                 <div className="max-w-md rounded-card border border-dashed border-line bg-paper px-6 py-8 text-center">
-                  <p className="text-lg font-semibold text-ink">Instagram Ads Inbox listo</p>
-                  <p className="mt-2 text-sm text-ink-faint">
+                  <p className="text-title font-semibold text-ink">Instagram Ads Inbox listo</p>
+                  <p className="mt-2 text-body text-ink-faint">
                     Configura el webhook de Meta para empezar a recibir conversaciones iniciadas por usuarios.
                   </p>
                 </div>

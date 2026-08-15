@@ -129,7 +129,7 @@ export function ManualWhatsappMessageButton() {
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
+        className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
       >
         Programar mensaje
       </button>
@@ -139,8 +139,8 @@ export function ManualWhatsappMessageButton() {
           <div className="my-8 w-full max-w-3xl rounded-card border border-line bg-paper-muted p-7 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-ink">Programar mensaje WhatsApp</h2>
-                <p className="mt-1 text-sm text-ink-faint">
+                <h2 className="text-title font-semibold text-ink">Programar mensaje WhatsApp</h2>
+                <p className="mt-1 text-body text-ink-faint">
                   Se guarda en cola. El worker lo envía respetando opt-out, delay y límites.
                 </p>
               </div>
@@ -154,7 +154,7 @@ export function ManualWhatsappMessageButton() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-              <label className="relative grid gap-2 text-sm text-ink-soft">
+              <label className="relative grid gap-2 text-body text-ink-soft">
                 Cliente
                 <input
                   value={query}
@@ -172,7 +172,7 @@ export function ManualWhatsappMessageButton() {
                         key={customer.id}
                         type="button"
                         onClick={() => handleSelect(customer)}
-                        className="flex w-full items-center justify-between gap-3 border-b border-line px-4 py-3 text-left text-sm text-ink-soft last:border-b-0 hover:bg-paper"
+                        className="flex w-full items-center justify-between gap-3 border-b border-line px-4 py-3 text-left text-body text-ink-soft last:border-b-0 hover:bg-paper"
                       >
                         <span>{formatPersonName(customer.first_name, customer.last_name, customer.instagram)}</span>
                         <span className="text-ink-faint">{formatWhatsAppPhone(customer.phone)}</span>
@@ -183,7 +183,7 @@ export function ManualWhatsappMessageButton() {
               </label>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm text-ink-soft">
+                <label className="grid gap-2 text-body text-ink-soft">
                   Tipo
                   <select
                     value={messageType}
@@ -198,7 +198,7 @@ export function ManualWhatsappMessageButton() {
                   </select>
                 </label>
 
-                <label className="grid gap-2 text-sm text-ink-soft">
+                <label className="grid gap-2 text-body text-ink-soft">
                   Programado para
                   <input
                     type="datetime-local"
@@ -209,7 +209,7 @@ export function ManualWhatsappMessageButton() {
                 </label>
               </div>
 
-              <label className="grid gap-2 text-sm text-ink-soft">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Pedido asociado opcional
                 <input
                   value={orderId}
@@ -219,7 +219,7 @@ export function ManualWhatsappMessageButton() {
                 />
               </label>
 
-              <label className="grid gap-2 text-sm text-ink-soft">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Mensaje
                 <textarea
                   value={body}
@@ -230,7 +230,7 @@ export function ManualWhatsappMessageButton() {
               </label>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-h-5 text-sm">
+                <div className="min-h-5 text-body">
                   {feedback ? (
                     <p className={feedback.success ? "text-accent" : "text-danger-fg"}>
                       {feedback.message}
@@ -241,14 +241,14 @@ export function ManualWhatsappMessageButton() {
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
+                    className="rounded-control border border-line px-4 py-2 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={pending || !selectedCustomer}
-                    className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-control bg-accent px-4 py-2 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pending ? "Programando..." : "Guardar en cola"}
                   </button>

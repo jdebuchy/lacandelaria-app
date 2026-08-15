@@ -50,7 +50,7 @@ export function WhatsappChatComposer({ conversationId }: { conversationId: strin
   return (
     <form onSubmit={handleSubmit} className="border-t border-line bg-paper-muted p-3">
       {feedback && !feedback.success ? (
-        <p className="mb-2 rounded-control border border-danger-line bg-danger-bg px-3 py-2 text-xs text-danger-fg">
+        <p className="mb-2 rounded-control border border-danger-line bg-danger-bg px-3 py-2 text-meta text-danger-fg">
           {feedback.message}
         </p>
       ) : null}
@@ -59,7 +59,7 @@ export function WhatsappChatComposer({ conversationId }: { conversationId: strin
           value={body}
           onChange={(event) => setBody(event.target.value)}
           rows={1}
-          className="min-h-11 flex-1 resize-none rounded-card border border-line bg-paper px-4 py-3 text-sm text-ink outline-hidden transition placeholder:text-ink-faint focus:border-accent"
+          className="min-h-11 flex-1 resize-none rounded-card border border-line bg-paper px-4 py-3 text-body text-ink outline-hidden transition placeholder:text-ink-faint focus:border-accent"
           placeholder="Escribir mensaje"
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
@@ -71,12 +71,12 @@ export function WhatsappChatComposer({ conversationId }: { conversationId: strin
         <button
           type="submit"
           disabled={pending || !body.trim()}
-          className="inline-flex h-11 items-center justify-center rounded-card bg-accent px-5 text-sm font-semibold text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-card bg-accent px-5 text-body font-semibold text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           Enviar
         </button>
       </div>
-      <p className="mt-2 text-xs text-ink-faint">
+      <p className="mt-2 text-meta text-ink-faint">
         Envía directo con el worker de WhatsApp si `whatsapp-web.js` está conectado.
       </p>
     </form>

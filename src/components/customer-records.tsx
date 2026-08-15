@@ -133,7 +133,7 @@ function CustomerEditForm({
     <form onSubmit={handleSubmit} autoComplete="off" className="mt-4 rounded-card border border-accent bg-paper-muted p-4">
       <AutofillDecoy />
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Nombre
           <input
             value={firstName}
@@ -142,7 +142,7 @@ function CustomerEditForm({
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Apellido
           <input
             value={lastName}
@@ -153,7 +153,7 @@ function CustomerEditForm({
 
         <PhoneInput value={phone} onChange={setPhone} />
 
-        <label className="grid gap-2 text-sm text-ink-soft">
+        <label className="grid gap-2 text-body text-ink-soft">
           Instagram
           <input
             value={instagram}
@@ -161,7 +161,7 @@ function CustomerEditForm({
             className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
             placeholder="usuario"
           />
-          <span aria-hidden="true" className="text-xs text-transparent">
+          <span aria-hidden="true" className="text-meta text-transparent">
             .
           </span>
         </label>
@@ -187,7 +187,7 @@ function CustomerEditForm({
           }
         />
 
-        <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
+        <label className="grid gap-2 text-body text-ink-soft md:col-span-2">
           Notas de entrega
           <textarea
             value={deliveryNotes}
@@ -199,7 +199,7 @@ function CustomerEditForm({
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-h-5 text-sm">
+        <div className="min-h-5 text-body">
           {state.message ? (
             <p className={state.success ? "text-accent" : "text-danger-fg"}>{state.message}</p>
           ) : null}
@@ -208,14 +208,14 @@ function CustomerEditForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
+            className="rounded-control border border-line px-4 py-2 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-control bg-accent px-4 py-2 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Guardando..." : "Guardar cambios"}
           </button>
@@ -246,7 +246,7 @@ function SortHeader({
       className={`inline-flex items-center gap-2 transition hover:text-ink ${active ? "text-ink" : ""}`}
     >
       <span>{label}</span>
-      {active ? <span className="text-[10px]">{direction === "asc" ? "↑" : "↓"}</span> : null}
+      {active ? <span className="text-meta">{direction === "asc" ? "↑" : "↓"}</span> : null}
     </Link>
   );
 }
@@ -304,7 +304,7 @@ export function CustomerRecords({
   return (
     <>
       {feedback.message ? (
-        <div className={`rounded-card border px-4 py-3 text-sm ${
+        <div className={`rounded-card border px-4 py-3 text-body ${
           feedback.success
             ? "border-accent bg-accent-soft text-accent"
             : "border-danger-line bg-danger-bg text-danger-fg"
@@ -332,32 +332,32 @@ export function CustomerRecords({
                   <div>
                     <Link
                       href={`/panel/customers/${customer.id}`}
-                      className="text-base font-semibold text-ink transition hover:text-accent"
+                      className="text-body font-semibold text-ink transition hover:text-accent"
                     >
                       {displayName}
                     </Link>
-                    <p className="mt-1 text-sm text-ink-soft">
+                    <p className="mt-1 text-body text-ink-soft">
                       {formatWhatsAppPhone(customer.phone)}
                     </p>
                     {customer.instagram ? (
-                      <p className="mt-1 text-xs text-ink-faint">{customer.instagram}</p>
+                      <p className="mt-1 text-meta text-ink-faint">{customer.instagram}</p>
                     ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft">
+                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                       {SOURCE_LABELS[customer.source] ?? customer.source}
                     </span>
                     <div className="flex flex-col items-end gap-2">
                       <button
                         type="button"
                         onClick={() => setEditingId(isEditing ? null : customer.id)}
-                        className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-xs font-medium text-info-fg transition hover:border-info-line hover:bg-info-bg"
+                        className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-meta font-medium text-info-fg transition hover:border-info-line hover:bg-info-bg"
                       >
                         {isEditing ? "Cerrar" : "Editar"}
                       </button>
                       <Link
                         href={`/panel/customers/${customer.id}`}
-                        className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent transition hover:border-accent hover:bg-accent-soft"
+                        className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-meta font-medium text-accent transition hover:border-accent hover:bg-accent-soft"
                       >
                         Ver
                       </Link>
@@ -365,7 +365,7 @@ export function CustomerRecords({
                         type="button"
                         onClick={() => handleDelete(customer)}
                         disabled={deletingId === customer.id}
-                        className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-xs font-medium text-danger-fg transition hover:border-danger-line hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-meta font-medium text-danger-fg transition hover:border-danger-line hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {deletingId === customer.id ? "Borrando..." : "Borrar"}
                       </button>
@@ -373,11 +373,11 @@ export function CustomerRecords({
                   </div>
                 </div>
                 {customer.delivery_area ? (
-                  <p className="mt-3 text-sm text-ink-soft">
+                  <p className="mt-3 text-body text-ink-soft">
                     Área logística: {customer.delivery_area}
                   </p>
                 ) : null}
-                <p className="mt-2 text-sm text-ink-faint">
+                <p className="mt-2 text-body text-ink-faint">
                   {formatStructuredAddressSummary({
                     addressKind: customer.address_kind,
                     addressLine1: customer.address_line_1 ?? "",
@@ -391,7 +391,7 @@ export function CustomerRecords({
                   addressLine2: customer.address_line_2 ?? "",
                   gatedCommunityName: customer.gated_community_name ?? ""
                 }) ? (
-                  <p className="mt-1 text-xs text-ink-faint">{formatStructuredAddressLine({
+                  <p className="mt-1 text-meta text-ink-faint">{formatStructuredAddressLine({
                     addressKind: customer.address_kind,
                     addressLine1: customer.address_line_1 ?? "",
                     addressLine2: customer.address_line_2 ?? "",
@@ -408,14 +408,14 @@ export function CustomerRecords({
             );
           })
         ) : (
-          <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-sm text-ink-faint">
+          <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-body text-ink-faint">
             {emptyState}
           </div>
         )}
       </div>
 
       <div className="hidden overflow-hidden rounded-card border border-line bg-paper md:block">
-        <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] border-b border-line bg-paper px-6 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
+        <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] border-b border-line bg-paper px-6 py-3 text-meta text-ink-soft">
           <div>Nombre</div>
           <SortHeader
             label="Apellido"
@@ -441,7 +441,7 @@ export function CustomerRecords({
 
             return (
               <div key={customer.id} className="border-b border-line last:border-b-0">
-                <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] px-6 py-4 text-sm text-ink-soft hover:bg-paper">
+                <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] px-6 py-4 text-body text-ink-soft hover:bg-paper">
                   <div className="font-medium text-ink">
                     <Link
                       href={`/panel/customers/${customer.id}`}
@@ -450,7 +450,7 @@ export function CustomerRecords({
                       {customer.first_name || fallbackName}
                     </Link>
                     {customer.instagram ? (
-                      <div className="mt-1 text-xs text-ink-faint">{customer.instagram}</div>
+                      <div className="mt-1 text-meta text-ink-faint">{customer.instagram}</div>
                     ) : null}
                   </div>
                   <div className="font-medium text-ink">{customer.last_name || "-"}</div>
@@ -464,7 +464,7 @@ export function CustomerRecords({
                       gatedCommunityName: customer.gated_community_name ?? "",
                       locality: customer.locality ?? ""
                     })}</div>
-                    <div className="mt-1 text-xs text-ink-faint">{customer.delivery_area || "-"}</div>
+                    <div className="mt-1 text-meta text-ink-faint">{customer.delivery_area || "-"}</div>
                   </div>
                   <div>{SOURCE_LABELS[customer.source] ?? customer.source}</div>
                   <div>
@@ -480,13 +480,13 @@ export function CustomerRecords({
                       <button
                         type="button"
                         onClick={() => setEditingId(isEditing ? null : customer.id)}
-                        className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-xs font-medium text-info-fg transition hover:border-info-line hover:bg-info-bg"
+                        className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-meta font-medium text-info-fg transition hover:border-info-line hover:bg-info-bg"
                       >
                         {isEditing ? "Cerrar" : "Editar"}
                       </button>
                       <Link
                         href={`/panel/customers/${customer.id}`}
-                        className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent transition hover:border-accent hover:bg-accent-soft"
+                        className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-meta font-medium text-accent transition hover:border-accent hover:bg-accent-soft"
                       >
                         Ver
                       </Link>
@@ -494,7 +494,7 @@ export function CustomerRecords({
                         type="button"
                         onClick={() => handleDelete(customer)}
                         disabled={deletingId === customer.id}
-                        className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-xs font-medium text-danger-fg transition hover:border-danger-line hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-meta font-medium text-danger-fg transition hover:border-danger-line hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {deletingId === customer.id ? "Borrando..." : "Borrar"}
                       </button>
@@ -513,7 +513,7 @@ export function CustomerRecords({
             );
           })
         ) : (
-          <div className="px-6 py-8 text-center text-sm text-ink-faint">{emptyState}</div>
+          <div className="px-6 py-8 text-center text-body text-ink-faint">{emptyState}</div>
         )}
       </div>
     </>

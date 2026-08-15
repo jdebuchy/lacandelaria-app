@@ -293,7 +293,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
   return (
     <main>
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-wrap items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-body">
           <Link href="/panel/logistics/delivery" className="text-ink-soft transition hover:text-ink">
             Volver a delivery
           </Link>
@@ -316,14 +316,14 @@ export default async function DeliveryTripExecutionPage(context: Params) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <h1 className="text-display font-semibold tracking-tight text-ink">
                 {formatTripNumber(trip.trip_number)}
               </h1>
-              <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
+              <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                 {getDeliveryTripStatusLabel(trip.status)}
               </span>
             </div>
-            <div className="mt-3 flex flex-wrap gap-4 text-sm text-ink-soft">
+            <div className="mt-3 flex flex-wrap gap-4 text-body text-ink-soft">
               <span>{formatDate(trip.scheduled_date)}</span>
               <span>{driverName}</span>
               <span>{stops.length} pedidos</span>
@@ -335,7 +335,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
               <>
                 <Link
                   href={`/panel/logistics/${trip.id}`}
-                  className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong"
+                  className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong"
                 >
                   Ajustar planificación
                 </Link>
@@ -348,45 +348,45 @@ export default async function DeliveryTripExecutionPage(context: Params) {
 
         <div className="grid gap-3 md:grid-cols-5">
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Total pedidos</p>
-            <p className="mt-2 text-3xl font-semibold text-ink">{stops.length}</p>
+            <p className="text-body text-ink-soft">Total pedidos</p>
+            <p className="mt-2 text-display font-semibold text-ink">{stops.length}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Entregados</p>
-            <p className="mt-2 text-3xl font-semibold text-accent">{deliveredCount}</p>
+            <p className="text-body text-ink-soft">Entregados</p>
+            <p className="mt-2 text-display font-semibold text-accent">{deliveredCount}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">No entregados</p>
-            <p className="mt-2 text-3xl font-semibold text-danger-fg">{failedCount}</p>
+            <p className="text-body text-ink-soft">No entregados</p>
+            <p className="mt-2 text-display font-semibold text-danger-fg">{failedCount}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Pendientes</p>
-            <p className="mt-2 text-3xl font-semibold text-warn-fg">{pendingCount}</p>
+            <p className="text-body text-ink-soft">Pendientes</p>
+            <p className="mt-2 text-display font-semibold text-warn-fg">{pendingCount}</p>
           </article>
           <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-sm text-ink-soft">Total cobrado</p>
-            <p className="mt-2 text-3xl font-semibold text-ink">{formatCurrency(totalCollected)}</p>
+            <p className="text-body text-ink-soft">Total cobrado</p>
+            <p className="mt-2 text-display font-semibold text-ink">{formatCurrency(totalCollected)}</p>
           </article>
         </div>
 
         {!stops.length ? (
           <section className="rounded-card border border-dashed border-line bg-paper px-6 py-10">
-            <h2 className="text-lg font-semibold text-ink">Viaje sin pedidos asociados</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-soft">
+            <h2 className="text-title font-semibold text-ink">Viaje sin pedidos asociados</h2>
+            <p className="mt-2 max-w-2xl text-body leading-6 text-ink-soft">
               Este viaje existe en la base pero no tiene filas activas ni históricas en la secuencia de
               pedidos. Por eso no aparece nada para operar o auditar desde esta pantalla.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
                 href="/panel/logistics/delivery"
-                className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong"
+                className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong"
               >
                 Volver a delivery
               </Link>
               {trip.status === "assigned" ? (
                 <Link
                   href={`/panel/logistics/${trip.id}`}
-                  className="inline-flex h-10 items-center justify-center rounded-control bg-ink px-4 text-sm font-medium text-accent-fg transition hover:bg-white"
+                  className="inline-flex h-10 items-center justify-center rounded-control bg-ink px-4 text-body font-medium text-accent-fg transition hover:bg-white"
                 >
                   Abrir planificación
                 </Link>
@@ -400,12 +400,12 @@ export default async function DeliveryTripExecutionPage(context: Params) {
             <section className="rounded-card border border-line bg-paper p-5">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-ink">Progreso del viaje</h2>
-                  <p className="mt-1 text-sm text-ink-soft">
+                  <h2 className="text-title font-semibold text-ink">Progreso del viaje</h2>
+                  <p className="mt-1 text-body text-ink-soft">
                     {deliveredCount + failedCount} de {stops.length} paradas resueltas
                   </p>
                 </div>
-                <p className="text-sm text-ink-soft">
+                <p className="text-body text-ink-soft">
                   Salida {formatDateTime(trip.started_at)} · Cierre {formatDateTime(trip.completed_at)}
                 </p>
               </div>
@@ -417,7 +417,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
                   }}
                 />
               </div>
-              {trip.notes ? <p className="mt-4 text-sm text-ink-soft">{trip.notes}</p> : null}
+              {trip.notes ? <p className="mt-4 text-body text-ink-soft">{trip.notes}</p> : null}
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -431,8 +431,8 @@ export default async function DeliveryTripExecutionPage(context: Params) {
               <aside className="grid gap-4">
                 <section className="rounded-card border border-line bg-paper p-5">
                   <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-base font-semibold text-ink">Incidencias del viaje</h2>
-                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
+                    <h2 className="text-body font-semibold text-ink">Incidencias del viaje</h2>
+                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                       {failedCount}
                     </span>
                   </div>
@@ -442,40 +442,40 @@ export default async function DeliveryTripExecutionPage(context: Params) {
                         .filter((stop) => stop.deliveryStatus === "failed")
                         .map((stop) => (
                           <article key={stop.id} className="rounded-card border border-line bg-paper-muted p-3">
-                            <p className="text-sm font-medium text-ink">{stop.customerName}</p>
-                            <p className="mt-1 text-xs text-danger-fg">
+                            <p className="text-body font-medium text-ink">{stop.customerName}</p>
+                            <p className="mt-1 text-meta text-danger-fg">
                               {getDeliveryFailureReasonLabel(stop.deliveryFailureReason)}
                             </p>
-                            {stop.notes ? <p className="mt-2 text-xs text-ink-soft">{stop.notes}</p> : null}
+                            {stop.notes ? <p className="mt-2 text-meta text-ink-soft">{stop.notes}</p> : null}
                           </article>
                         ))
                     ) : (
-                      <p className="text-sm text-ink-soft">Todavia no hay incidencias registradas.</p>
+                      <p className="text-body text-ink-soft">Todavia no hay incidencias registradas.</p>
                     )}
                   </div>
                 </section>
 
                 <section className="rounded-card border border-line bg-paper p-5">
-                  <h2 className="text-base font-semibold text-ink">Motivos frecuentes</h2>
+                  <h2 className="text-body font-semibold text-ink">Motivos frecuentes</h2>
                   <div className="mt-4 grid gap-2">
                     {reasonSummary.length ? (
                       reasonSummary.map(([reason, count]) => (
-                        <div key={reason} className="flex items-center justify-between gap-3 text-sm">
+                        <div key={reason} className="flex items-center justify-between gap-3 text-body">
                           <span className="text-ink-soft">{getDeliveryFailureReasonLabel(reason)}</span>
-                          <span className="rounded-control bg-paper-muted px-2.5 py-1 text-xs text-ink-soft">
+                          <span className="rounded-control bg-paper-muted px-2.5 py-1 text-meta text-ink-soft">
                             {count}
                           </span>
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-ink-soft">Sin motivos cargados.</p>
+                      <p className="text-body text-ink-soft">Sin motivos cargados.</p>
                     )}
                   </div>
                 </section>
 
                 <section className="rounded-card border border-line bg-paper p-5">
-                  <h2 className="text-base font-semibold text-ink">Informacion del viaje</h2>
-                  <div className="mt-4 grid gap-3 text-sm text-ink-soft">
+                  <h2 className="text-body font-semibold text-ink">Informacion del viaje</h2>
+                  <div className="mt-4 grid gap-3 text-body text-ink-soft">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-ink-faint">Programado</span>
                       <span>{formatDate(trip.scheduled_date)}</span>

@@ -29,7 +29,7 @@ export function CustomerDetailTabs({
         <Link
           key={tab.value}
           href={`/panel/customers/${customerId}?tab=${tab.value}`}
-          className={`rounded-full border px-4 py-2 text-sm transition ${
+          className={`rounded-control border px-4 py-2 text-body transition ${
             activeTab === tab.value
               ? "border-accent bg-accent-soft text-accent"
               : "border-line bg-paper text-ink-soft hover:border-line hover:text-ink"

@@ -63,7 +63,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
         )}
         href={item.href}
       >
-        <Icon aria-hidden className="shrink-0 text-base" icon={NAV_ICONS[item.iconKey]} />
+        <Icon aria-hidden className="shrink-0 text-body" icon={NAV_ICONS[item.iconKey]} />
         <span className="min-w-0 flex-1 truncate">{item.label}</span>
       </Link>
 

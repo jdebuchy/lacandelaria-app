@@ -57,7 +57,7 @@ export default async function RepartoTripPage(context: Params) {
             />
           </svg>
         </Link>
-        <p className="text-[15px] font-medium text-ink-soft first-letter:uppercase">
+        <p className="text-body font-medium text-ink-soft first-letter:uppercase">
           {formatTripDate(trip.scheduled_date)}
           <span className="ml-2 text-ink-soft">{formatTripNumber(trip.trip_number)}</span>
         </p>
@@ -76,7 +76,7 @@ export default async function RepartoTripPage(context: Params) {
           <RepartoTripAction action="complete" tripId={trip.id} />
         ) : null}
         {trip.status === "completed" ? (
-          <p className="text-center text-[15px] text-ink-soft">Viaje finalizado.</p>
+          <p className="text-center text-body text-ink-soft">Viaje finalizado.</p>
         ) : null}
       </div>
     </main>

@@ -161,7 +161,7 @@ export function CsvImportButton() {
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
+        className="rounded-control border border-line px-4 py-2 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
       >
         Importar CSV
       </button>
@@ -170,7 +170,7 @@ export function CsvImportButton() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="w-full max-w-2xl rounded-card border border-line bg-paper-muted p-6 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-ink">Importar clientes desde CSV</h2>
+              <h2 className="text-title font-semibold text-ink">Importar clientes desde CSV</h2>
               <button
                 type="button"
                 onClick={handleClose}
@@ -180,7 +180,7 @@ export function CsvImportButton() {
               </button>
             </div>
 
-            <p className="mt-2 text-sm text-ink-soft">
+            <p className="mt-2 text-body text-ink-soft">
               El archivo debe incluir{" "}
               <span className="font-mono text-ink-soft">nombre</span>
               {" "}y/o{" "}
@@ -194,13 +194,13 @@ export function CsvImportButton() {
                 {OPTIONAL_HEADERS.join(", ")}
               </span>.
             </p>
-            <p className="mt-2 text-xs text-ink-faint">
+            <p className="mt-2 text-meta text-ink-faint">
               Se aceptan campos entre comillas para direcciones con comas.
             </p>
 
             <div className="mt-4">
-              <label className="flex cursor-pointer items-center gap-3 rounded-control border border-dashed border-line bg-paper px-4 py-4 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink-soft">
-                <span className="text-lg">📂</span>
+              <label className="flex cursor-pointer items-center gap-3 rounded-control border border-dashed border-line bg-paper px-4 py-4 text-body text-ink-soft transition hover:border-line-strong hover:text-ink-soft">
+                <span className="text-title">📂</span>
                 <span>Seleccionar archivo .csv</span>
                 <input
                   ref={fileInputRef}
@@ -213,17 +213,17 @@ export function CsvImportButton() {
             </div>
 
             {parseError ? (
-              <p className="mt-3 text-sm text-danger-fg">{parseError}</p>
+              <p className="mt-3 text-body text-danger-fg">{parseError}</p>
             ) : null}
 
             {rows.length > 0 && !result ? (
               <div className="mt-4">
-                <p className="mb-2 text-sm text-ink-soft">
+                <p className="mb-2 text-body text-ink-soft">
                   {rows.length} fila{rows.length !== 1 ? "s" : ""} detectada{rows.length !== 1 ? "s" : ""}.
                   {rows.length > 5 ? ` Mostrando las primeras 5.` : ""}
                 </p>
                 <div className="overflow-x-auto rounded-control border border-line">
-                  <table className="min-w-full text-xs text-ink-soft">
+                  <table className="min-w-full text-meta text-ink-soft">
                     <thead className="bg-paper text-ink-soft">
                       <tr>
                         {allHeaders.map((h) => (
@@ -250,7 +250,7 @@ export function CsvImportButton() {
             ) : null}
 
             {result ? (
-              <p className={`mt-4 text-sm ${result.success ? "text-accent" : "text-danger-fg"}`}>
+              <p className={`mt-4 text-body ${result.success ? "text-accent" : "text-danger-fg"}`}>
                 {result.message}
               </p>
             ) : null}
@@ -259,7 +259,7 @@ export function CsvImportButton() {
               <button
                 type="button"
                 onClick={handleClose}
-                className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
+                className="rounded-control border border-line px-4 py-2 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
               >
                 {result?.success ? "Cerrar" : "Cancelar"}
               </button>
@@ -268,7 +268,7 @@ export function CsvImportButton() {
                   type="button"
                   onClick={handleImport}
                   disabled={rows.length === 0 || pending}
-                  className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-control bg-accent px-4 py-2 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {pending ? "Importando..." : `Importar ${rows.length > 0 ? rows.length : ""} clientes`}
                 </button>

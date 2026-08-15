@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCatalogFamilies,
   buildOrderItems,
+  describeOrderTotals,
   buildPublicOrderRequestItems,
   buildVariantLookup,
   calculateItemsCount,
@@ -298,5 +299,34 @@ describe("products", () => {
       "El esquema del catalogo no coincide con la version esperada. Ejecuta la migracion de catalogo antes de usar este modulo."
     );
     expect(getProductCatalogDbErrorMessage(null, "update")).toBe("No se pudo actualizar el producto.");
+  });
+
+  it("describes the order total as list price plus a cash discount when the method is unknown", () => {
+    expect(describeOrderTotals(25000, 30000, "unknown")).toEqual({
+      primaryAmount: 30000,
+      primaryLabel: "Total del pedido",
+      secondaryText: "$25.000 si paga en efectivo"
+    });
+  });
+
+  it("hides the cash discount when there is no difference between prices", () => {
+    expect(describeOrderTotals(30000, 30000, "unknown")).toEqual({
+      primaryAmount: 30000,
+      primaryLabel: "Total del pedido",
+      secondaryText: null
+    });
+  });
+
+  it("describes a settled order total without offering a discount", () => {
+    expect(describeOrderTotals(25000, 30000, "cash")).toEqual({
+      primaryAmount: 25000,
+      primaryLabel: "Total del pedido",
+      secondaryText: "Cobrado en efectivo"
+    });
+    expect(describeOrderTotals(25000, 30000, "transfer")).toEqual({
+      primaryAmount: 30000,
+      primaryLabel: "Total del pedido",
+      secondaryText: "Cobrado por transferencia"
+    });
   });
 });

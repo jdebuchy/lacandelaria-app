@@ -4,6 +4,7 @@ import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { formatTripNumber } from "@/lib/orders";
 import { includesNormalizedSearchValue, normalizeSearchValue } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DeliveryFailureReason, DeliveryStatus } from "@/lib/types";
@@ -21,6 +22,7 @@ type TripRow = {
   id: string;
   scheduled_date: string;
   status: "assigned" | "in_route" | "completed";
+  trip_number: number | null;
 };
 
 type TripOrderRow = {
@@ -63,6 +65,7 @@ type TripCard = {
   searchText: string;
   status: TripRow["status"];
   totalStops: number;
+  tripNumber: number | null;
   unresolvedCount: number;
 };
 
@@ -158,7 +161,7 @@ export default async function LogisticsDeliveryPage({
   const supabase = createAdminClient();
   let tripsQuery = supabase
     .from("delivery_trips")
-    .select("id, driver_user_id, scheduled_date, status, created_at")
+    .select("id, trip_number, driver_user_id, scheduled_date, status, created_at")
     .in("status", ["assigned", "in_route", "completed"])
     .order("scheduled_date", { ascending: true })
     .order("created_at", { ascending: false });
@@ -229,9 +232,10 @@ export default async function LogisticsDeliveryPage({
         id: trip.id,
         progressLabel: `${deliveredCount + failedCount}/${rows.length} resueltos`,
         scheduledDate: trip.scheduled_date,
-        searchText: normalizeSearchValue(`${trip.id.slice(0, 8)} ${trip.status} ${searchNames}`),
+        searchText: normalizeSearchValue(`${trip.trip_number ?? ""} ${trip.status} ${searchNames}`),
         status: trip.status,
         totalStops: rows.length,
+        tripNumber: trip.trip_number,
         unresolvedCount
       } satisfies TripCard;
     })
@@ -284,7 +288,7 @@ export default async function LogisticsDeliveryPage({
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg font-semibold text-stone-50">Viaje {trip.id.slice(0, 8)}</h3>
+              <h3 className="text-lg font-semibold text-stone-50">{formatTripNumber(trip.tripNumber)}</h3>
               <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
                 {getDeliveryTripStatusLabel(trip.status)}
               </span>
@@ -489,7 +493,7 @@ export default async function LogisticsDeliveryPage({
                     <tbody className="divide-y divide-stone-800">
                       {sections.previous.map((trip) => (
                         <tr key={trip.id} className="text-stone-300">
-                          <td className="px-4 py-4 font-medium text-stone-100">Viaje {trip.id.slice(0, 8)}</td>
+                          <td className="px-4 py-4 font-medium text-stone-100">{formatTripNumber(trip.tripNumber)}</td>
                           <td className="px-4 py-4">{formatDate(trip.scheduledDate)}</td>
                           <td className="px-4 py-4">{trip.driverName}</td>
                           <td className="px-4 py-4">{trip.totalStops}</td>

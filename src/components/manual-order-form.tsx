@@ -58,8 +58,6 @@ type ManualOrderFormInitialData = {
   items: OrderItemInput[];
   paymentMethodExpected: ExpectedPaymentMethod;
   deliveryDate: string;
-  deliveryWindowStart: string;
-  deliveryWindowEnd: string;
   notes: string;
 };
 
@@ -121,11 +119,13 @@ export function ManualOrderForm({
       : EMPTY_STRUCTURED_ADDRESS
   );
   const initialDeliveryNotes = initialData?.deliveryNotes ?? initialCustomer?.delivery_notes ?? "";
-  const initialPaymentMethodExpected = initialData?.paymentMethodExpected ?? "unknown";
   const initialDeliveryDate = initialData?.deliveryDate ?? "";
-  const initialDeliveryWindowStart = initialData?.deliveryWindowStart ?? "";
-  const initialDeliveryWindowEnd = initialData?.deliveryWindowEnd ?? "";
   const initialNotes = initialData?.notes ?? "";
+  // El alta nunca elige forma de pago: el pedido nace a precio de lista y el
+  // descuento por efectivo se aplica al cobrar. En edicion se respeta el metodo
+  // que ya haya quedado fijado por el primer cobro, para mostrar sus precios.
+  const paymentMethodExpected: ExpectedPaymentMethod =
+    mode === "edit" ? initialData?.paymentMethodExpected ?? "unknown" : "unknown";
   const initialLookupValue = initialCustomer
     ? formatPersonName(initialCustomer.first_name, initialCustomer.last_name)
     : composeFullName(initialFirstName, initialLastName);
@@ -142,12 +142,7 @@ export function ManualOrderForm({
   const [address, setAddress] = useState<StructuredAddress>(initialAddress);
   const [deliveryNotes, setDeliveryNotes] = useState(initialDeliveryNotes);
   const [items, setItems] = useState<OrderItemInput[]>(initialItems);
-  const [paymentMethodExpected, setPaymentMethodExpected] = useState<ExpectedPaymentMethod>(
-    initialPaymentMethodExpected
-  );
   const [deliveryDate, setDeliveryDate] = useState(initialDeliveryDate);
-  const [deliveryWindowStart, setDeliveryWindowStart] = useState(initialDeliveryWindowStart);
-  const [deliveryWindowEnd, setDeliveryWindowEnd] = useState(initialDeliveryWindowEnd);
   const [notes, setNotes] = useState(initialNotes);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
@@ -262,10 +257,7 @@ export function ManualOrderForm({
     setAddress(EMPTY_STRUCTURED_ADDRESS);
     setDeliveryNotes("");
     setItems(fallbackItems);
-    setPaymentMethodExpected("unknown");
     setDeliveryDate("");
-    setDeliveryWindowStart("");
-    setDeliveryWindowEnd("");
     setNotes("");
     setIsCustomerModalOpen(false);
   }
@@ -284,10 +276,7 @@ export function ManualOrderForm({
       ...address,
       deliveryNotes,
       items,
-      paymentMethodExpected,
       deliveryDate,
-      deliveryWindowStart,
-      deliveryWindowEnd,
       notes
     };
 
@@ -352,6 +341,7 @@ export function ManualOrderForm({
 
         <div className="grid gap-6">
           <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">1 · Cliente</p>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="grid flex-1 gap-2">
                 <label className="text-sm text-stone-300">Buscar cliente existente</label>
@@ -466,19 +456,9 @@ export function ManualOrderForm({
           </section>
 
           <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
-              Forma de pago
-              <select
-                name="paymentMethodExpected"
-                value={paymentMethodExpected}
-                onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
-              >
-                <option value="unknown">No definido</option>
-                <option value="cash">Efectivo</option>
-                <option value="transfer">Transferencia</option>
-              </select>
-            </label>
+            <p className="text-xs uppercase tracking-[0.18em] text-stone-500 md:col-span-2">
+              2 · Productos
+            </p>
 
             {activeProducts.length ? (
               <OrderItemsEditor
@@ -491,7 +471,11 @@ export function ManualOrderForm({
             ) : null}
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-[repeat(3,minmax(0,1fr))]">
+          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-2">
+            <p className="text-xs uppercase tracking-[0.18em] text-stone-500 md:col-span-2">
+              3 · Entrega
+            </p>
+
             <label className="grid min-w-0 gap-2 text-sm text-stone-300">
               Fecha tentativa de entrega
               <DateInput
@@ -502,29 +486,7 @@ export function ManualOrderForm({
               />
             </label>
 
-            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
-              Entregar desde
-              <input
-                name="deliveryWindowStart"
-                type="time"
-                value={deliveryWindowStart}
-                onChange={(event) => setDeliveryWindowStart(event.target.value)}
-                className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
-              />
-            </label>
-
-            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
-              Entregar hasta
-              <input
-                name="deliveryWindowEnd"
-                type="time"
-                value={deliveryWindowEnd}
-                onChange={(event) => setDeliveryWindowEnd(event.target.value)}
-                className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
-              />
-            </label>
-
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-3">
+            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
               Notas internas del pedido
               <textarea
                 name="notes"

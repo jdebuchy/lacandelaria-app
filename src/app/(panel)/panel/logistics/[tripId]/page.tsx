@@ -6,6 +6,7 @@ import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { loadDeliveryTripPlanning } from "@/lib/delivery-planning";
 import { computeDisplayedRoute } from "@/lib/delivery-routing";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { formatTripNumber } from "@/lib/orders";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type Params = {
@@ -48,7 +49,7 @@ export default async function DeliveryTripDetailPage(context: Params) {
               Planificación de viaje
             </span>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-              Viaje {trip.id.slice(0, 8)}
+              {formatTripNumber(trip.tripNumber)}
             </h1>
             <p className="mt-2 text-base text-stone-300">
               {formatDate(trip.scheduledDate)} · {getDeliveryTripStatusLabel(trip.status)}

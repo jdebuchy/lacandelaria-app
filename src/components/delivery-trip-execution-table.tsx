@@ -8,6 +8,7 @@ import {
   getDeliveryFailureReasonLabel,
   getDeliveryStatusLabel
 } from "@/lib/delivery-trips";
+import { formatOrderNumber } from "@/lib/orders";
 import { formatCurrency } from "@/lib/payments";
 import type { DeliveryFailureReason, DeliveryStatus } from "@/lib/types";
 
@@ -19,6 +20,7 @@ export type DeliveryExecutionStop = {
   deliveryStatus: DeliveryStatus;
   id: string;
   notes: string | null;
+  orderNumber: number | null;
   orderStatus: string;
   paidAmount: number;
   paymentBalanceAmount: number;
@@ -175,7 +177,10 @@ export function DeliveryTripExecutionTable({
                   <td className="px-4 py-4 text-stone-300">{stop.sequenceNumber}</td>
                   <td className="px-4 py-4">
                     <div className="min-w-[180px]">
-                      <p className="font-medium text-stone-100">{stop.customerName}</p>
+                      <p className="font-medium text-stone-100">
+                        <span className="text-stone-500">{formatOrderNumber(stop.orderNumber)}</span>{" "}
+                        {stop.customerName}
+                      </p>
                       <p className="mt-1 text-xs text-stone-500">{stop.customerPhone}</p>
                       {stop.notes ? (
                         <p className="mt-2 text-xs text-stone-400">{stop.notes}</p>
@@ -248,7 +253,7 @@ export function DeliveryTripExecutionTable({
                                       payment: {
                                         amount: numericPaymentAmount,
                                         method: "cash",
-                                        reference: `Cobro registrado en viaje ${tripId.slice(0, 8)}`
+                                        reference: `Cobro registrado en ${formatOrderNumber(stop.orderNumber)}`
                                       }
                                     })
                                   }

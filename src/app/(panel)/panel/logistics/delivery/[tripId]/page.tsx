@@ -14,6 +14,7 @@ import {
   getDeliveryFailureReasonLabel,
   getDeliveryTripStatusLabel
 } from "@/lib/delivery-trips";
+import { formatOrderNumber, formatTripNumber } from "@/lib/orders";
 import { formatCurrency } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DeliveryFailureReason, DeliveryStatus } from "@/lib/types";
@@ -77,6 +78,7 @@ type OrderRow = {
   customers?: RelatedCustomer | RelatedCustomer[] | null;
   deliveries?: RelatedDelivery | RelatedDelivery[] | null;
   id: string;
+  order_number?: number | null;
   payment_method_expected: string;
   payment_status: string;
   resellers?: RelatedReseller | RelatedReseller[] | null;
@@ -139,7 +141,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
   const supabase = createAdminClient();
   const { data: trip, error: tripError } = await supabase
     .from("delivery_trips")
-    .select("id, driver_user_id, scheduled_date, status, started_at, completed_at, notes, created_at")
+    .select("id, trip_number, driver_user_id, scheduled_date, status, started_at, completed_at, notes, created_at")
     .eq("id", tripId)
     .single();
 
@@ -171,6 +173,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
         .select(
           `
             id,
+            order_number,
             status,
             total_amount,
             payment_method_expected,
@@ -255,6 +258,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
         notes: row.released_at
           ? row.stop_note ?? null
           : delivery?.proof_note || row.stop_note || customer?.delivery_notes || null,
+        orderNumber: order.order_number ?? null,
         orderStatus: order.status,
         paidAmount,
         cashPaymentBalanceAmount: Math.max(0, cashTotalAmount - paidAmount),
@@ -294,6 +298,10 @@ export default async function DeliveryTripExecutionPage(context: Params) {
             Volver a delivery
           </Link>
           <span className="text-stone-700">/</span>
+          <Link href={`/reparto/${trip.id}`} className="text-stone-400 transition hover:text-stone-100">
+            Abrir vista de reparto
+          </Link>
+          <span className="text-stone-700">/</span>
           {trip.status === "assigned" ? (
             <Link href={`/panel/logistics/${trip.id}`} className="text-stone-400 transition hover:text-stone-100">
               Ajustar planificación
@@ -309,7 +317,7 @@ export default async function DeliveryTripExecutionPage(context: Params) {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-                Viaje {trip.id.slice(0, 8)}
+                {formatTripNumber(trip.trip_number)}
               </h1>
               <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
                 {getDeliveryTripStatusLabel(trip.status)}

@@ -23,7 +23,7 @@ const updateDeliverySchema = z.object({
   payment: z
     .object({
       amount: z.coerce.number().positive("Ingresa un monto mayor a cero."),
-      method: z.literal("cash"),
+      method: z.enum(["cash", "transfer"]),
       reference: z.string().max(240).optional().or(z.literal(""))
     })
     .optional(),
@@ -115,17 +115,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { success: false, message: "El cobro debe estar asociado a un viaje activo." },
       { status: 403 }
-    );
-  }
-
-  if (
-    parsed.data.payment &&
-    order.payment_method_expected !== "cash" &&
-    order.payment_method_expected !== "unknown"
-  ) {
-    return NextResponse.json(
-      { success: false, message: "El repartidor solo puede registrar cobros en efectivo." },
-      { status: 400 }
     );
   }
 

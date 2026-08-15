@@ -1,6 +1,6 @@
 "use client";
 
-import { getDefaultSellableVariantId } from "@/lib/products";
+import { describeOrderTotals, getDefaultSellableVariantId } from "@/lib/products";
 import type { ExpectedPaymentMethod, OrderItemInput, ProductFamily } from "@/lib/types";
 
 type OrderItemsEditorProps = {
@@ -111,7 +111,7 @@ export function OrderItemsEditor({
     },
     { cash: 0, transfer: 0 }
   );
-  const total = paymentMethod === "cash" ? totals.cash : totals.transfer;
+  const summary = describeOrderTotals(totals.cash, totals.transfer, paymentMethod);
 
   return (
     <div className="grid min-w-0 gap-4 md:col-span-2">
@@ -255,18 +255,21 @@ export function OrderItemsEditor({
       </div>
 
       <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm">
-        <p className="text-emerald-200">{paymentMethod === "unknown" ? "Total base" : "Total estimado"}</p>
-        <p className="mt-2 text-2xl font-semibold text-stone-50">{formatCurrency(total)}</p>
-        {paymentMethod === "unknown" ? (
-          <p className="mt-1 text-stone-300">
-            Transferencia {formatCurrency(totals.transfer)} · Efectivo {formatCurrency(totals.cash)}
-          </p>
-        ) : (
-          <p className="mt-1 text-stone-300">
-            Calculado con precios por {paymentMethod === "cash" ? "efectivo" : "transferencia"}.
-          </p>
-        )}
+        <p className="text-emerald-200">{summary.primaryLabel}</p>
+        <p className="mt-2 text-2xl font-semibold text-stone-50">
+          {formatCurrency(summary.primaryAmount)}
+        </p>
+        {summary.secondaryText ? (
+          <p className="mt-1 text-stone-300">{summary.secondaryText}</p>
+        ) : null}
       </div>
+
+      {paymentMethod === "unknown" ? (
+        <p className="text-xs leading-5 text-stone-500">
+          La forma de pago se define al cobrar. Si el cliente paga en efectivo, el sistema aplica el
+          descuento automáticamente.
+        </p>
+      ) : null}
     </div>
   );
 }

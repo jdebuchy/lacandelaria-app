@@ -13,6 +13,7 @@ import type {
 import type { DeliveryRoutePreview } from "@/lib/delivery-routing";
 import { formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
+import { formatOrderNumber, matchesOrderNumberQuery } from "@/lib/orders";
 import { matchesNormalizedSearchValues, normalizeSearchValue } from "@/lib/search";
 
 type DeliveryTripPlannerProps = {
@@ -167,6 +168,10 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           return true;
         }
 
+        if (matchesOrderNumberQuery(availableQuery, order.orderNumber)) {
+          return true;
+        }
+
         return [
           order.customerName,
           order.addressSummary,
@@ -249,8 +254,9 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
       locality: order.locality,
       notes: null,
       orderId: order.orderId,
+      orderNumber: order.orderNumber,
       orderStatus: "assigned",
-      paymentMethodExpected: "cash",
+      paymentMethodExpected: "unknown",
       paymentStatus: "pending",
       resellerName: null,
       sequenceNumber: stops.length + 1,
@@ -287,6 +293,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         itemsSummary: stop.itemsSummary,
         locality: stop.locality,
         orderId: stop.orderId,
+        orderNumber: stop.orderNumber,
         totalAmount: stop.totalAmount
       }].sort(compareByDateAndName)
     );
@@ -510,7 +517,10 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 <article key={order.orderId} className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-stone-100">{order.customerName}</p>
+                      <p className="text-sm font-semibold text-stone-100">
+                        <span className="text-stone-500">{formatOrderNumber(order.orderNumber)}</span>{" "}
+                        {order.customerName}
+                      </p>
                       <p className="mt-1 text-xs text-stone-500">{order.addressSummary}</p>
                     </div>
                     <button
@@ -580,7 +590,10 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-stone-100">{stop.customerName}</p>
+                        <p className="truncate text-sm font-semibold text-stone-100">
+                          <span className="text-stone-500">{formatOrderNumber(stop.orderNumber)}</span>{" "}
+                          {stop.customerName}
+                        </p>
                         <p className="mt-1 text-xs text-stone-500">{stop.addressSummary}</p>
                         <div className="mt-2 flex flex-wrap gap-2 text-xs text-stone-400">
                           <span className="rounded-full bg-stone-900 px-2.5 py-1">{stop.itemsSummary}</span>

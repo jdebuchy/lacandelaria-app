@@ -13,6 +13,7 @@ function isProtectedPath(pathname: string) {
   return (
     pathname.startsWith("/panel") ||
     pathname.startsWith("/driver") ||
+    pathname.startsWith("/reparto") ||
     pathname.startsWith("/api/panel") ||
     pathname.startsWith("/api/driver")
   );
@@ -95,5 +96,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/panel/:path*", "/driver/:path*", "/api/panel/:path*", "/api/driver/:path*"]
+  matcher: [
+    "/panel/:path*",
+    "/driver/:path*",
+    "/reparto/:path*",
+    "/api/panel/:path*",
+    "/api/driver/:path*"
+  ]
 };

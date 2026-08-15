@@ -137,7 +137,8 @@ export async function POST(request: Request) {
         productId: item.product_id,
         quantity: item.quantity
       })),
-      publicRequest.payment_method_expected
+      // Precio de lista: el metodo real lo decide el primer cobro.
+      "unknown"
     );
   } catch (error) {
     return NextResponse.json(
@@ -160,7 +161,7 @@ export async function POST(request: Request) {
       sales_channel: "public_form",
       items_count: itemsCount,
       total_amount: totalAmount,
-      payment_method_expected: publicRequest.payment_method_expected,
+      payment_method_expected: "unknown",
       status: "confirmed",
       payment_status: "pending",
       delivery_area: publicRequest.delivery_area,

@@ -598,6 +598,42 @@ export function getProductUnitPrice(product: ProductVariantForOrder, paymentMeth
   return paymentMethod === "cash" ? product.cashPrice : product.transferPrice;
 }
 
+/**
+ * El pedido se valua siempre a precio de lista (transferencia). El efectivo es
+ * un descuento que se aplica al cobrar, no un precio alternativo que se elija
+ * al cargar el pedido.
+ */
+export function describeOrderTotals(
+  cashTotal: number,
+  transferTotal: number,
+  paymentMethod: ExpectedPaymentMethod
+) {
+  const primaryLabel = "Total del pedido";
+
+  if (paymentMethod === "cash") {
+    return {
+      primaryAmount: cashTotal,
+      primaryLabel,
+      secondaryText: "Cobrado en efectivo"
+    };
+  }
+
+  if (paymentMethod === "transfer") {
+    return {
+      primaryAmount: transferTotal,
+      primaryLabel,
+      secondaryText: "Cobrado por transferencia"
+    };
+  }
+
+  return {
+    primaryAmount: transferTotal,
+    primaryLabel,
+    secondaryText:
+      cashTotal < transferTotal ? `$${cashTotal.toLocaleString("es-AR")} si paga en efectivo` : null
+  };
+}
+
 export function consolidateOrderItems(items: OrderItemInput[]) {
   const byProduct = new Map<string, number>();
 

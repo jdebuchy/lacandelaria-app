@@ -61,7 +61,7 @@ export function getDeliveryFailureReasonLabel(reason: DeliveryFailureReason | st
     case "customer_absent":
       return "Cliente ausente";
     case "incorrect_address":
-      return "Direccion incorrecta";
+      return "Dirección incorrecta";
     case "rejected":
       return "Rechazado";
     case "closed":
@@ -71,6 +71,16 @@ export function getDeliveryFailureReasonLabel(reason: DeliveryFailureReason | st
     default:
       return reason ?? "Sin motivo";
   }
+}
+
+export function formatTripDate(value: string, options?: Intl.DateTimeFormatOptions) {
+  return new Date(`${value}T12:00:00`).toLocaleDateString("es-AR", {
+    day: "numeric",
+    month: "short",
+    timeZone: "America/Argentina/Buenos_Aires",
+    weekday: "short",
+    ...options
+  });
 }
 
 export function canEditOrder(orderStatus: OrderStatus, hasActiveTrip: boolean) {

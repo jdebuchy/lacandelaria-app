@@ -30,11 +30,10 @@ export default async function EditOrderPage(context: Params) {
       .select(
         `
           id,
+          order_number,
           status,
           payment_method_expected,
           delivery_date,
-          delivery_window_start,
-          delivery_window_end,
           notes,
           customers (
             id,
@@ -187,10 +186,6 @@ export default async function EditOrderPage(context: Params) {
                   ? order.payment_method_expected
                   : "unknown",
               deliveryDate: typeof order.delivery_date === "string" ? order.delivery_date : "",
-              deliveryWindowStart:
-                typeof order.delivery_window_start === "string" ? order.delivery_window_start : "",
-              deliveryWindowEnd:
-                typeof order.delivery_window_end === "string" ? order.delivery_window_end : "",
               notes: typeof order.notes === "string" ? order.notes : ""
             }}
           />

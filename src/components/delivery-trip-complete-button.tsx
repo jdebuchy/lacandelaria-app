@@ -36,11 +36,11 @@ export function DeliveryTripCompleteButton({ tripId }: DeliveryTripCompleteButto
         type="button"
         onClick={handleClick}
         disabled={isPending}
-        className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-10 items-center justify-center rounded-control border border-accent bg-accent-soft px-4 text-sm font-medium text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Finalizando..." : "Finalizar viaje"}
       </button>
-      {message ? <p className="text-xs text-stone-400">{message}</p> : null}
+      {message ? <p className="text-xs text-ink-soft">{message}</p> : null}
     </div>
   );
 }

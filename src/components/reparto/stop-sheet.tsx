@@ -29,14 +29,14 @@ const FAILURE_REASONS: DeliveryFailureReason[] = [
 ];
 
 const PRIMARY_BUTTON =
-  "inline-flex h-16 w-full items-center justify-center rounded-2xl bg-emerald-500 text-lg font-bold text-stone-950 transition active:bg-emerald-400 disabled:opacity-50";
+  "inline-flex h-16 w-full items-center justify-center rounded-card bg-accent text-lg font-bold text-accent-fg transition active:bg-accent disabled:opacity-50";
 const DANGER_BUTTON =
-  "inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-rose-500 text-[17px] font-semibold text-rose-300 transition active:bg-rose-500/20 disabled:opacity-50";
+  "inline-flex h-14 w-full items-center justify-center rounded-card border-2 border-danger-line text-[17px] font-semibold text-danger-fg transition active:bg-danger-bg disabled:opacity-50";
 const CHOICE_BUTTON =
-  "flex h-16 w-full flex-col items-center justify-center rounded-2xl bg-stone-100 font-bold text-stone-950 transition active:bg-white disabled:opacity-50";
+  "flex h-16 w-full flex-col items-center justify-center rounded-card bg-ink font-bold text-accent-fg transition active:bg-white disabled:opacity-50";
 const QUIET_BUTTON =
-  "inline-flex h-14 w-full items-center justify-center rounded-2xl border border-stone-500 text-[17px] font-semibold text-stone-100 transition active:bg-stone-800 disabled:opacity-50";
-const LINK_BUTTON = "text-[15px] font-medium text-stone-400 underline underline-offset-4";
+  "inline-flex h-14 w-full items-center justify-center rounded-card border border-line-strong text-[17px] font-semibold text-ink transition active:bg-paper-raised disabled:opacity-50";
+const LINK_BUTTON = "text-[15px] font-medium text-ink-soft underline underline-offset-4";
 
 export function StopSheet({
   canAct,
@@ -131,11 +131,11 @@ export function StopSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-stone-950">
-      <header className="flex shrink-0 items-center gap-3 border-b border-stone-800 px-3 py-3">
+    <div className="fixed inset-0 z-50 flex flex-col bg-paper-muted">
+      <header className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3">
         <button
           aria-label="Cerrar"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-stone-300 transition active:bg-stone-800"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-control text-ink-soft transition active:bg-paper-raised"
           onClick={onClose}
           type="button"
         >
@@ -143,10 +143,10 @@ export function StopSheet({
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
           </svg>
         </button>
-        <p className="flex-1 text-sm font-medium text-stone-400">
+        <p className="flex-1 text-sm font-medium text-ink-soft">
           Parada {stop.sequenceNumber} de {totalStops}
         </p>
-        <p className="pr-2 text-sm font-semibold tabular-nums text-stone-400">
+        <p className="pr-2 text-sm font-semibold tabular-nums text-ink-soft">
           {formatOrderNumber(stop.orderNumber)}
         </p>
       </header>
@@ -154,9 +154,9 @@ export function StopSheet({
       <div className="flex-1 overflow-y-auto px-4 py-5">
         {step === "cobro" ? (
           <>
-            <p className="text-[17px] text-stone-400">Entregaste a</p>
-            <p className="text-2xl font-bold text-stone-50">{stop.customerName}</p>
-            <h2 className="mt-8 text-xl font-bold text-stone-50">¿Cobraste?</h2>
+            <p className="text-[17px] text-ink-soft">Entregaste a</p>
+            <p className="text-2xl font-bold text-ink">{stop.customerName}</p>
+            <h2 className="mt-8 text-xl font-bold text-ink">¿Cobraste?</h2>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 className={CHOICE_BUTTON}
@@ -185,11 +185,11 @@ export function StopSheet({
             </div>
 
             {showAmountInput ? (
-              <label className="mt-6 block text-sm text-stone-400">
+              <label className="mt-6 block text-sm text-ink-soft">
                 Monto a cobrar
                 <input
                   autoFocus
-                  className="mt-2 h-14 w-full rounded-2xl border border-stone-500 bg-stone-900 px-4 text-xl tabular-nums text-stone-50 outline-hidden focus:border-yellow-400"
+                  className="mt-2 h-14 w-full rounded-card border border-line-strong bg-paper px-4 text-xl tabular-nums text-ink outline-hidden focus:border-warn-line"
                   inputMode="decimal"
                   min="0"
                   onChange={(event) => setCustomAmount(event.target.value)}
@@ -217,11 +217,11 @@ export function StopSheet({
 
         {step === "motivo" ? (
           <>
-            <h2 className="text-xl font-bold text-stone-50">¿Qué pasó?</h2>
+            <h2 className="text-xl font-bold text-ink">¿Qué pasó?</h2>
             <div className="mt-4 grid gap-2">
               {FAILURE_REASONS.map((reason) => (
                 <button
-                  className="inline-flex h-14 w-full items-center rounded-2xl border border-stone-500 px-4 text-left text-[17px] font-semibold text-stone-100 transition active:bg-stone-800 disabled:opacity-50"
+                  className="inline-flex h-14 w-full items-center rounded-card border border-line-strong px-4 text-left text-[17px] font-semibold text-ink transition active:bg-paper-raised disabled:opacity-50"
                   disabled={pending}
                   key={reason}
                   onClick={() => submitFailed(reason)}
@@ -231,17 +231,17 @@ export function StopSheet({
                 </button>
               ))}
             </div>
-            <label className="mt-5 block text-sm text-stone-400">
+            <label className="mt-5 block text-sm text-ink-soft">
               Comentario (obligatorio solo en “Otro”)
               <input
-                className="mt-2 h-14 w-full rounded-2xl border border-stone-500 bg-stone-900 px-4 text-[17px] text-stone-50 outline-hidden placeholder:text-stone-400 focus:border-stone-400"
+                className="mt-2 h-14 w-full rounded-card border border-line-strong bg-paper px-4 text-[17px] text-ink outline-hidden placeholder:text-ink-soft focus:border-line-strong"
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Qué pasó"
                 type="text"
                 value={note}
               />
             </label>
-            <p className="mt-4 text-sm leading-6 text-stone-400">
+            <p className="mt-4 text-sm leading-6 text-ink-soft">
               El pedido vuelve a logística para reprogramarlo y sale de este viaje.
             </p>
             <div className="mt-5">
@@ -255,27 +255,27 @@ export function StopSheet({
         {step === "resuelta" ? (
           <>
             <span
-              className={`inline-flex items-center rounded-lg px-3 py-1 text-sm font-bold text-stone-950 ${
-                stop.deliveryStatus === "delivered" ? "bg-emerald-500" : "bg-rose-500"
+              className={`inline-flex items-center rounded-control px-3 py-1 text-sm font-bold text-accent-fg ${
+                stop.deliveryStatus === "delivered" ? "bg-accent" : "bg-danger-bg"
               }`}
             >
               {stop.deliveryStatus === "delivered" ? "Entregado" : "No entregado"}
             </span>
-            <h2 className="mt-3 text-2xl font-bold uppercase leading-tight text-stone-50">
+            <h2 className="mt-3 text-2xl font-bold uppercase leading-tight text-ink">
               {stop.addressLine || stop.addressSummary}
             </h2>
-            <p className="mt-1 text-[17px] text-stone-300">{stop.customerName}</p>
+            <p className="mt-1 text-[17px] text-ink-soft">{stop.customerName}</p>
             {stop.deliveryFailureReason ? (
-              <p className="mt-3 text-[17px] text-rose-300">
+              <p className="mt-3 text-[17px] text-danger-fg">
                 {getDeliveryFailureReasonLabel(stop.deliveryFailureReason)}
               </p>
             ) : null}
             {stop.paidAmount > 0 ? (
-              <p className="mt-3 text-[17px] tabular-nums text-yellow-300">
+              <p className="mt-3 text-[17px] tabular-nums text-warn-fg">
                 Cobrado {formatCurrency(stop.paidAmount)}
               </p>
             ) : null}
-            {stop.notes ? <p className="mt-3 text-[15px] text-stone-400">{stop.notes}</p> : null}
+            {stop.notes ? <p className="mt-3 text-[15px] text-ink-soft">{stop.notes}</p> : null}
 
             <div className="mt-8">
               {stop.deliveryStatus === "delivered" && canAct ? (
@@ -283,14 +283,14 @@ export function StopSheet({
                   <button className={QUIET_BUTTON} disabled={pending} onClick={reopenStop} type="button">
                     {pending ? "Corrigiendo…" : "Corregir: volver a pendiente"}
                   </button>
-                  <p className="mt-3 text-sm leading-6 text-stone-400">
+                  <p className="mt-3 text-sm leading-6 text-ink-soft">
                     {ownPayments.length
                       ? "Se anula el cobro que registraste y la parada vuelve a quedar pendiente."
                       : "La parada vuelve a quedar pendiente."}
                   </p>
                 </>
               ) : (
-                <p className="text-sm leading-6 text-stone-400">
+                <p className="text-sm leading-6 text-ink-soft">
                   {stop.deliveryStatus === "failed"
                     ? "Esta parada ya salió del viaje. Para corregirla, avisá a la oficina."
                     : "El viaje ya no está en curso."}
@@ -302,41 +302,41 @@ export function StopSheet({
 
         {step === "detalle" ? (
           <>
-            <h2 className="text-3xl font-bold uppercase leading-none tracking-tight text-stone-50">
+            <h2 className="text-3xl font-bold uppercase leading-none tracking-tight text-ink">
               {stop.addressLine || stop.addressSummary}
             </h2>
-            {stop.locality ? <p className="mt-2 text-[17px] text-stone-400">{stop.locality}</p> : null}
-            <p className="mt-3 text-xl font-semibold text-stone-100">{stop.customerName}</p>
+            {stop.locality ? <p className="mt-2 text-[17px] text-ink-soft">{stop.locality}</p> : null}
+            <p className="mt-3 text-xl font-semibold text-ink">{stop.customerName}</p>
             {stop.deliveryWindow ? (
-              <p className="mt-2 text-[17px] font-semibold tabular-nums text-sky-300">
+              <p className="mt-2 text-[17px] font-semibold tabular-nums text-info-fg">
                 Franja {stop.deliveryWindow}
               </p>
             ) : null}
 
             {stop.deliveryNotes ? (
-              <p className="mt-4 rounded-2xl border border-sky-400/40 bg-sky-500/10 px-4 py-3 text-[15px] leading-6 text-sky-200">
+              <p className="mt-4 rounded-card border border-info-line bg-info-bg px-4 py-3 text-[15px] leading-6 text-info-fg">
                 ⚑ {stop.deliveryNotes}
               </p>
             ) : null}
 
             {stop.itemsSummary ? (
-              <p className="mt-4 text-[17px] text-stone-300">{stop.itemsSummary}</p>
+              <p className="mt-4 text-[17px] text-ink-soft">{stop.itemsSummary}</p>
             ) : null}
 
             <div
-              className={`mt-5 flex items-center justify-between rounded-2xl px-4 py-4 ${
-                nothingToCollect ? "bg-stone-800" : "bg-yellow-400"
+              className={`mt-5 flex items-center justify-between rounded-card px-4 py-4 ${
+                nothingToCollect ? "bg-paper-raised" : "bg-warn-bg"
               }`}
             >
               <span
                 className={`text-sm font-bold uppercase tracking-wide ${
-                  nothingToCollect ? "text-stone-300" : "text-stone-950"
+                  nothingToCollect ? "text-ink-soft" : "text-accent-fg"
                 }`}
               >
                 {nothingToCollect ? "Ya pagó" : "A cobrar"}
               </span>
               {nothingToCollect ? null : (
-                <span className="text-2xl font-bold tabular-nums text-stone-950">
+                <span className="text-2xl font-bold tabular-nums text-accent-fg">
                   {formatCurrency(
                     stop.paymentMethodExpected === "transfer"
                       ? stop.transferPaymentBalanceAmount
@@ -348,7 +348,7 @@ export function StopSheet({
 
             <div className="mt-4 flex gap-2">
               <a
-                className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-stone-500 text-[15px] font-semibold text-stone-100 transition active:bg-stone-800"
+                className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-[15px] font-semibold text-ink transition active:bg-paper-raised"
                 href={buildNavigationHref(stop)}
                 rel="noreferrer"
                 target="_blank"
@@ -357,7 +357,7 @@ export function StopSheet({
               </a>
               {whatsappHref ? (
                 <a
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-stone-500 text-[15px] font-semibold text-stone-100 transition active:bg-stone-800"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-[15px] font-semibold text-ink transition active:bg-paper-raised"
                   href={whatsappHref}
                   rel="noreferrer"
                   target="_blank"
@@ -370,7 +370,7 @@ export function StopSheet({
         ) : null}
 
         {error ? (
-          <p className="mt-5 rounded-2xl border border-rose-500 bg-rose-500/15 px-4 py-3 text-[15px] leading-6 text-rose-200">
+          <p className="mt-5 rounded-card border border-danger-line bg-danger-bg px-4 py-3 text-[15px] leading-6 text-danger-fg">
             {error}
           </p>
         ) : null}
@@ -378,7 +378,7 @@ export function StopSheet({
 
       {step === "detalle" ? (
         <footer
-          className="shrink-0 border-t border-stone-800 px-4 pb-6 pt-4"
+          className="shrink-0 border-t border-line px-4 pb-6 pt-4"
           style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         >
           {canAct ? (
@@ -404,7 +404,7 @@ export function StopSheet({
               </button>
             </div>
           ) : (
-            <p className="py-2 text-center text-[15px] text-stone-400">
+            <p className="py-2 text-center text-[15px] text-ink-soft">
               Iniciá el reparto para marcar entregas.
             </p>
           )}

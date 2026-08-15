@@ -13,11 +13,11 @@ export default async function WhatsappAutomationsPage() {
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-stone-500">CRM · WhatsApp</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+            <p className="text-sm uppercase tracking-[0.24em] text-ink-faint">CRM · WhatsApp</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
               Automatizaciones
             </h1>
-            <p className="mt-2 max-w-3xl text-sm text-stone-400">
+            <p className="mt-2 max-w-3xl text-sm text-ink-soft">
               Las automatizaciones se basan en `deliveries.delivered_at`: satisfacción a los 7 días y recompra a los 21 días.
             </p>
           </div>
@@ -27,21 +27,21 @@ export default async function WhatsappAutomationsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {settings.length ? (
             settings.map((setting) => (
-              <article key={setting.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
+              <article key={setting.id} className="rounded-card border border-line bg-paper p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-semibold text-stone-50">
+                    <h2 className="text-xl font-semibold text-ink">
                       {getWhatsappMessageTypeLabel(setting.message_type)}
                     </h2>
-                    <p className="mt-1 text-sm text-stone-400">
+                    <p className="mt-1 text-sm text-ink-soft">
                       {setting.days_after_delivered} días después de entrega
                     </p>
                   </div>
                   <span
                     className={`rounded-full border px-3 py-1 text-xs ${
                       setting.active
-                        ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-                        : "border-stone-700 bg-stone-950 text-stone-400"
+                        ? "border-accent bg-accent-soft text-accent"
+                        : "border-line bg-paper-muted text-ink-soft"
                     }`}
                   >
                     {setting.active ? "Activo" : "Inactivo"}
@@ -49,28 +49,28 @@ export default async function WhatsappAutomationsPage() {
                 </div>
 
                 <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-                  <div className="rounded-2xl bg-stone-950/70 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Límite diario</p>
-                    <p className="mt-1 text-stone-100">{setting.daily_limit}</p>
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Límite diario</p>
+                    <p className="mt-1 text-ink">{setting.daily_limit}</p>
                   </div>
-                  <div className="rounded-2xl bg-stone-950/70 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Delay mín.</p>
-                    <p className="mt-1 text-stone-100">{setting.random_delay_min_seconds}s</p>
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Delay mín.</p>
+                    <p className="mt-1 text-ink">{setting.random_delay_min_seconds}s</p>
                   </div>
-                  <div className="rounded-2xl bg-stone-950/70 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Delay máx.</p>
-                    <p className="mt-1 text-stone-100">{setting.random_delay_max_seconds}s</p>
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Delay máx.</p>
+                    <p className="mt-1 text-ink">{setting.random_delay_max_seconds}s</p>
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Texto actual</p>
-                  <p className="mt-3 whitespace-pre-line text-sm text-stone-300">{setting.template_body}</p>
+                <div className="mt-5 rounded-card border border-line bg-paper-muted p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Texto actual</p>
+                  <p className="mt-3 whitespace-pre-line text-sm text-ink-soft">{setting.template_body}</p>
                 </div>
               </article>
             ))
           ) : (
-            <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-5 py-10 text-center text-sm text-stone-500 md:col-span-2">
+            <div className="rounded-card border border-dashed border-line bg-paper px-5 py-10 text-center text-sm text-ink-faint md:col-span-2">
               No hay automatizaciones configuradas. Aplicá `supabase/whatsapp_crm.sql`.
             </div>
           )}

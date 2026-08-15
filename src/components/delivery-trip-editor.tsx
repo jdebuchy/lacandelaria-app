@@ -85,23 +85,23 @@ export function DeliveryTripEditor({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+    <form onSubmit={handleSubmit} className="rounded-card border border-line bg-paper p-5">
       <div className="grid gap-4 lg:grid-cols-3">
-        <label className="flex flex-col gap-2 text-sm text-stone-300">
+        <label className="flex flex-col gap-2 text-sm text-ink-soft">
           <span>Fecha del viaje</span>
           <DateInput
             value={scheduledDate}
             onChange={setScheduledDate}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
+            className="h-11 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden transition focus:border-info-line"
             required
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-stone-300">
+        <label className="flex flex-col gap-2 text-sm text-ink-soft">
           <span>Repartidor</span>
           <select
             value={driverUserId}
             onChange={(event) => setDriverUserId(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
+            className="h-11 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden transition focus:border-info-line"
           >
             <option value="">Sin asignar</option>
             {drivers.map((driver) => (
@@ -111,13 +111,13 @@ export function DeliveryTripEditor({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-2 text-sm text-stone-300 lg:col-span-1">
+        <label className="flex flex-col gap-2 text-sm text-ink-soft lg:col-span-1">
           <span>Notas</span>
           <input
             type="text"
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
+            className="h-11 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden transition focus:border-info-line"
             placeholder="Comentarios del viaje"
           />
         </label>
@@ -127,20 +127,20 @@ export function DeliveryTripEditor({
         {stops.map((stop) => (
           <div
             key={stop.id}
-            className="flex items-center justify-between gap-4 rounded-2xl border border-stone-800 bg-stone-950/70 px-4 py-3"
+            className="flex items-center justify-between gap-4 rounded-card border border-line bg-paper-muted px-4 py-3"
           >
             <div>
-              <p className="text-sm font-medium text-stone-100">{stop.customerName}</p>
-              <p className="text-xs text-stone-500">Pedido {stop.orderId.slice(0, 8)}</p>
+              <p className="text-sm font-medium text-ink">{stop.customerName}</p>
+              <p className="text-xs text-ink-faint">Pedido {stop.orderId.slice(0, 8)}</p>
             </div>
-            <label className="flex items-center gap-2 text-sm text-stone-300">
+            <label className="flex items-center gap-2 text-sm text-ink-soft">
               <span>Orden</span>
               <input
                 type="number"
                 min={1}
                 value={sequence[stop.orderId] ?? stop.sequenceNumber}
                 onChange={(event) => setOrderSequence(stop.orderId, Number(event.target.value) || 1)}
-                className="h-10 w-20 rounded-xl border border-stone-700 bg-stone-900 px-3 text-right text-stone-100 outline-hidden transition focus:border-sky-400"
+                className="h-10 w-20 rounded-control border border-line bg-paper px-3 text-right text-ink outline-hidden transition focus:border-info-line"
               />
             </label>
           </div>
@@ -151,11 +151,11 @@ export function DeliveryTripEditor({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Guardando..." : "Guardar viaje"}
         </button>
-        {message ? <p className="text-sm text-stone-400">{message}</p> : null}
+        {message ? <p className="text-sm text-ink-soft">{message}</p> : null}
       </div>
     </form>
   );

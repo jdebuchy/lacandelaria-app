@@ -278,22 +278,22 @@ export function TripRouteMap({ depot, route, stops }: TripRouteMapProps) {
 
   if (!route) {
     return (
-      <div className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5 text-sm text-stone-400">
+      <div className="rounded-card border border-line bg-paper p-5 text-sm text-ink-soft">
         No hay vista de recorrido disponible.
       </div>
     );
   }
 
   return (
-    <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+    <section className="rounded-card border border-line bg-paper p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-lg font-semibold text-stone-50">Mapa del recorrido</p>
-          <p className="mt-1 text-sm text-stone-400">
+          <p className="text-lg font-semibold text-ink">Mapa del recorrido</p>
+          <p className="mt-1 text-sm text-ink-soft">
             {formatDistance(route.totalDistanceMeters)} · {formatDuration(route.totalDurationSeconds)}
           </p>
         </div>
-        <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
+        <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
           {route.optimizer === "route_optimization"
             ? "Optimization API"
             : route.optimizer === "routes" || route.optimizer === "routes_fallback"
@@ -304,18 +304,18 @@ export function TripRouteMap({ depot, route, stops }: TripRouteMapProps) {
         </span>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-3xl border border-stone-800 bg-[#111315]">
+      <div className="mt-5 overflow-hidden rounded-card border border-line bg-[#111315]">
         {route.encodedPolyline && points.length && !mapsError ? (
           <div ref={mapContainerRef} className="h-[320px] w-full" />
         ) : null}
         {!route.encodedPolyline || !points.length ? (
-          <div className="flex h-[320px] items-center justify-center px-6 text-center text-sm text-stone-400">
+          <div className="flex h-[320px] items-center justify-center px-6 text-center text-sm text-ink-soft">
             No se pudo calcular una ruta de Google Maps para renderizar el mapa.
           </div>
         ) : null}
         {mapsError && route.encodedPolyline && points.length ? (
           <div className="relative">
-            <svg viewBox="0 0 920 440" className="h-[320px] w-full border-t border-stone-800">
+            <svg viewBox="0 0 920 440" className="h-[320px] w-full border-t border-line">
               <defs>
                 <pattern id="route-grid" width="40" height="40" patternUnits="userSpaceOnUse">
                   <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
@@ -365,18 +365,18 @@ export function TripRouteMap({ depot, route, stops }: TripRouteMapProps) {
                 );
               })}
             </svg>
-            <div className="border-t border-stone-800 bg-stone-950/80 px-4 py-3 text-sm text-amber-200">
+            <div className="border-t border-line bg-paper-muted px-4 py-3 text-sm text-warn-fg">
               {mapsError}
             </div>
           </div>
         ) : null}
       </div>
 
-      <div className="mt-4 rounded-2xl border border-stone-800 bg-stone-950/60 px-4 py-3 text-sm text-stone-300">
+      <div className="mt-4 rounded-card border border-line bg-paper-muted px-4 py-3 text-sm text-ink-soft">
         Origen y destino fijos: {tripDepot.label} · {formatLogisticsDepotAddress(tripDepot)}
       </div>
       {!browserMapsKey ? (
-        <div className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+        <div className="mt-3 rounded-card border border-warn-line bg-warn-bg px-4 py-3 text-sm text-warn-fg">
           Para ver Google Maps real en el planner, configura `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` y reinicia la app.
         </div>
       ) : null}
@@ -386,7 +386,7 @@ export function TripRouteMap({ depot, route, stops }: TripRouteMapProps) {
           {route.warnings.map((warning) => (
             <p
               key={warning}
-              className="rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+              className="rounded-card border border-warn-line bg-warn-bg px-4 py-3 text-sm text-warn-fg"
             >
               {warning}
             </p>

@@ -44,7 +44,7 @@ export default async function RepartoTripPage(context: Params) {
       <header className="flex items-center gap-2 px-3 py-2">
         <Link
           aria-label="Volver a mis viajes"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-stone-300 transition active:bg-stone-800"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-control text-ink-soft transition active:bg-paper-raised"
           href="/reparto"
         >
           <svg aria-hidden="true" className="h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -57,9 +57,9 @@ export default async function RepartoTripPage(context: Params) {
             />
           </svg>
         </Link>
-        <p className="text-[15px] font-medium text-stone-300 first-letter:uppercase">
+        <p className="text-[15px] font-medium text-ink-soft first-letter:uppercase">
           {formatTripDate(trip.scheduled_date)}
-          <span className="ml-2 text-stone-400">{formatTripNumber(trip.trip_number)}</span>
+          <span className="ml-2 text-ink-soft">{formatTripNumber(trip.trip_number)}</span>
         </p>
       </header>
 
@@ -76,7 +76,7 @@ export default async function RepartoTripPage(context: Params) {
           <RepartoTripAction action="complete" tripId={trip.id} />
         ) : null}
         {trip.status === "completed" ? (
-          <p className="text-center text-[15px] text-stone-400">Viaje finalizado.</p>
+          <p className="text-center text-[15px] text-ink-soft">Viaje finalizado.</p>
         ) : null}
       </div>
     </main>

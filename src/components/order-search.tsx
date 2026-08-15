@@ -41,10 +41,10 @@ export function OrderSearch({ defaultValue = "" }: { defaultValue?: string }) {
         onChange={handleChange}
         aria-label="Buscar pedidos"
         placeholder="Buscar por número de pedido, nombre o teléfono..."
-        className="w-full rounded-2xl border border-stone-700 bg-stone-900/80 px-4 py-3 pr-24 text-sm text-stone-100 placeholder-stone-500 outline-hidden transition focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20"
+        className="w-full rounded-card border border-line bg-paper px-4 py-3 pr-24 text-sm text-ink placeholder:text-ink-faint outline-hidden transition focus:border-accent focus:ring-1 focus:ring-accent"
       />
       {isPending ? (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-500">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint">
           Buscando...
         </span>
       ) : null}

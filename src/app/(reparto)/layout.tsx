@@ -6,7 +6,7 @@ export default async function RepartoLayout({ children }: { children: React.Reac
 
   return (
     <div
-      className="min-h-dvh bg-stone-950 text-stone-100"
+      className="min-h-dvh bg-paper-muted text-ink"
       style={{
         paddingBottom: "env(safe-area-inset-bottom)",
         paddingLeft: "env(safe-area-inset-left)",

@@ -130,14 +130,14 @@ export function AddressInput({ value, onChange, required, className, afterPostal
   }
 
   const inputClass =
-    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400";
+    "h-11 rounded-control border border-line bg-paper-muted px-4 text-sm text-ink outline-hidden focus:border-accent";
   const textareaClass =
-    "rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-hidden focus:border-emerald-400";
+    "rounded-control border border-line bg-paper-muted px-4 py-3 text-sm text-ink outline-hidden focus:border-accent";
 
   return (
     <div className={`grid gap-3 md:grid-cols-6${className ? ` ${className}` : ""}`}>
       <div className="relative grid gap-2 md:col-span-6">
-        <label className="text-sm text-stone-300">Buscar dirección</label>
+        <label className="text-sm text-ink-soft">Buscar dirección</label>
         <input
           value={query}
           onChange={(event) => {
@@ -153,46 +153,46 @@ export function AddressInput({ value, onChange, required, className, afterPostal
           placeholder="Busca una calle, edificio o barrio cerrado"
           className={inputClass}
         />
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-ink-faint">
           Puedes elegir una sugerencia de Google o completar la dirección manualmente si no aparece.
         </p>
         {(showSuggestions && (searching || suggestions.length > 0)) ? (
-          <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-stone-800 bg-stone-950/95 p-2 shadow-2xl shadow-black/40">
+          <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-card border border-line bg-paper-muted p-2 shadow-2xl shadow-black/40">
             {searching ? (
-              <p className="px-3 py-2 text-sm text-stone-500">Buscando sugerencias...</p>
+              <p className="px-3 py-2 text-sm text-ink-faint">Buscando sugerencias...</p>
             ) : (
               suggestions.map((suggestion) => (
                 <button
                   key={suggestion.placeId}
                   type="button"
                   onClick={() => applySuggestion(suggestion)}
-                  className="flex w-full flex-col rounded-xl px-3 py-3 text-left transition hover:bg-stone-900"
+                  className="flex w-full flex-col rounded-control px-3 py-3 text-left transition hover:bg-paper"
                 >
-                  <span className="text-sm font-medium text-stone-100">{suggestion.mainText}</span>
+                  <span className="text-sm font-medium text-ink">{suggestion.mainText}</span>
                   {suggestion.secondaryText ? (
-                    <span className="mt-1 text-xs text-stone-400">{suggestion.secondaryText}</span>
+                    <span className="mt-1 text-xs text-ink-soft">{suggestion.secondaryText}</span>
                   ) : null}
                 </button>
               ))
             )}
           </div>
         ) : null}
-        {message ? <p className="text-xs text-amber-300">{message}</p> : null}
+        {message ? <p className="text-xs text-warn-fg">{message}</p> : null}
       </div>
 
-      <label className="flex items-center gap-3 rounded-xl border border-stone-800 bg-stone-950/70 px-4 py-3 text-sm text-stone-300 md:col-span-6">
+      <label className="flex items-center gap-3 rounded-control border border-line bg-paper-muted px-4 py-3 text-sm text-ink-soft md:col-span-6">
         <input
           type="checkbox"
           checked={value.addressKind === "gated"}
           onChange={(event) => setField("addressKind", event.target.checked ? "gated" : "standard")}
-          className="h-4 w-4 rounded-sm border-stone-700 bg-stone-950 text-emerald-500 focus:ring-emerald-400"
+          className="h-4 w-4 rounded-control border-line bg-paper-muted text-accent focus:ring-accent"
         />
         ¿Barrio cerrado / privado?
       </label>
 
       {value.addressKind === "gated" ? (
         <div className="grid gap-3 md:col-span-6 md:grid-cols-4">
-          <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+          <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
             Dirección
             <input
               required={required}
@@ -207,7 +207,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+          <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
             Nombre del barrio
             <input
               required={required}
@@ -222,7 +222,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-stone-300">
+          <label className="grid gap-2 text-sm text-ink-soft">
             {addressLine2Label(value.addressKind)}
             <input
               value={value.addressLine2}
@@ -236,7 +236,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-stone-300">
+          <label className="grid gap-2 text-sm text-ink-soft">
             Localidad
             <input
               required={required}
@@ -251,7 +251,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-stone-300">
+          <label className="grid gap-2 text-sm text-ink-soft">
             Provincia
             <input
               required={required}
@@ -266,7 +266,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-          <label className="grid gap-2 text-sm text-stone-300">
+          <label className="grid gap-2 text-sm text-ink-soft">
             Código postal
             <input
               required={required}
@@ -281,12 +281,12 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-          {afterPostalCode ? <div className="grid gap-2 text-sm text-stone-300">{afterPostalCode}</div> : null}
+          {afterPostalCode ? <div className="grid gap-2 text-sm text-ink-soft">{afterPostalCode}</div> : null}
         </div>
       ) : (
         <>
           <div className="grid gap-3 md:col-span-6 md:grid-cols-3">
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid gap-2 text-sm text-ink-soft">
               Dirección
               <input
                 required={required}
@@ -301,7 +301,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid gap-2 text-sm text-ink-soft">
               {addressLine2Label(value.addressKind)}
               <input
                 value={value.addressLine2}
@@ -315,7 +315,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid gap-2 text-sm text-ink-soft">
               Localidad
               <input
                 required={required}
@@ -332,7 +332,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
           </div>
 
           <div className={`grid gap-3 md:col-span-6 ${afterPostalCode ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid gap-2 text-sm text-ink-soft">
               Provincia
               <input
                 required={required}
@@ -347,7 +347,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300">
+            <label className="grid gap-2 text-sm text-ink-soft">
               Código postal
               <input
                 required={required}
@@ -362,7 +362,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
             />
           </label>
 
-            {afterPostalCode ? <div className="grid gap-2 text-sm text-stone-300">{afterPostalCode}</div> : null}
+            {afterPostalCode ? <div className="grid gap-2 text-sm text-ink-soft">{afterPostalCode}</div> : null}
           </div>
         </>
       )}

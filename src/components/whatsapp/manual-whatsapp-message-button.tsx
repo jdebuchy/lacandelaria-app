@@ -129,32 +129,32 @@ export function ManualWhatsappMessageButton() {
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400"
+        className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
       >
         Programar mensaje
       </button>
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-xs">
-          <div className="my-8 w-full max-w-3xl rounded-3xl border border-stone-800 bg-stone-950 p-7 shadow-2xl sm:p-8">
+          <div className="my-8 w-full max-w-3xl rounded-card border border-line bg-paper-muted p-7 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-stone-50">Programar mensaje WhatsApp</h2>
-                <p className="mt-1 text-sm text-stone-500">
+                <h2 className="text-lg font-semibold text-ink">Programar mensaje WhatsApp</h2>
+                <p className="mt-1 text-sm text-ink-faint">
                   Se guarda en cola. El worker lo envía respetando opt-out, delay y límites.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-stone-500 transition hover:text-stone-300"
+                className="text-ink-faint transition hover:text-ink-soft"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-              <label className="relative grid gap-2 text-sm text-stone-300">
+              <label className="relative grid gap-2 text-sm text-ink-soft">
                 Cliente
                 <input
                   value={query}
@@ -162,20 +162,20 @@ export function ManualWhatsappMessageButton() {
                     setQuery(event.target.value);
                     setSelectedCustomer(null);
                   }}
-                  className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+                  className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
                   placeholder="Buscar por nombre, teléfono o Instagram"
                 />
                 {results.length ? (
-                  <div className="absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-2xl border border-stone-800 bg-stone-950 shadow-xl">
+                  <div className="absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-card border border-line bg-paper-muted shadow-xl">
                     {results.map((customer) => (
                       <button
                         key={customer.id}
                         type="button"
                         onClick={() => handleSelect(customer)}
-                        className="flex w-full items-center justify-between gap-3 border-b border-stone-800 px-4 py-3 text-left text-sm text-stone-300 last:border-b-0 hover:bg-stone-900"
+                        className="flex w-full items-center justify-between gap-3 border-b border-line px-4 py-3 text-left text-sm text-ink-soft last:border-b-0 hover:bg-paper"
                       >
                         <span>{formatPersonName(customer.first_name, customer.last_name, customer.instagram)}</span>
-                        <span className="text-stone-500">{formatWhatsAppPhone(customer.phone)}</span>
+                        <span className="text-ink-faint">{formatWhatsAppPhone(customer.phone)}</span>
                       </button>
                     ))}
                   </div>
@@ -183,12 +183,12 @@ export function ManualWhatsappMessageButton() {
               </label>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm text-stone-300">
+                <label className="grid gap-2 text-sm text-ink-soft">
                   Tipo
                   <select
                     value={messageType}
                     onChange={(event) => handleMessageTypeChange(event.target.value as (typeof messageTypes)[number])}
-                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+                    className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
                   >
                     {messageTypes.map((type) => (
                       <option key={type} value={type}>
@@ -198,41 +198,41 @@ export function ManualWhatsappMessageButton() {
                   </select>
                 </label>
 
-                <label className="grid gap-2 text-sm text-stone-300">
+                <label className="grid gap-2 text-sm text-ink-soft">
                   Programado para
                   <input
                     type="datetime-local"
                     value={scheduledFor}
                     onChange={(event) => setScheduledFor(event.target.value)}
-                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+                    className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
                   />
                 </label>
               </div>
 
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid gap-2 text-sm text-ink-soft">
                 Pedido asociado opcional
                 <input
                   value={orderId}
                   onChange={(event) => setOrderId(event.target.value)}
-                  className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+                  className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
                   placeholder="UUID del pedido si querés deduplicar por pedido/tipo"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid gap-2 text-sm text-ink-soft">
                 Mensaje
                 <textarea
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   rows={7}
-                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-hidden focus:border-emerald-400"
+                  className="rounded-control border border-line bg-paper-muted px-4 py-3 text-ink outline-hidden focus:border-accent"
                 />
               </label>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-h-5 text-sm">
                   {feedback ? (
-                    <p className={feedback.success ? "text-emerald-300" : "text-rose-300"}>
+                    <p className={feedback.success ? "text-accent" : "text-danger-fg"}>
                       {feedback.message}
                     </p>
                   ) : null}
@@ -241,14 +241,14 @@ export function ManualWhatsappMessageButton() {
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-full border border-stone-700 px-4 py-2 text-sm text-stone-300 transition hover:border-stone-500 hover:text-stone-100"
+                    className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={pending || !selectedCustomer}
-                    className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pending ? "Programando..." : "Guardar en cola"}
                   </button>

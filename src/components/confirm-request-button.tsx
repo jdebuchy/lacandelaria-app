@@ -42,7 +42,7 @@ export function ConfirmRequestButton({
   return (
     <div className="flex flex-col gap-2">
       {disabled ? (
-        <div className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm font-medium text-stone-400">
+        <div className="inline-flex h-10 items-center justify-center rounded-control border border-line bg-paper-muted px-4 text-sm font-medium text-ink-soft">
           {disabledLabel}
         </div>
       ) : (
@@ -50,12 +50,12 @@ export function ConfirmRequestButton({
           type="button"
           onClick={handleClick}
           disabled={isPending}
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Confirmando..." : "Confirmar pedido"}
         </button>
       )}
-      {message ? <p className="text-xs text-stone-400">{message}</p> : null}
+      {message ? <p className="text-xs text-ink-soft">{message}</p> : null}
     </div>
   );
 }

@@ -98,7 +98,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
     <form
       onSubmit={handleSubmit}
       autoComplete="off"
-      className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4 sm:p-6"
+      className="rounded-card border border-line bg-paper p-4 sm:p-6"
     >
       <AutofillDecoy />
       <input type="hidden" name="leadSource" value="direct_link" />
@@ -111,44 +111,44 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
       </div>
 
       {!activeProducts.length ? (
-        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-200">
+        <div className="rounded-card border border-warn-line bg-warn-bg p-4 text-sm text-warn-fg">
           No hay productos activos en el catálogo. Cargalos desde el panel antes de recibir pedidos.
         </div>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm text-stone-300">
+        <label className="grid gap-2 text-sm text-ink-soft">
           Nombre
           <input
             name="firstName"
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
             placeholder="Jose"
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-stone-300">
+        <label className="grid gap-2 text-sm text-ink-soft">
           Apellido
           <input
             name="lastName"
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
             placeholder="Debuchy"
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
           />
         </label>
 
         <PhoneInput name="phone" required value={phone} onChange={setPhone} />
 
-        <label className="grid gap-2 text-sm text-stone-300">
+        <label className="grid gap-2 text-sm text-ink-soft">
           Instagram
           <input
             name="instagram"
             value={instagram}
             onChange={(event) => setInstagram(event.target.value)}
             placeholder="usuario"
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
           />
           <span aria-hidden="true" className="text-xs text-transparent">
             .
@@ -157,13 +157,13 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
 
         <AddressInput required value={address} onChange={setAddress} className="md:col-span-2" />
 
-        <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+        <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
           Forma de pago
           <select
             name="paymentMethodExpected"
             value={paymentMethodExpected}
             onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-12 rounded-control border border-line bg-paper-muted px-4 text-base text-ink outline-hidden focus:border-accent"
           >
             <option value="unknown">No definido</option>
             <option value="cash">Efectivo</option>
@@ -180,14 +180,14 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
           />
         ) : null}
 
-        <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+        <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
           Notas de entrega
           <textarea
             name="notes"
             rows={4}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-hidden focus:border-emerald-400"
+            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-base text-ink outline-hidden focus:border-accent"
           />
         </label>
       </div>
@@ -196,13 +196,13 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
         <button
           type="submit"
           disabled={pending || !activeProducts.length}
-          className="inline-flex h-12 items-center justify-center rounded-xl bg-emerald-500 px-5 text-base font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-control bg-accent px-5 text-base font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Enviando..." : "Enviar pedido"}
         </button>
 
         {state.message ? (
-          <p className={state.success ? "text-sm text-emerald-300" : "text-sm text-rose-300"}>
+          <p className={state.success ? "text-sm text-accent" : "text-sm text-danger-fg"}>
             {state.message}
           </p>
         ) : null}

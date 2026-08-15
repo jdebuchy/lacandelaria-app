@@ -190,9 +190,13 @@
 }
 
 @theme {
-  /* Geometria. Tres radios, no once. */
-  --radius-control: 8px;
-  --radius-card: 10px;
+  /* Geometria. Dos radios, no once.
+     Casi rectos a proposito: esto es una herramienta de operacion, no una app
+     de consumo. La esquina se mata apenas para que no corte, y nada mas. La
+     unica forma redonda que sobrevive en la app es el avatar del usuario, que
+     es una foto y va circular por convencion. */
+  --radius-control: 2px;
+  --radius-card: 3px;
 
   /* Escala tipografica. Cinco pasos con nombre, en vez de text-3xl mezclado
      con text-[15px] y text-[17px]. */

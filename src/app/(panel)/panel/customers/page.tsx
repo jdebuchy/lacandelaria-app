@@ -273,15 +273,15 @@ function Pagination({
   const pages = buildPageNumbers(currentPage, totalPages);
 
   return (
-    <div className="flex items-center justify-between border-t border-stone-800 bg-stone-900/70 px-4 py-3 sm:px-6">
+    <div className="flex items-center justify-between border-t border-line bg-paper px-4 py-3 sm:px-6">
       <div className="flex flex-1 justify-between sm:hidden">
         <Link
           href={hrefForPage(Math.max(1, currentPage - 1))}
           aria-disabled={currentPage === 1}
-          className={`relative inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium ${
+          className={`relative inline-flex items-center rounded-control border px-4 py-2 text-sm font-medium ${
             currentPage === 1
-              ? "pointer-events-none border-stone-800 bg-stone-950 text-stone-600"
-              : "border-stone-700 bg-stone-950 text-stone-200 hover:bg-stone-800"
+              ? "pointer-events-none border-line bg-paper-muted text-ink-faint"
+              : "border-line bg-paper-muted text-ink hover:bg-paper-raised"
           }`}
         >
           Previous
@@ -289,10 +289,10 @@ function Pagination({
         <Link
           href={hrefForPage(Math.min(totalPages, currentPage + 1))}
           aria-disabled={currentPage === totalPages}
-          className={`relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium ${
+          className={`relative ml-3 inline-flex items-center rounded-control border px-4 py-2 text-sm font-medium ${
             currentPage === totalPages
-              ? "pointer-events-none border-stone-800 bg-stone-950 text-stone-600"
-              : "border-stone-700 bg-stone-950 text-stone-200 hover:bg-stone-800"
+              ? "pointer-events-none border-line bg-paper-muted text-ink-faint"
+              : "border-line bg-paper-muted text-ink hover:bg-paper-raised"
           }`}
         >
           Next
@@ -300,21 +300,21 @@ function Pagination({
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-stone-400">
-            Mostrando <span className="font-medium text-stone-200">{start}</span> a{" "}
-            <span className="font-medium text-stone-200">{end}</span> de{" "}
-            <span className="font-medium text-stone-200">{totalCount}</span> clientes
+          <p className="text-sm text-ink-soft">
+            Mostrando <span className="font-medium text-ink">{start}</span> a{" "}
+            <span className="font-medium text-ink">{end}</span> de{" "}
+            <span className="font-medium text-ink">{totalCount}</span> clientes
           </p>
         </div>
         <div>
-          <nav aria-label="Paginación" className="isolate inline-flex -space-x-px rounded-md shadow-none">
+          <nav aria-label="Paginación" className="isolate inline-flex -space-x-px rounded-control shadow-none">
             <Link
               href={hrefForPage(Math.max(1, currentPage - 1))}
               aria-disabled={currentPage === 1}
-              className={`relative inline-flex items-center rounded-l-md px-3 py-2 inset-ring ${
+              className={`relative inline-flex items-center rounded-l-control px-3 py-2 inset-ring ${
                 currentPage === 1
-                  ? "pointer-events-none text-stone-700 inset-ring-stone-800"
-                  : "text-stone-400 inset-ring-stone-700 hover:bg-stone-800"
+                  ? "pointer-events-none text-ink-faint inset-ring-line"
+                  : "text-ink-soft inset-ring-line hover:bg-paper-raised"
               }`}
             >
               <span className="sr-only">Previous</span>
@@ -327,17 +327,17 @@ function Pagination({
               return (
                 <div key={page} className="inline-flex">
                   {needsGap ? (
-                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-stone-500 inset-ring inset-ring-stone-700">
+                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-ink-faint inset-ring inset-ring-line">
                       ...
                     </span>
                   ) : null}
                   <Link
                     href={hrefForPage(page)}
                     aria-current={page === currentPage ? "page" : undefined}
-                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold inset-ring inset-ring-stone-700 ${
+                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold inset-ring inset-ring-line ${
                       page === currentPage
-                        ? "z-10 bg-emerald-500 text-stone-950"
-                        : "text-stone-200 hover:bg-stone-800"
+                        ? "z-10 bg-accent text-accent-fg"
+                        : "text-ink hover:bg-paper-raised"
                     }`}
                   >
                     {page}
@@ -348,10 +348,10 @@ function Pagination({
             <Link
               href={hrefForPage(Math.min(totalPages, currentPage + 1))}
               aria-disabled={currentPage === totalPages}
-              className={`relative inline-flex items-center rounded-r-md px-3 py-2 inset-ring ${
+              className={`relative inline-flex items-center rounded-r-control px-3 py-2 inset-ring ${
                 currentPage === totalPages
-                  ? "pointer-events-none text-stone-700 inset-ring-stone-800"
-                  : "text-stone-400 inset-ring-stone-700 hover:bg-stone-800"
+                  ? "pointer-events-none text-ink-faint inset-ring-line"
+                  : "text-ink-soft inset-ring-line hover:bg-paper-raised"
               }`}
             >
               <span className="sr-only">Next</span>
@@ -430,21 +430,21 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
   const showingTo = Math.min(clampedPage * pageSize, totalCount);
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
+    <main className="min-h-screen bg-paper-muted text-ink">
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-16">
         <div className="space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
                 Listado de clientes
               </h1>
-              <p className="mt-2 text-stone-400">
+              <p className="mt-2 text-ink-soft">
                 {totalCount} {normalizedQuery ? "resultado(s) para la búsqueda" : "clientes registrados"}
               </p>
-              <p className="mt-1 text-sm text-stone-500">
+              <p className="mt-1 text-sm text-ink-faint">
                 Orden actual: {sortKey === "updated_at" ? "última actualización" : sortKey === "last_name" ? "apellido" : "alta"} ({sortDirection === "asc" ? "ascendente" : "descendente"}). Filtro actual: {AREA_LABELS[areaFilter]}.
               </p>
-              <p className="mt-1 text-sm text-stone-500">
+              <p className="mt-1 text-sm text-ink-faint">
                 Mostrando {showingFrom} a {showingTo} de {totalCount}. Límite por página: {pageSize}.
               </p>
             </div>

@@ -14,7 +14,7 @@ export default async function NewProductPage() {
     <main>
       {error ? (
         <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-          <p className="rounded-3xl border border-rose-400/20 bg-rose-500/10 px-5 py-4 text-sm text-rose-300">
+          <p className="rounded-card border border-danger-line bg-danger-bg px-5 py-4 text-sm text-danger-fg">
             {getProductCatalogDbErrorMessage(error, "load")}
           </p>
         </section>

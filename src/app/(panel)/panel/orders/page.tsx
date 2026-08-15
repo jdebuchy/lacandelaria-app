@@ -92,19 +92,19 @@ function getDeliveryAreaLabel(area: string) {
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case "pending_confirmation":
-      return "border-amber-700 bg-amber-950/60 text-amber-300";
+      return "border-warn-line bg-warn-bg text-warn-fg";
     case "confirmed":
-      return "border-sky-700 bg-sky-950/60 text-sky-300";
+      return "border-info-line bg-info-bg text-info-fg";
     case "assigned":
-      return "border-violet-700 bg-violet-950/60 text-violet-300";
+      return "border-info-line bg-info-bg text-info-fg";
     case "in_route":
-      return "border-emerald-700 bg-emerald-950/60 text-emerald-300";
+      return "border-accent bg-accent-soft text-accent";
     case "delivered":
-      return "border-stone-700 bg-stone-950/60 text-stone-400";
+      return "border-line bg-paper-muted text-ink-soft";
     case "cancelled":
-      return "border-red-800 bg-red-950/60 text-red-400";
+      return "border-danger-line bg-danger-bg text-danger-fg";
     default:
-      return "border-stone-700 bg-stone-900 text-stone-400";
+      return "border-line bg-paper text-ink-soft";
   }
 }
 
@@ -271,13 +271,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
               Pedidos
             </h1>
           </div>
           <Link
             href="/panel/orders/new"
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400"
+            className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-sm font-medium text-accent-fg transition hover:bg-accent"
           >
             Nuevo pedido
           </Link>
@@ -286,54 +286,54 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           <Link
             href="/panel/orders?status=confirmed"
-            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+            className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
           >
-            <p className="text-sm text-stone-400">Esperando viaje</p>
-            <p className="mt-2 text-2xl font-semibold text-amber-300 sm:text-3xl">
+            <p className="text-sm text-ink-soft">Esperando viaje</p>
+            <p className="mt-2 text-2xl font-semibold text-warn-fg sm:text-3xl">
               {awaitingTripCount}
             </p>
           </Link>
           <Link
             href="/panel/orders?status=in_route"
-            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+            className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
           >
-            <p className="text-sm text-stone-400">En ruta</p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-300 sm:text-3xl">
+            <p className="text-sm text-ink-soft">En ruta</p>
+            <p className="mt-2 text-2xl font-semibold text-accent sm:text-3xl">
               {inRouteOrders ?? 0}
             </p>
           </Link>
           <Link
             href="/panel/orders?status=pending_confirmation"
-            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+            className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
           >
-            <p className="text-sm text-stone-400">A confirmar</p>
-            <p className="mt-2 text-2xl font-semibold text-sky-300 sm:text-3xl">
+            <p className="text-sm text-ink-soft">A confirmar</p>
+            <p className="mt-2 text-2xl font-semibold text-info-fg sm:text-3xl">
               {pendingOrders ?? 0}
             </p>
           </Link>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Pedidos</p>
-            <p className="mt-2 text-2xl font-semibold text-stone-100 sm:text-3xl">
+          <article className="rounded-card border border-line bg-paper p-5">
+            <p className="text-sm text-ink-soft">Pedidos</p>
+            <p className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">
               {totalOrders ?? 0}
             </p>
           </article>
         </div>
 
         {ordersError ? (
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+          <div className="rounded-card border border-danger-line bg-danger-bg p-4 text-sm text-danger-fg">
             <p className="font-medium">No se pudieron cargar los pedidos.</p>
-            <p className="mt-1 text-rose-200/80">
+            <p className="mt-1 text-danger-fg">
               La lista de abajo está vacía por este error, no porque no haya pedidos.
             </p>
-            <p className="mt-2 font-mono text-xs text-rose-200/70">{ordersError.message}</p>
+            <p className="mt-2 font-mono text-xs text-danger-fg">{ordersError.message}</p>
           </div>
         ) : null}
 
         <section className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-stone-50">Todos los pedidos</h2>
-              <p className="mt-1 text-sm text-stone-500">
+              <h2 className="text-lg font-semibold text-ink">Todos los pedidos</h2>
+              <p className="mt-1 text-sm text-ink-faint">
                 {visibleOrderRows.length} {normalizedQuery ? "resultado(s)" : "pedido(s)"}
               </p>
             </div>
@@ -346,8 +346,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
             <OrderFilters activeStatus={normalizedStatusFilter} />
           </Suspense>
 
-          <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+          <div className="hidden overflow-hidden rounded-card border border-line bg-paper lg:block">
+            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-line bg-paper px-4 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
               <div>Cliente</div>
               <div>Área</div>
               <div>Estado</div>
@@ -360,7 +360,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               pagedOrderRows.map((order) => (
                 <div
                   key={order.id}
-                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
+                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-line px-4 py-4 text-sm text-ink-soft last:border-b-0 hover:bg-paper"
                 >
                   <Link
                     href={`/panel/orders/${order.id}`}
@@ -369,34 +369,34 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-stone-500">
+                      <span className="text-xs font-medium text-ink-faint">
                         {formatOrderNumber(order.orderNumber)}
                       </span>
-                      <p className="font-medium text-stone-100">{order.customerName}</p>
+                      <p className="font-medium text-ink">{order.customerName}</p>
                       {order.channel !== "internal" && (
-                        <span className="rounded-full border border-stone-700 px-2 py-0.5 text-xs text-stone-400">
+                        <span className="rounded-control border border-line px-2 py-0.5 text-xs text-ink-soft">
                           {getChannelLabel(order.channel)}
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-xs text-stone-500">
+                    <p className="mt-1 text-xs text-ink-faint">
                       {formatWhatsAppPhone(order.customerPhone)}
                     </p>
                   </div>
                   <div>
                     <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
                     {order.locality && (
-                      <p className="mt-0.5 truncate text-xs text-stone-500">{order.locality}</p>
+                      <p className="mt-0.5 truncate text-xs text-ink-faint">{order.locality}</p>
                     )}
                   </div>
                   <div>
-                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                    <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
                       {getOrderStatusLabel(order.status)}
                     </span>
                     {order.trip && (
                       <Link
                         href={`/panel/logistics/delivery/${order.trip.id}`}
-                        className="relative z-10 mt-1.5 inline-block text-xs text-sky-400 hover:text-sky-300"
+                        className="relative z-10 mt-1.5 inline-block text-xs text-info-fg hover:text-info-fg"
                       >
                         {formatTripNumber(order.trip.number)}
                       </Link>
@@ -407,11 +407,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     <p>{formatCurrency(order.totalAmount)}</p>
                     {order.paidAmount > 0 && (
                       <>
-                        <p className="mt-1 text-xs text-stone-500">
+                        <p className="mt-1 text-xs text-ink-faint">
                           Cobrado {formatCurrency(order.paidAmount)}
                         </p>
                         {order.paymentBalanceAmount > 0 && (
-                          <p className="mt-1 text-xs text-amber-300">
+                          <p className="mt-1 text-xs text-warn-fg">
                             Saldo {formatCurrency(order.paymentBalanceAmount)}
                           </p>
                         )}
@@ -423,14 +423,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-xs font-medium text-ink transition hover:border-line-strong hover:text-ink"
                       >
                         Editar
                       </Link>
                     ) : (
                       <Link
                         href={`/panel/orders/${order.id}`}
-                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-400 transition hover:border-stone-600 hover:text-stone-100"
+                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-xs font-medium text-ink-soft transition hover:border-line hover:text-ink"
                       >
                         Ver
                       </Link>
@@ -439,7 +439,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                 </div>
               ))
             ) : (
-              <div className="px-4 py-8 text-center text-sm text-stone-500">
+              <div className="px-4 py-8 text-center text-sm text-ink-faint">
                 {ordersError
                   ? "No se pudo cargar la lista."
                   : normalizedQuery
@@ -452,47 +452,47 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
           <div className="grid gap-3 lg:hidden">
             {pagedOrderRows.length ? (
               pagedOrderRows.map((order) => (
-                <article key={order.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4">
+                <article key={order.id} className="rounded-card border border-line bg-paper p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-medium text-stone-500">
+                      <p className="text-xs font-medium text-ink-faint">
                         {formatOrderNumber(order.orderNumber)}
                       </p>
-                      <p className="text-base font-semibold text-stone-50">{order.customerName}</p>
-                      <p className="mt-1 text-sm text-stone-400">
+                      <p className="text-base font-semibold text-ink">{order.customerName}</p>
+                      <p className="mt-1 text-sm text-ink-soft">
                         {formatWhatsAppPhone(order.customerPhone)}
                       </p>
                     </div>
-                    <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-stone-300">
+                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft">
                       {getChannelLabel(order.channel)}
                     </span>
                   </div>
                   <div className="mt-4 grid gap-3 text-sm">
-                    <div className="rounded-2xl bg-stone-950/80 p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
+                    <div className="rounded-card bg-paper-muted p-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Estado</p>
                       <div className="mt-1">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
+                        <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
                           {getOrderStatusLabel(order.status)}
                         </span>
                       </div>
                       {order.trip && (
                         <Link
                           href={`/panel/logistics/delivery/${order.trip.id}`}
-                          className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
+                          className="mt-1 inline-block text-xs text-info-fg hover:text-info-fg"
                         >
                           {formatTripNumber(order.trip.number)}
                         </Link>
                       )}
                     </div>
-                    <div className="rounded-2xl bg-stone-950/80 p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
-                      <p className="mt-1 text-stone-200">{order.itemsSummary}</p>
+                    <div className="rounded-card bg-paper-muted p-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Ítems</p>
+                      <p className="mt-1 text-ink">{order.itemsSummary}</p>
                     </div>
-                    <div className="rounded-2xl bg-stone-950/80 p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Total</p>
-                      <p className="mt-1 text-stone-200">{formatCurrency(order.totalAmount)}</p>
+                    <div className="rounded-card bg-paper-muted p-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-ink-faint">Total</p>
+                      <p className="mt-1 text-ink">{formatCurrency(order.totalAmount)}</p>
                       {order.paidAmount > 0 && (
-                        <p className="mt-1 text-xs text-stone-500">
+                        <p className="mt-1 text-xs text-ink-faint">
                           Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
                           {formatCurrency(order.paymentBalanceAmount)}
                         </p>
@@ -502,19 +502,19 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href={`/panel/orders/${order.id}`}
-                      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                      className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm text-ink transition hover:border-line-strong hover:text-ink"
                     >
                       Ver pedido
                     </Link>
                     {order.isEditable ? (
                       <Link
                         href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                        className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm text-ink transition hover:border-line-strong hover:text-ink"
                       >
                         Editar pedido
                       </Link>
                     ) : (
-                      <span className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-800 px-4 text-sm text-stone-500">
+                      <span className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-sm text-ink-faint">
                         Pedido bloqueado
                       </span>
                     )}
@@ -522,7 +522,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                 </article>
               ))
             ) : (
-              <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-4 py-8 text-center text-sm text-stone-500">
+              <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-sm text-ink-faint">
                 {ordersError
                   ? "No se pudo cargar la lista."
                   : normalizedQuery
@@ -534,14 +534,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
 
           {totalPages > 1 ? (
             <div className="flex items-center justify-between gap-3 text-sm">
-              <p className="text-stone-500">
+              <p className="text-ink-faint">
                 {pageStart + 1}–{pageStart + pagedOrderRows.length} de {visibleOrderRows.length}
               </p>
               <div className="flex gap-2">
                 {currentPage > 1 ? (
                   <Link
                     href={buildPageHref(currentPage - 1)}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-stone-200 transition hover:border-stone-500"
+                    className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-ink transition hover:border-line-strong"
                   >
                     Anteriores
                   </Link>
@@ -549,7 +549,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                 {currentPage < totalPages ? (
                   <Link
                     href={buildPageHref(currentPage + 1)}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-stone-200 transition hover:border-stone-500"
+                    className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-ink transition hover:border-line-strong"
                   >
                     Siguientes
                   </Link>

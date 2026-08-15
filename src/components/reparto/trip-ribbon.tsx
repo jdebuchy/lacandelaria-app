@@ -11,14 +11,14 @@ type TripRibbonProps = {
 
 function segmentClass(status: DeliveryExecutionStop["deliveryStatus"]) {
   if (status === "delivered") {
-    return "bg-emerald-500";
+    return "bg-accent";
   }
 
   if (status === "failed") {
-    return "bg-rose-500";
+    return "bg-danger-bg";
   }
 
-  return "bg-stone-700";
+  return "bg-paper-raised";
 }
 
 /**
@@ -31,12 +31,12 @@ export function TripRibbon({ collectedAmount, onSelect, stops }: TripRibbonProps
   ).length;
 
   return (
-    <div className="border-b border-stone-800 bg-stone-950 px-4 pb-3 pt-2">
+    <div className="border-b border-line bg-paper-muted px-4 pb-3 pt-2">
       <div className="flex gap-1" role="list">
         {stops.map((stop) => (
           <button
             aria-label={`Parada ${stop.sequenceNumber}, ${stop.customerName}`}
-            className={`h-2.5 flex-1 rounded-full transition ${segmentClass(stop.deliveryStatus)}`}
+            className={`h-2.5 flex-1 rounded-control transition ${segmentClass(stop.deliveryStatus)}`}
             key={stop.tripOrderId}
             onClick={() => onSelect(stop.tripOrderId)}
             role="listitem"
@@ -45,14 +45,14 @@ export function TripRibbon({ collectedAmount, onSelect, stops }: TripRibbonProps
         ))}
       </div>
       <div className="mt-2 flex items-baseline justify-between text-sm">
-        <p className="font-semibold tabular-nums text-stone-100">
+        <p className="font-semibold tabular-nums text-ink">
           {resolved}
-          <span className="text-stone-400">/{stops.length}</span>
-          <span className="ml-2 font-normal text-stone-400">paradas</span>
+          <span className="text-ink-soft">/{stops.length}</span>
+          <span className="ml-2 font-normal text-ink-soft">paradas</span>
         </p>
-        <p className="font-semibold tabular-nums text-yellow-300">
+        <p className="font-semibold tabular-nums text-warn-fg">
           {formatCurrency(collectedAmount)}
-          <span className="ml-2 text-xs font-normal text-stone-400">cobrado</span>
+          <span className="ml-2 text-xs font-normal text-ink-soft">cobrado</span>
         </p>
       </div>
     </div>

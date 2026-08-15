@@ -78,17 +78,17 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-stone-500">CRM</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-ink-faint">CRM</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
                 WhatsApp
               </h1>
-              <p className="mt-2 max-w-3xl text-sm text-stone-400">
+              <p className="mt-2 max-w-3xl text-sm text-ink-soft">
                 Mensajero operativo con IA limitada, schedule y envío directo vía `whatsapp-web.js` cuando el worker está conectado.
               </p>
             </div>
             <Link
               href="/panel/crm/whatsapp/queue"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+              className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-sm font-medium text-ink transition hover:border-line-strong hover:text-ink"
             >
               Programar mensaje
             </Link>
@@ -96,38 +96,38 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
           <WhatsappCrmNav activeHref="/panel/crm/whatsapp" />
         </div>
 
-        <section className="grid min-h-[680px] overflow-hidden rounded-4xl border border-stone-800 bg-stone-950 shadow-2xl shadow-black/20 lg:grid-cols-[390px_1fr]">
-          <aside className="flex min-h-0 flex-col border-b border-stone-800 bg-stone-950 lg:border-b-0 lg:border-r">
-            <div className="border-b border-stone-800 p-5">
+        <section className="grid min-h-[680px] overflow-hidden rounded-control-4xl border border-line bg-paper-muted shadow-2xl shadow-black/20 lg:grid-cols-[390px_1fr]">
+          <aside className="flex min-h-0 flex-col border-b border-line bg-paper-muted lg:border-b-0 lg:border-r">
+            <div className="border-b border-line p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xl font-semibold text-emerald-400">WhatsApp</p>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="text-xl font-semibold text-accent">WhatsApp</p>
+                  <p className="mt-1 text-xs text-ink-faint">
                     {conversations.length} conversaciones · {conversations.filter((row) => row.requires_human).length} humanas
                   </p>
                 </div>
                 <Link
                   href="/panel/crm/whatsapp/queue"
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-stone-800 bg-stone-900 text-lg text-stone-300 transition hover:border-emerald-400/40 hover:text-emerald-200"
+                  className="flex h-10 w-10 items-center justify-center rounded-card border border-line bg-paper text-lg text-ink-soft transition hover:border-accent hover:text-accent"
                   aria-label="Programar mensaje"
                 >
                   +
                 </Link>
               </div>
 
-              <div className="mt-5 flex h-12 items-center gap-3 rounded-full bg-stone-900 px-4 text-sm text-stone-500">
+              <div className="mt-5 flex h-12 items-center gap-3 rounded-control bg-paper px-4 text-sm text-ink-faint">
                 <span aria-hidden="true">⌕</span>
                 <span>Buscar o iniciar chat desde cola</span>
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-emerald-200">
+                <span className="rounded-control border border-accent bg-accent-soft px-4 py-2 text-accent">
                   Todas
                 </span>
-                <span className="rounded-full border border-stone-800 px-4 py-2 text-stone-400">
+                <span className="rounded-control border border-line px-4 py-2 text-ink-soft">
                   Humano {conversations.filter((row) => row.requires_human).length}
                 </span>
-                <span className="rounded-full border border-stone-800 px-4 py-2 text-stone-400">
+                <span className="rounded-control border border-line px-4 py-2 text-ink-soft">
                   Pedido listo {conversations.filter((row) => row.status === "waiting_for_confirmation").length}
                 </span>
               </div>
@@ -143,37 +143,37 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
                     <Link
                       key={conversation.id}
                       href={`/panel/crm/whatsapp?conversationId=${conversation.id}`}
-                      className={`grid grid-cols-[3.5rem_1fr_auto] gap-3 border-b border-stone-900 px-4 py-4 transition ${
-                        isActive ? "bg-stone-900" : "hover:bg-stone-900/70"
+                      className={`grid grid-cols-[3.5rem_1fr_auto] gap-3 border-b border-line px-4 py-4 transition ${
+                        isActive ? "bg-paper" : "hover:bg-paper"
                       }`}
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 text-sm font-semibold text-emerald-200">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
                         {getCustomerName(conversation).slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-stone-100">
+                          <p className="truncate text-sm font-semibold text-ink">
                             {getCustomerName(conversation)}
                           </p>
                           {conversation.requires_human ? (
-                            <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] text-rose-200">
+                            <span className="rounded-control bg-danger-bg px-2 py-0.5 text-[10px] text-danger-fg">
                               Humano
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-1 truncate text-sm text-stone-500">
+                        <p className="mt-1 truncate text-sm text-ink-faint">
                           {latestMessage?.body || getWhatsappStatusLabel(conversation.status)}
                         </p>
-                        <p className="mt-1 text-xs text-stone-600">
+                        <p className="mt-1 text-xs text-ink-faint">
                           {getWhatsappIntentLabel(conversation.current_intent)} · {formatConfidence(conversation.ai_confidence)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-ink-faint">
                           {formatTime(conversation.last_inbound_at || conversation.last_outbound_at || conversation.updated_at)}
                         </p>
                         {conversation.status === "waiting_for_confirmation" ? (
-                          <span className="mt-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-semibold text-stone-950">
+                          <span className="mt-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warn-bg px-1.5 text-[11px] font-semibold text-accent-fg">
                             !
                           </span>
                         ) : null}
@@ -182,24 +182,24 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
                   );
                 })
               ) : (
-                <div className="px-6 py-12 text-center text-sm text-stone-500">
+                <div className="px-6 py-12 text-center text-sm text-ink-faint">
                   Todavía no hay conversaciones. Podés programar un mensaje manual desde la cola o conectar el worker para recibir respuestas.
                 </div>
               )}
             </div>
           </aside>
 
-          <section className="flex min-h-0 flex-col bg-stone-900/40">
+          <section className="flex min-h-0 flex-col bg-paper">
             {selectedConversation ? (
               <>
-                <header className="flex items-center justify-between gap-3 border-b border-stone-800 bg-stone-950/95 px-5 py-4">
+                <header className="flex items-center justify-between gap-3 border-b border-line bg-paper-muted px-5 py-4">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-sm font-semibold text-emerald-200">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
                       {getCustomerName(selectedConversation).slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-stone-50">{getCustomerName(selectedConversation)}</p>
-                      <p className="mt-0.5 text-xs text-stone-500">
+                      <p className="truncate font-semibold text-ink">{getCustomerName(selectedConversation)}</p>
+                      <p className="mt-0.5 text-xs text-ink-faint">
                         {formatWhatsAppPhone(getConversationPhone(selectedConversation))} · {getWhatsappStatusLabel(selectedConversation.status)}
                       </p>
                     </div>
@@ -208,13 +208,13 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
                     {selectedConversation.customer_id ? (
                       <Link
                         href={`/panel/customers/${selectedConversation.customer_id}?tab=whatsapp`}
-                        className="rounded-full border border-stone-800 px-3 py-1.5 text-stone-300 transition hover:border-stone-600 hover:text-stone-50"
+                        className="rounded-control border border-line px-3 py-1.5 text-ink-soft transition hover:border-line hover:text-ink"
                       >
                         Ver cliente
                       </Link>
                     ) : null}
                     {selectedConversation.requires_human ? (
-                      <span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-rose-200">
+                      <span className="rounded-control border border-danger-line bg-danger-bg px-3 py-1.5 text-danger-fg">
                         Requiere humano
                       </span>
                     ) : null}
@@ -230,21 +230,21 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
                         return (
                           <article
                             key={message.id}
-                            className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm shadow-lg ${
+                            className={`max-w-[82%] rounded-card px-4 py-3 text-sm shadow-lg ${
                               outbound
-                                ? "ml-auto rounded-br-md bg-emerald-600 text-white shadow-emerald-950/20"
-                                : "mr-auto rounded-bl-md bg-stone-800 text-stone-100 shadow-black/20"
+                                ? "ml-auto rounded-br-control bg-accent text-white shadow-ink/10"
+                                : "mr-auto rounded-bl-control bg-paper-raised text-ink shadow-black/20"
                             }`}
                           >
                             <p className="whitespace-pre-line">{message.body}</p>
                             <div className={`mt-2 flex flex-wrap items-center justify-end gap-2 text-[11px] ${
-                              outbound ? "text-emerald-100/80" : "text-stone-500"
+                              outbound ? "text-accent" : "text-ink-faint"
                             }`}>
                               <span>{getWhatsappMessageTypeLabel(message.message_type)}</span>
                               <span>{formatDateTime(message.created_at)}</span>
                             </div>
                             {message.ai_intent ? (
-                              <p className={`mt-2 text-[11px] ${outbound ? "text-emerald-100/80" : "text-stone-500"}`}>
+                              <p className={`mt-2 text-[11px] ${outbound ? "text-accent" : "text-ink-faint"}`}>
                                 IA: {getWhatsappIntentLabel(message.ai_intent)} · {formatConfidence(message.ai_confidence)}
                               </p>
                             ) : null}
@@ -252,9 +252,9 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
                         );
                       })
                     ) : (
-                      <div className="mx-auto mt-24 max-w-md rounded-3xl border border-stone-800 bg-stone-950/80 px-6 py-8 text-center">
-                        <p className="text-lg font-semibold text-stone-100">Sin mensajes todavía</p>
-                        <p className="mt-2 text-sm text-stone-500">
+                      <div className="mx-auto mt-24 max-w-md rounded-card border border-line bg-paper-muted px-6 py-8 text-center">
+                        <p className="text-lg font-semibold text-ink">Sin mensajes todavía</p>
+                        <p className="mt-2 text-sm text-ink-faint">
                           Si el worker está conectado, podés escribir abajo para enviar el primer mensaje directo.
                         </p>
                       </div>
@@ -266,14 +266,14 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
               </>
             ) : (
               <div className="flex flex-1 items-center justify-center p-8">
-                <div className="max-w-md rounded-3xl border border-stone-800 bg-stone-950/80 px-8 py-10 text-center">
-                  <p className="text-xl font-semibold text-stone-100">Seleccioná una conversación</p>
-                  <p className="mt-2 text-sm text-stone-500">
+                <div className="max-w-md rounded-card border border-line bg-paper-muted px-8 py-10 text-center">
+                  <p className="text-xl font-semibold text-ink">Seleccioná una conversación</p>
+                  <p className="mt-2 text-sm text-ink-faint">
                     Las conversaciones aparecen cuando el worker envía o recibe mensajes. Para iniciar manualmente, programá un mensaje desde la cola.
                   </p>
                   <Link
                     href="/panel/crm/whatsapp/queue"
-                    className="mt-5 inline-flex rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-emerald-400"
+                    className="mt-5 inline-flex rounded-control bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent"
                   >
                     Ir a cola
                   </Link>

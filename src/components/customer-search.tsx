@@ -93,10 +93,10 @@ export function CustomerSearch({
           onChange={handleChange}
           aria-label="Buscar clientes"
           placeholder="Buscar por nombre, teléfono o Instagram..."
-          className="w-full rounded-2xl border border-stone-700 bg-stone-900/80 px-4 py-3 pr-24 text-sm text-stone-100 placeholder-stone-500 outline-hidden transition focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 sm:w-80"
+          className="w-full rounded-card border border-line bg-paper px-4 py-3 pr-24 text-sm text-ink placeholder:text-ink-faint outline-hidden transition focus:border-accent focus:ring-1 focus:ring-accent sm:w-80"
         />
         {isPending ? (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-500">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint">
             Buscando...
           </span>
         ) : null}
@@ -110,7 +110,7 @@ export function CustomerSearch({
           searchParams.get("limit") ?? defaultLimit
         )}
         aria-label="Filtrar clientes por zona"
-        className="rounded-2xl border border-stone-700 bg-stone-900/80 px-4 py-3 text-sm text-stone-100 outline-hidden transition focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20"
+        className="rounded-card border border-line bg-paper px-4 py-3 text-sm text-ink outline-hidden transition focus:border-accent focus:ring-1 focus:ring-accent"
       >
         {AREA_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -127,7 +127,7 @@ export function CustomerSearch({
           event.target.value
         )}
         aria-label="Cantidad de clientes a mostrar"
-        className="rounded-2xl border border-stone-700 bg-stone-900/80 px-4 py-3 text-sm text-stone-100 outline-hidden transition focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20"
+        className="rounded-card border border-line bg-paper px-4 py-3 text-sm text-ink outline-hidden transition focus:border-accent focus:ring-1 focus:ring-accent"
       >
         {PAGE_SIZE_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>

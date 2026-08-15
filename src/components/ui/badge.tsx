@@ -20,7 +20,7 @@ export function Badge({ children, className, tone = "neutral" }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-label",
+        "inline-flex items-center gap-1.5 rounded-control border px-2 py-0.5 text-label",
         TONE_CLASS[tone],
         className
       )}
@@ -44,7 +44,7 @@ export function ZoneStamp({ children, className }: { children: ReactNode; classN
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-[3px] bg-pulp px-1.5 py-0.5",
+        "inline-flex items-center rounded-control bg-pulp px-1.5 py-0.5",
         "text-[0.6875rem] font-semibold uppercase leading-none tracking-wide text-pulp-fg",
         className
       )}

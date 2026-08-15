@@ -178,23 +178,23 @@ export default async function LogisticsPage() {
     <main>
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="space-y-3">
-          <span className="inline-flex rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-sm text-amber-200">
+          <span className="inline-flex rounded-control border border-warn-line bg-warn-bg px-3 py-1 text-sm text-warn-fg">
             Logística
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             Armado de pedidos
           </h1>
-          <p className="max-w-3xl text-base leading-7 text-stone-300">
+          <p className="max-w-3xl text-base leading-7 text-ink-soft">
             Crea el viaje desde los pedidos pendientes y, una vez armado, termina de ordenar el recorrido
             dentro del detalle del viaje.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm">
-          <span className="rounded-full border border-stone-700 bg-stone-900/70 px-3 py-1 text-stone-200">
+          <span className="rounded-control border border-line bg-paper px-3 py-1 text-ink">
             {pendingOrders.length} pedidos pendientes
           </span>
-          <span className="rounded-full border border-stone-700 bg-stone-900/70 px-3 py-1 text-stone-200">
+          <span className="rounded-control border border-line bg-paper px-3 py-1 text-ink">
             {visibleTrips.length} viajes de hoy o pendientes
           </span>
         </div>
@@ -206,37 +206,37 @@ export default async function LogisticsPage() {
           orders={pendingOrders}
         />
 
-        <section className="rounded-3xl border border-stone-800 bg-stone-900/60 p-5">
+        <section className="rounded-card border border-line bg-paper p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-stone-50">Viajes creados hoy o pendientes</h2>
-              <p className="mt-1 text-sm text-stone-400">
+              <h2 className="text-lg font-semibold text-ink">Viajes creados hoy o pendientes</h2>
+              <p className="mt-1 text-sm text-ink-soft">
                 Lista compacta para volver rápido al armado de cada recorrido.
               </p>
             </div>
-            <span className="text-sm text-stone-500">{visibleTrips.length}</span>
+            <span className="text-sm text-ink-faint">{visibleTrips.length}</span>
           </div>
 
-          <div className="mt-5 divide-y divide-stone-800">
+          <div className="mt-5 divide-y divide-line">
             {visibleTrips.length ? (
               visibleTrips.map((trip) => (
                 <Link
                   key={trip.id}
                   href={`/panel/logistics/${trip.id}`}
-                  className="grid gap-3 px-1 py-4 transition hover:bg-stone-900/50 md:grid-cols-[minmax(0,1fr)_auto_auto]"
+                  className="grid gap-3 px-1 py-4 transition hover:bg-paper md:grid-cols-[minmax(0,1fr)_auto_auto]"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-stone-100">{formatTripNumber(trip.trip_number)}</p>
-                    <p className="mt-1 text-sm text-stone-400">{formatDate(trip.scheduled_date)}</p>
+                    <p className="text-sm font-semibold text-ink">{formatTripNumber(trip.trip_number)}</p>
+                    <p className="mt-1 text-sm text-ink-soft">{formatDate(trip.scheduled_date)}</p>
                   </div>
-                  <p className="text-sm text-stone-300">{tripCounts.get(trip.id) ?? 0} pedidos</p>
-                  <span className="justify-self-start rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
+                  <p className="text-sm text-ink-soft">{tripCounts.get(trip.id) ?? 0} pedidos</p>
+                  <span className="justify-self-start rounded-control border border-line bg-paper-muted px-3 py-1 text-xs text-ink-soft">
                     {getDeliveryTripStatusLabel(trip.status)}
                   </span>
                 </Link>
               ))
             ) : (
-              <div className="px-1 py-6 text-sm text-stone-400">
+              <div className="px-1 py-6 text-sm text-ink-soft">
                 Todavía no hay viajes creados hoy ni recorridos pendientes.
               </div>
             )}

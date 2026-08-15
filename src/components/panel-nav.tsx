@@ -181,6 +181,9 @@ function SidebarContent({
             onClick={() => setUserMenuOpen((current) => !current)}
             type="button"
           >
+            {/* La unica forma redonda de toda la app. Es un avatar: ocupa el
+                lugar de una foto de perfil, y eso va circular por convencion.
+                Todo lo demas usa rounded-control o rounded-card. */}
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-label font-semibold text-accent">
               {initials(userName)}
             </span>

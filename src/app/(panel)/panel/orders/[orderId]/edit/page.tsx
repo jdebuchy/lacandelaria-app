@@ -139,15 +139,15 @@ export default async function EditOrderPage(context: Params) {
     <main>
       <section className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             Editar pedido
           </h1>
         </div>
 
         {!orderIsEditable ? (
-          <div className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-6 text-sm text-amber-100">
+          <div className="rounded-card border border-warn-line bg-warn-bg p-6 text-sm text-warn-fg">
             <p className="font-medium">Este pedido no se puede editar.</p>
-            <p className="mt-2 text-amber-200/90">
+            <p className="mt-2 text-warn-fg">
               Estado actual: {getOrderStatusLabel(order.status)}.
               {tripRelation
                 ? ` Está asignado al viaje del ${new Date(tripRelation.scheduled_date).toLocaleDateString("es-AR")}.`

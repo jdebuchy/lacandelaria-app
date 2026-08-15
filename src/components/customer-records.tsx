@@ -130,35 +130,35 @@ function CustomerEditForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} autoComplete="off" className="mt-4 rounded-2xl border border-emerald-500/20 bg-stone-950/70 p-4">
+    <form onSubmit={handleSubmit} autoComplete="off" className="mt-4 rounded-card border border-accent bg-paper-muted p-4">
       <AutofillDecoy />
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="grid gap-2 text-sm text-stone-300">
+        <label className="grid gap-2 text-sm text-ink-soft">
           Nombre
           <input
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
           />
         </label>
 
-        <label className="grid gap-2 text-sm text-stone-300">
+        <label className="grid gap-2 text-sm text-ink-soft">
           Apellido
           <input
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
           />
         </label>
 
         <PhoneInput value={phone} onChange={setPhone} />
 
-        <label className="grid gap-2 text-sm text-stone-300">
+        <label className="grid gap-2 text-sm text-ink-soft">
           Instagram
           <input
             value={instagram}
             onChange={(event) => setInstagram(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+            className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
             placeholder="usuario"
           />
           <span aria-hidden="true" className="text-xs text-transparent">
@@ -175,7 +175,7 @@ function CustomerEditForm({
               <select
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
-                className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
+                className="h-11 rounded-control border border-line bg-paper-muted px-4 text-ink outline-hidden focus:border-accent"
               >
                 {sourceOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -187,13 +187,13 @@ function CustomerEditForm({
           }
         />
 
-        <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+        <label className="grid gap-2 text-sm text-ink-soft md:col-span-2">
           Notas de entrega
           <textarea
             value={deliveryNotes}
             onChange={(event) => setDeliveryNotes(event.target.value)}
             rows={3}
-            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-hidden focus:border-emerald-400"
+            className="rounded-control border border-line bg-paper-muted px-4 py-3 text-ink outline-hidden focus:border-accent"
           />
         </label>
       </div>
@@ -201,21 +201,21 @@ function CustomerEditForm({
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-h-5 text-sm">
           {state.message ? (
-            <p className={state.success ? "text-emerald-300" : "text-rose-300"}>{state.message}</p>
+            <p className={state.success ? "text-accent" : "text-danger-fg"}>{state.message}</p>
           ) : null}
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-stone-700 px-4 py-2 text-sm text-stone-300 transition hover:border-stone-500 hover:text-stone-100"
+            className="rounded-control border border-line px-4 py-2 text-sm text-ink-soft transition hover:border-line-strong hover:text-ink"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Guardando..." : "Guardar cambios"}
           </button>
@@ -243,7 +243,7 @@ function SortHeader({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 transition hover:text-stone-200 ${active ? "text-stone-200" : ""}`}
+      className={`inline-flex items-center gap-2 transition hover:text-ink ${active ? "text-ink" : ""}`}
     >
       <span>{label}</span>
       {active ? <span className="text-[10px]">{direction === "asc" ? "↑" : "↓"}</span> : null}
@@ -304,10 +304,10 @@ export function CustomerRecords({
   return (
     <>
       {feedback.message ? (
-        <div className={`rounded-2xl border px-4 py-3 text-sm ${
+        <div className={`rounded-card border px-4 py-3 text-sm ${
           feedback.success
-            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-            : "border-rose-500/30 bg-rose-500/10 text-rose-200"
+            ? "border-accent bg-accent-soft text-accent"
+            : "border-danger-line bg-danger-bg text-danger-fg"
         }`}>
           {feedback.message}
         </div>
@@ -326,38 +326,38 @@ export function CustomerRecords({
             return (
               <article
                 key={customer.id}
-                className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4"
+                className="rounded-card border border-line bg-paper p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <Link
                       href={`/panel/customers/${customer.id}`}
-                      className="text-base font-semibold text-stone-50 transition hover:text-emerald-200"
+                      className="text-base font-semibold text-ink transition hover:text-accent"
                     >
                       {displayName}
                     </Link>
-                    <p className="mt-1 text-sm text-stone-400">
+                    <p className="mt-1 text-sm text-ink-soft">
                       {formatWhatsAppPhone(customer.phone)}
                     </p>
                     {customer.instagram ? (
-                      <p className="mt-1 text-xs text-stone-500">{customer.instagram}</p>
+                      <p className="mt-1 text-xs text-ink-faint">{customer.instagram}</p>
                     ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-stone-300">
+                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft">
                       {SOURCE_LABELS[customer.source] ?? customer.source}
                     </span>
                     <div className="flex flex-col items-end gap-2">
                       <button
                         type="button"
                         onClick={() => setEditingId(isEditing ? null : customer.id)}
-                        className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-500/20"
+                        className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-xs font-medium text-info-fg transition hover:border-info-line hover:bg-info-bg"
                       >
                         {isEditing ? "Cerrar" : "Editar"}
                       </button>
                       <Link
                         href={`/panel/customers/${customer.id}`}
-                        className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+                        className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent transition hover:border-accent hover:bg-accent-soft"
                       >
                         Ver
                       </Link>
@@ -365,7 +365,7 @@ export function CustomerRecords({
                         type="button"
                         onClick={() => handleDelete(customer)}
                         disabled={deletingId === customer.id}
-                        className="rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-200 transition hover:border-rose-300/50 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-xs font-medium text-danger-fg transition hover:border-danger-line hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {deletingId === customer.id ? "Borrando..." : "Borrar"}
                       </button>
@@ -373,11 +373,11 @@ export function CustomerRecords({
                   </div>
                 </div>
                 {customer.delivery_area ? (
-                  <p className="mt-3 text-sm text-stone-400">
+                  <p className="mt-3 text-sm text-ink-soft">
                     Área logística: {customer.delivery_area}
                   </p>
                 ) : null}
-                <p className="mt-2 text-sm text-stone-500">
+                <p className="mt-2 text-sm text-ink-faint">
                   {formatStructuredAddressSummary({
                     addressKind: customer.address_kind,
                     addressLine1: customer.address_line_1 ?? "",
@@ -391,7 +391,7 @@ export function CustomerRecords({
                   addressLine2: customer.address_line_2 ?? "",
                   gatedCommunityName: customer.gated_community_name ?? ""
                 }) ? (
-                  <p className="mt-1 text-xs text-stone-600">{formatStructuredAddressLine({
+                  <p className="mt-1 text-xs text-ink-faint">{formatStructuredAddressLine({
                     addressKind: customer.address_kind,
                     addressLine1: customer.address_line_1 ?? "",
                     addressLine2: customer.address_line_2 ?? "",
@@ -408,14 +408,14 @@ export function CustomerRecords({
             );
           })
         ) : (
-          <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-4 py-8 text-center text-sm text-stone-500">
+          <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-sm text-ink-faint">
             {emptyState}
           </div>
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 md:block">
-        <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] border-b border-stone-800 bg-stone-900 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+      <div className="hidden overflow-hidden rounded-card border border-line bg-paper md:block">
+        <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] border-b border-line bg-paper px-6 py-3 text-xs uppercase tracking-[0.18em] text-ink-soft">
           <div>Nombre</div>
           <SortHeader
             label="Apellido"
@@ -440,20 +440,20 @@ export function CustomerRecords({
             const fallbackName = !customer.first_name && !customer.last_name ? customer.instagram || "Cliente sin nombre" : "-";
 
             return (
-              <div key={customer.id} className="border-b border-stone-800 last:border-b-0">
-                <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] px-6 py-4 text-sm text-stone-300 hover:bg-stone-900/50">
-                  <div className="font-medium text-stone-100">
+              <div key={customer.id} className="border-b border-line last:border-b-0">
+                <div className="grid grid-cols-[1fr_1fr_1.1fr_1.4fr_1fr_0.9fr_1.1fr] px-6 py-4 text-sm text-ink-soft hover:bg-paper">
+                  <div className="font-medium text-ink">
                     <Link
                       href={`/panel/customers/${customer.id}`}
-                      className="transition hover:text-emerald-200"
+                      className="transition hover:text-accent"
                     >
                       {customer.first_name || fallbackName}
                     </Link>
                     {customer.instagram ? (
-                      <div className="mt-1 text-xs text-stone-500">{customer.instagram}</div>
+                      <div className="mt-1 text-xs text-ink-faint">{customer.instagram}</div>
                     ) : null}
                   </div>
-                  <div className="font-medium text-stone-100">{customer.last_name || "-"}</div>
+                  <div className="font-medium text-ink">{customer.last_name || "-"}</div>
                   <div>
                     <div>{formatWhatsAppPhone(customer.phone)}</div>
                   </div>
@@ -464,7 +464,7 @@ export function CustomerRecords({
                       gatedCommunityName: customer.gated_community_name ?? "",
                       locality: customer.locality ?? ""
                     })}</div>
-                    <div className="mt-1 text-xs text-stone-500">{customer.delivery_area || "-"}</div>
+                    <div className="mt-1 text-xs text-ink-faint">{customer.delivery_area || "-"}</div>
                   </div>
                   <div>{SOURCE_LABELS[customer.source] ?? customer.source}</div>
                   <div>
@@ -480,13 +480,13 @@ export function CustomerRecords({
                       <button
                         type="button"
                         onClick={() => setEditingId(isEditing ? null : customer.id)}
-                        className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-500/20"
+                        className="rounded-control border border-info-line bg-info-bg px-3 py-1 text-xs font-medium text-info-fg transition hover:border-info-line hover:bg-info-bg"
                       >
                         {isEditing ? "Cerrar" : "Editar"}
                       </button>
                       <Link
                         href={`/panel/customers/${customer.id}`}
-                        className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 transition hover:border-emerald-300/50 hover:bg-emerald-500/20"
+                        className="rounded-control border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent transition hover:border-accent hover:bg-accent-soft"
                       >
                         Ver
                       </Link>
@@ -494,7 +494,7 @@ export function CustomerRecords({
                         type="button"
                         onClick={() => handleDelete(customer)}
                         disabled={deletingId === customer.id}
-                        className="rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-200 transition hover:border-rose-300/50 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-xs font-medium text-danger-fg transition hover:border-danger-line hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {deletingId === customer.id ? "Borrando..." : "Borrar"}
                       </button>
@@ -513,7 +513,7 @@ export function CustomerRecords({
             );
           })
         ) : (
-          <div className="px-6 py-8 text-center text-sm text-stone-500">{emptyState}</div>
+          <div className="px-6 py-8 text-center text-sm text-ink-faint">{emptyState}</div>
         )}
       </div>
     </>

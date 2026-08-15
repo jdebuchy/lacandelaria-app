@@ -25,13 +25,13 @@ export default async function LogisticsDepotsPage() {
     <main>
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="space-y-3">
-          <span className="inline-flex rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-sm text-sky-200">
+          <span className="inline-flex rounded-control border border-info-line bg-info-bg px-3 py-1 text-sm text-info-fg">
             Logística
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             Depósitos de salida
           </h1>
-          <p className="max-w-3xl text-base leading-7 text-stone-300">
+          <p className="max-w-3xl text-base leading-7 text-ink-soft">
             Cargá y mantené los domicilios que funcionan como origen y destino de los viajes.
           </p>
         </div>

@@ -4,3 +4,14 @@ node_modules
 .env.local
 dist
 coverage
+
+# Caché del CLI de Supabase
+supabase/.temp/
+
+# Scripts sueltos de análisis y migración de datos. Este repo es público y
+# estos archivos suelen quedar con nombres, teléfonos y domicilios de clientes
+# reales, así que se ignoran de entrada para que un `git add -A` no los suba.
+# Si algún día hace falta versionar un script de verdad, sacar `scripts/` de
+# acá o exceptuarlo con `!scripts/<archivo>`.
+.tmp-*
+scripts/

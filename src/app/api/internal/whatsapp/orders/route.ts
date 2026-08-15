@@ -209,7 +209,9 @@ export async function POST(request: Request) {
   let orderItems;
 
   try {
-    orderItems = buildOrderItems(productsById, parsed.data.items, parsed.data.paymentMethodExpected);
+    // Todos los canales crean el pedido a precio de lista: el metodo real lo
+    // decide el primer cobro (prepareOrderForFirstPaymentMethod).
+    orderItems = buildOrderItems(productsById, parsed.data.items, "unknown");
   } catch (error) {
     return NextResponse.json(
       {
@@ -227,7 +229,7 @@ export async function POST(request: Request) {
       sales_channel: "whatsapp_ai",
       items_count: calculateItemsCount(orderItems),
       total_amount: calculateOrderTotal(orderItems),
-      payment_method_expected: parsed.data.paymentMethodExpected,
+      payment_method_expected: "unknown",
       status: "confirmed",
       payment_status: "pending",
       delivery_date: parsed.data.deliveryDate || null,

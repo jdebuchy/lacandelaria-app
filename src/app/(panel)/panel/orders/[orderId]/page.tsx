@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { OrderDeliveryWindowForm } from "@/components/order-delivery-window-form";
 import { PaymentRegisterForm } from "@/components/payment-register-form";
 import { PaymentVoidButton } from "@/components/payment-void-button";
 import { formatStructuredAddressSummary } from "@/lib/address";
@@ -13,6 +14,7 @@ import {
   getDeliveryTripStatusLabel,
   getOrderStatusLabel
 } from "@/lib/delivery-trips";
+import { formatOrderNumber, formatTripNumber } from "@/lib/orders";
 import { formatItemsSummary } from "@/lib/products";
 import {
   buildPaymentSummary,
@@ -263,6 +265,7 @@ export default async function OrderDetailPage(context: Params) {
       .select(
         `
           id,
+          order_number,
           sales_channel,
           items_count,
           total_amount,
@@ -352,6 +355,7 @@ export default async function OrderDetailPage(context: Params) {
           created_at,
           delivery_trips (
             id,
+            trip_number,
             scheduled_date,
             status,
             started_at,
@@ -460,7 +464,7 @@ export default async function OrderDetailPage(context: Params) {
         actorName: profileName(createdBy),
         action: "asignó el pedido al viaje",
         createdAt: row.created_at,
-        detail: `Viaje ${String(row.delivery_trip_id).slice(0, 8)}`,
+        detail: formatTripNumber(trip?.trip_number),
         id: `synthetic-trip-${row.id}`
       });
     }
@@ -509,7 +513,10 @@ export default async function OrderDetailPage(context: Params) {
             <Link href="/panel/orders" className="text-sm text-stone-400 transition hover:text-stone-100">
               Pedidos
             </Link>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+            <p className="mt-2 text-sm font-medium text-stone-400">
+              Pedido {formatOrderNumber(order.order_number)}
+            </p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
               {customerName}
             </h1>
             <p className="mt-2 text-sm text-stone-400">
@@ -570,9 +577,23 @@ export default async function OrderDetailPage(context: Params) {
                 </div>
                 <div>
                   <p className="text-stone-500">Franja</p>
-                  <p className="mt-1 text-stone-100">
-                    {formatTimeRange(order.delivery_window_start, order.delivery_window_end)}
-                  </p>
+                  {orderIsEditable ? (
+                    <OrderDeliveryWindowForm
+                      initialEnd={
+                        typeof order.delivery_window_end === "string" ? order.delivery_window_end.slice(0, 5) : ""
+                      }
+                      initialStart={
+                        typeof order.delivery_window_start === "string"
+                          ? order.delivery_window_start.slice(0, 5)
+                          : ""
+                      }
+                      orderId={order.id}
+                    />
+                  ) : (
+                    <p className="mt-1 text-stone-100">
+                      {formatTimeRange(order.delivery_window_start, order.delivery_window_end)}
+                    </p>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <p className="text-stone-500">Dirección</p>
@@ -689,7 +710,7 @@ export default async function OrderDetailPage(context: Params) {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-medium text-stone-100">
-                              Viaje {String(row.delivery_trip_id).slice(0, 8)}
+                              {formatTripNumber(trip?.trip_number)}
                             </p>
                             <p className="mt-1 text-xs text-stone-500">
                               {trip ? `${formatDate(trip.scheduled_date)} · ${getDeliveryTripStatusLabel(trip.status)}` : "-"}

@@ -7,6 +7,7 @@ import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/
 import { getActiveTripOrder } from "@/lib/delivery-trip-ops";
 import { canEditOrder } from "@/lib/delivery-trips";
 import { recordOrderActivity } from "@/lib/order-activities";
+import { reconcileOrderPaymentStatus } from "@/lib/payments";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -30,10 +31,7 @@ const updateManualOrderSchema = structuredAddressSchema
     postalCode: z.string().min(3, "Ingresa un código postal."),
     deliveryNotes: z.string().max(500).optional().or(z.literal("")),
     items: orderItemsInputSchema,
-    paymentMethodExpected: z.enum(["unknown", "cash", "transfer"]),
     deliveryDate: z.string().optional().or(z.literal("")),
-    deliveryWindowStart: z.string().optional().or(z.literal("")),
-    deliveryWindowEnd: z.string().optional().or(z.literal("")),
     notes: z.string().max(500).optional().or(z.literal(""))
   })
   .superRefine((data, ctx) => {
@@ -42,27 +40,6 @@ const updateManualOrderSchema = structuredAddressSchema
         code: z.ZodIssueCode.custom,
         message: "Ingresa nombre, apellido o Instagram.",
         path: ["firstName"]
-      });
-    }
-
-    const deliveryWindowStart = data.deliveryWindowStart?.trim() ?? "";
-    const deliveryWindowEnd = data.deliveryWindowEnd?.trim() ?? "";
-    const hasWindowStart = Boolean(deliveryWindowStart);
-    const hasWindowEnd = Boolean(deliveryWindowEnd);
-
-    if (hasWindowStart !== hasWindowEnd) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Completa ambas horas de entrega o deja ambas vacías.",
-        path: ["deliveryWindowStart"]
-      });
-    }
-
-    if (hasWindowStart && hasWindowEnd && deliveryWindowStart > deliveryWindowEnd) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La franja horaria es inválida.",
-        path: ["deliveryWindowStart"]
       });
     }
   });
@@ -114,7 +91,7 @@ export async function PATCH(request: Request, context: Params) {
   const supabase = createAdminClient();
   const { data: existingOrder, error: orderFetchError } = await supabase
     .from("orders")
-    .select("id, customer_id, status")
+    .select("id, customer_id, status, payment_method_expected")
     .eq("id", orderId)
     .single();
 
@@ -237,7 +214,10 @@ export async function PATCH(request: Request, context: Params) {
   let orderItems;
 
   try {
-    orderItems = buildOrderItems(productsById, parsed.data.items, parsed.data.paymentMethodExpected);
+    // Se respeta el metodo ya fijado por el primer cobro: repreciar un pedido
+    // cobrado en efectivo lo subiria a precio de lista y lo dejaria como
+    // parcialmente pago sin aviso.
+    orderItems = buildOrderItems(productsById, parsed.data.items, existingOrder.payment_method_expected);
   } catch (error) {
     return NextResponse.json(
       {
@@ -257,10 +237,7 @@ export async function PATCH(request: Request, context: Params) {
       customer_id: customerId,
       items_count: itemsCount,
       total_amount: totalAmount,
-      payment_method_expected: parsed.data.paymentMethodExpected,
       delivery_date: parsed.data.deliveryDate || null,
-      delivery_window_start: parsed.data.deliveryWindowStart || null,
-      delivery_window_end: parsed.data.deliveryWindowEnd || null,
       delivery_area: addressColumns.delivery_area,
       notes: parsed.data.notes || null
     })
@@ -299,11 +276,15 @@ export async function PATCH(request: Request, context: Params) {
     );
   }
 
+  // El total pudo haber cambiado: hay que recalcular si el pedido quedo pago,
+  // parcial o pendiente respecto de los cobros ya registrados.
+  await reconcileOrderPaymentStatus(supabase, orderId);
+
   await recordOrderActivity(supabase, {
     actorUserId: authResult.auth.profile.id,
     metadata: {
       itemsCount,
-      paymentMethodExpected: parsed.data.paymentMethodExpected,
+      paymentMethodExpected: existingOrder.payment_method_expected,
       totalAmount
     },
     orderId,

@@ -2,22 +2,19 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { OrderSearch } from "@/components/order-search";
 import { OrderFilters } from "@/components/order-filters";
-import { formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import { formatOrderNumber, formatTripNumber, matchesOrderNumberQuery } from "@/lib/orders";
 import { formatItemsSummary } from "@/lib/products";
-import {
-  buildPaymentSummary,
-  formatCurrency,
-  getPaymentMethodLabel,
-  getPaymentStatusLabel
-} from "@/lib/payments";
+import { buildPaymentSummary, formatCurrency } from "@/lib/payments";
 import { matchesNormalizedSearchValues } from "@/lib/search";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type SearchParams = Promise<{ q?: string; status?: string }>;
+type SearchParams = Promise<{ page?: string; q?: string; status?: string }>;
+
+const ORDERS_PAGE_SIZE = 50;
 
 type RelatedCustomer = {
   address_kind?: "standard" | "gated" | null;
@@ -117,7 +114,8 @@ function normalizeSearchTerm(value?: string) {
 
 export default async function OrdersPage({ searchParams }: { searchParams: SearchParams }) {
   await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/orders");
-  const { q, status: statusFilter } = await searchParams;
+  const { page, q, status: statusFilter } = await searchParams;
+  const requestedPage = Number.parseInt(page ?? "1", 10) || 1;
   const normalizedQuery = normalizeSearchTerm(q);
   const safeQ = normalizedQuery ? normalizedQuery.replace(/[,()]/g, "") : "";
   const normalizedStatusFilter = statusFilter ?? "";
@@ -126,7 +124,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     { count: totalOrders },
     { count: pendingOrders },
     { count: inRouteOrders },
-    { data: orders },
+    { data: orders, error: ordersError },
     { data: activeTripOrders }
   ] = await Promise.all([
     supabase.from("orders").select("*", { count: "exact", head: true }),
@@ -140,6 +138,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       .select(
         `
           id,
+          order_number,
           sales_channel,
           items_count,
           total_amount,
@@ -175,14 +174,22 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
           )
         `
       )
-      .order("created_at", { ascending: false }),
+      .order("order_number", { ascending: false }),
     supabase
       .from("delivery_trip_orders")
-      .select("order_id, delivery_trip_id")
+      .select("order_id, delivery_trip_id, delivery_trips ( trip_number )")
       .is("released_at", null)
   ]);
 
-  const activeTripByOrderId = new Map((activeTripOrders ?? []).map((row) => [row.order_id, row.delivery_trip_id]));
+  const activeTripByOrderId = new Map(
+    (activeTripOrders ?? []).map((row) => [
+      row.order_id,
+      {
+        id: row.delivery_trip_id,
+        number: takeSingleRelation<{ trip_number: number | null }>(row.delivery_trips ?? null)?.trip_number ?? null
+      }
+    ])
+  );
 
   const orderRows = (orders ?? []).map((order) => {
     const customer = takeSingleRelation<RelatedCustomer>(order.customers ?? null);
@@ -196,6 +203,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
 
     return {
       id: order.id,
+      orderNumber: order.order_number,
       channel: order.sales_channel,
       created_at: order.created_at,
       customerName: customer
@@ -205,33 +213,22 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       customerLastName: customer?.last_name ?? null,
       resellerName: reseller?.full_name ?? null,
       customerPhone: customer?.phone || reseller?.phone || "-",
-      deliveryDate: order.delivery_date,
-      notes: order.notes,
-      paymentMethodExpected: order.payment_method_expected,
-      paymentStatus: paymentSummary.paymentStatus,
       paidAmount: paymentSummary.paidAmount,
       paymentBalanceAmount: paymentSummary.balanceAmount,
-      itemsCount: Number(order.items_count ?? 0),
       itemsSummary: formatItemsSummary(items),
       status: order.status,
       isEditable: canEditOrder(order.status, activeTripByOrderId.has(order.id)),
-      tripId: activeTripByOrderId.get(order.id) ?? null,
+      trip: activeTripByOrderId.get(order.id) ?? null,
       totalAmount: paymentSummary.totalAmount,
       deliveryArea: order.delivery_area || customer?.delivery_area || "pending_review",
-      addressSummary: customer
-        ? formatStructuredAddressSummary({
-            addressKind: customer.address_kind ?? "standard",
-            addressLine1: customer.address_line_1 ?? "",
-            gatedCommunityName: customer.gated_community_name ?? "",
-            locality: customer.locality ?? ""
-          })
-        : "-"
+      locality: customer?.locality ?? null
     };
   });
 
   const visibleOrderRows = orderRows.filter((order) => {
     const matchesSearch = safeQ
-      ? matchesNormalizedSearchValues(
+      ? matchesOrderNumberQuery(safeQ, order.orderNumber) ||
+        matchesNormalizedSearchValues(
           [order.customerFirstName, order.customerLastName, order.customerName, order.resellerName, order.customerPhone],
           safeQ
         )
@@ -239,6 +236,35 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     const matchesStatus = normalizedStatusFilter ? order.status === normalizedStatusFilter : true;
     return matchesSearch && matchesStatus;
   });
+
+  // Lo accionable: pedidos ya confirmados que todavia no entraron a ningun viaje.
+  const awaitingTripCount = orderRows.filter(
+    (order) => order.status === "confirmed" && !order.trip
+  ).length;
+
+  const totalPages = Math.max(1, Math.ceil(visibleOrderRows.length / ORDERS_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
+  const pageStart = (currentPage - 1) * ORDERS_PAGE_SIZE;
+  const pagedOrderRows = visibleOrderRows.slice(pageStart, pageStart + ORDERS_PAGE_SIZE);
+
+  function buildPageHref(page: number) {
+    const params = new URLSearchParams();
+
+    if (normalizedQuery) {
+      params.set("q", normalizedQuery);
+    }
+
+    if (normalizedStatusFilter) {
+      params.set("status", normalizedStatusFilter);
+    }
+
+    if (page > 1) {
+      params.set("page", String(page));
+    }
+
+    const query = params.toString();
+    return query ? `/panel/orders?${query}` : "/panel/orders";
+  }
 
   return (
     <main>
@@ -258,31 +284,50 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Pedidos</p>
+          <Link
+            href="/panel/orders?status=confirmed"
+            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+          >
+            <p className="text-sm text-stone-400">Esperando viaje</p>
             <p className="mt-2 text-2xl font-semibold text-amber-300 sm:text-3xl">
-              {totalOrders ?? 0}
+              {awaitingTripCount}
             </p>
-          </article>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Pendientes</p>
-            <p className="mt-2 text-2xl font-semibold text-sky-300 sm:text-3xl">
-              {pendingOrders ?? 0}
-            </p>
-          </article>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
+          </Link>
+          <Link
+            href="/panel/orders?status=in_route"
+            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+          >
             <p className="text-sm text-stone-400">En ruta</p>
             <p className="mt-2 text-2xl font-semibold text-emerald-300 sm:text-3xl">
               {inRouteOrders ?? 0}
             </p>
-          </article>
+          </Link>
+          <Link
+            href="/panel/orders?status=pending_confirmation"
+            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+          >
+            <p className="text-sm text-stone-400">A confirmar</p>
+            <p className="mt-2 text-2xl font-semibold text-sky-300 sm:text-3xl">
+              {pendingOrders ?? 0}
+            </p>
+          </Link>
           <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Ítems cargados</p>
-            <p className="mt-2 text-2xl font-semibold text-rose-300 sm:text-3xl">
-              {orderRows.reduce((sum, order) => sum + order.itemsCount, 0)}
+            <p className="text-sm text-stone-400">Pedidos</p>
+            <p className="mt-2 text-2xl font-semibold text-stone-100 sm:text-3xl">
+              {totalOrders ?? 0}
             </p>
           </article>
         </div>
+
+        {ordersError ? (
+          <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+            <p className="font-medium">No se pudieron cargar los pedidos.</p>
+            <p className="mt-1 text-rose-200/80">
+              La lista de abajo está vacía por este error, no porque no haya pedidos.
+            </p>
+            <p className="mt-2 font-mono text-xs text-rose-200/70">{ordersError.message}</p>
+          </div>
+        ) : null}
 
         <section className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -311,8 +356,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               <div>Alta</div>
               <div></div>
             </div>
-            {visibleOrderRows.length ? (
-              visibleOrderRows.map((order) => (
+            {pagedOrderRows.length ? (
+              pagedOrderRows.map((order) => (
                 <div
                   key={order.id}
                   className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
@@ -324,6 +369,9 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   />
                   <div>
                     <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-stone-500">
+                        {formatOrderNumber(order.orderNumber)}
+                      </span>
                       <p className="font-medium text-stone-100">{order.customerName}</p>
                       {order.channel !== "internal" && (
                         <span className="rounded-full border border-stone-700 px-2 py-0.5 text-xs text-stone-400">
@@ -337,36 +385,37 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                   </div>
                   <div>
                     <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
-                    {order.addressSummary !== "-" && (
-                      <p className="mt-0.5 text-xs text-stone-500">{order.addressSummary}</p>
+                    {order.locality && (
+                      <p className="mt-0.5 truncate text-xs text-stone-500">{order.locality}</p>
                     )}
                   </div>
                   <div>
                     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
                       {getOrderStatusLabel(order.status)}
                     </span>
-                    <p className="mt-1.5 text-xs text-stone-500">
-                      {getPaymentMethodLabel(order.paymentMethodExpected)}
-                    </p>
-                    {order.tripId && (
+                    {order.trip && (
                       <Link
-                        href={`/panel/logistics/delivery/${order.tripId}`}
-                        className="relative z-10 mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
+                        href={`/panel/logistics/delivery/${order.trip.id}`}
+                        className="relative z-10 mt-1.5 inline-block text-xs text-sky-400 hover:text-sky-300"
                       >
-                        Viaje {order.tripId.slice(0, 8)}
+                        {formatTripNumber(order.trip.number)}
                       </Link>
                     )}
                   </div>
-                  <div>{order.itemsSummary}</div>
+                  <div className="line-clamp-2">{order.itemsSummary}</div>
                   <div>
                     <p>{formatCurrency(order.totalAmount)}</p>
-                    <p className="mt-1 text-xs text-stone-500">
-                      Cobrado {formatCurrency(order.paidAmount)}
-                    </p>
-                    {order.paymentBalanceAmount > 0 && (
-                      <p className="mt-1 text-xs text-amber-300">
-                        Saldo {formatCurrency(order.paymentBalanceAmount)}
-                      </p>
+                    {order.paidAmount > 0 && (
+                      <>
+                        <p className="mt-1 text-xs text-stone-500">
+                          Cobrado {formatCurrency(order.paidAmount)}
+                        </p>
+                        {order.paymentBalanceAmount > 0 && (
+                          <p className="mt-1 text-xs text-amber-300">
+                            Saldo {formatCurrency(order.paymentBalanceAmount)}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                   <div>{formatDate(order.created_at)}</div>
@@ -391,17 +440,24 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               ))
             ) : (
               <div className="px-4 py-8 text-center text-sm text-stone-500">
-                {normalizedQuery ? "No hay pedidos para esa búsqueda." : "Todavia no hay pedidos cargados."}
+                {ordersError
+                  ? "No se pudo cargar la lista."
+                  : normalizedQuery
+                    ? "No hay pedidos para esa búsqueda."
+                    : "Todavia no hay pedidos cargados."}
               </div>
             )}
           </div>
 
           <div className="grid gap-3 lg:hidden">
-            {visibleOrderRows.length ? (
-              visibleOrderRows.map((order) => (
+            {pagedOrderRows.length ? (
+              pagedOrderRows.map((order) => (
                 <article key={order.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
+                      <p className="text-xs font-medium text-stone-500">
+                        {formatOrderNumber(order.orderNumber)}
+                      </p>
                       <p className="text-base font-semibold text-stone-50">{order.customerName}</p>
                       <p className="mt-1 text-sm text-stone-400">
                         {formatWhatsAppPhone(order.customerPhone)}
@@ -419,15 +475,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                           {getOrderStatusLabel(order.status)}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-stone-500">
-                        {getPaymentMethodLabel(order.paymentMethodExpected)}
-                      </p>
-                      {order.tripId && (
+                      {order.trip && (
                         <Link
-                          href={`/panel/logistics/delivery/${order.tripId}`}
+                          href={`/panel/logistics/delivery/${order.trip.id}`}
                           className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
                         >
-                          Viaje {order.tripId.slice(0, 8)}
+                          {formatTripNumber(order.trip.number)}
                         </Link>
                       )}
                     </div>
@@ -438,10 +491,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     <div className="rounded-2xl bg-stone-950/80 p-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Total</p>
                       <p className="mt-1 text-stone-200">{formatCurrency(order.totalAmount)}</p>
-                      <p className="mt-1 text-xs text-stone-500">
-                        Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
-                        {formatCurrency(order.paymentBalanceAmount)}
-                      </p>
+                      {order.paidAmount > 0 && (
+                        <p className="mt-1 text-xs text-stone-500">
+                          Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
+                          {formatCurrency(order.paymentBalanceAmount)}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -468,10 +523,40 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
               ))
             ) : (
               <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-4 py-8 text-center text-sm text-stone-500">
-                {normalizedQuery ? "No hay pedidos para esa búsqueda." : "Todavia no hay pedidos cargados."}
+                {ordersError
+                  ? "No se pudo cargar la lista."
+                  : normalizedQuery
+                    ? "No hay pedidos para esa búsqueda."
+                    : "Todavia no hay pedidos cargados."}
               </div>
             )}
           </div>
+
+          {totalPages > 1 ? (
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <p className="text-stone-500">
+                {pageStart + 1}–{pageStart + pagedOrderRows.length} de {visibleOrderRows.length}
+              </p>
+              <div className="flex gap-2">
+                {currentPage > 1 ? (
+                  <Link
+                    href={buildPageHref(currentPage - 1)}
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-stone-200 transition hover:border-stone-500"
+                  >
+                    Anteriores
+                  </Link>
+                ) : null}
+                {currentPage < totalPages ? (
+                  <Link
+                    href={buildPageHref(currentPage + 1)}
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-stone-200 transition hover:border-stone-500"
+                  >
+                    Siguientes
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </section>
       </section>
     </main>

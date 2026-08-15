@@ -8,6 +8,7 @@ import { requireApiRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import { recordOrderActivity } from "@/lib/order-activities";
+import { formatOrderNumber } from "@/lib/orders";
 import {
   buildVariantLookup,
   buildOrderItems,
@@ -31,10 +32,7 @@ const createManualOrderSchema = structuredAddressSchema
     postalCode: z.string().min(3, "Ingresa un código postal."),
     deliveryNotes: z.string().max(500).optional().or(z.literal("")),
     items: orderItemsInputSchema,
-    paymentMethodExpected: z.enum(["unknown", "cash", "transfer"]),
     deliveryDate: z.string().optional().or(z.literal("")),
-    deliveryWindowStart: z.string().optional().or(z.literal("")),
-    deliveryWindowEnd: z.string().optional().or(z.literal("")),
     notes: z.string().max(500).optional().or(z.literal(""))
   })
   .superRefine((data, ctx) => {
@@ -43,27 +41,6 @@ const createManualOrderSchema = structuredAddressSchema
         code: z.ZodIssueCode.custom,
         message: "Ingresa nombre, apellido o Instagram.",
         path: ["firstName"]
-      });
-    }
-
-    const deliveryWindowStart = data.deliveryWindowStart?.trim() ?? "";
-    const deliveryWindowEnd = data.deliveryWindowEnd?.trim() ?? "";
-    const hasWindowStart = Boolean(deliveryWindowStart);
-    const hasWindowEnd = Boolean(deliveryWindowEnd);
-
-    if (hasWindowStart !== hasWindowEnd) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Completa ambas horas de entrega o deja ambas vacías.",
-        path: ["deliveryWindowStart"]
-      });
-    }
-
-    if (hasWindowStart && hasWindowEnd && deliveryWindowStart > deliveryWindowEnd) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La franja horaria es inválida.",
-        path: ["deliveryWindowStart"]
       });
     }
   });
@@ -210,7 +187,9 @@ export async function POST(request: Request) {
   let orderItems;
 
   try {
-    orderItems = buildOrderItems(productsById, parsed.data.items, parsed.data.paymentMethodExpected);
+    // El pedido nace valuado a precio de lista. Si el cliente termina pagando en
+    // efectivo, prepareOrderForFirstPaymentMethod reprecia al cobrar.
+    orderItems = buildOrderItems(productsById, parsed.data.items, "unknown");
   } catch (error) {
     return NextResponse.json(
       {
@@ -232,16 +211,14 @@ export async function POST(request: Request) {
       sales_channel: "internal",
       items_count: itemsCount,
       total_amount: totalAmount,
-      payment_method_expected: parsed.data.paymentMethodExpected,
+      payment_method_expected: "unknown",
       status: "confirmed",
       payment_status: "pending",
       delivery_date: parsed.data.deliveryDate || null,
-      delivery_window_start: parsed.data.deliveryWindowStart || null,
-      delivery_window_end: parsed.data.deliveryWindowEnd || null,
       delivery_area: addressColumns.delivery_area,
       notes: parsed.data.notes || null
     })
-    .select("id")
+    .select("id, order_number")
     .single();
 
   if (orderInsertError || !newOrder) {
@@ -273,7 +250,7 @@ export async function POST(request: Request) {
     actorUserId: authResult.auth.profile.id,
     metadata: {
       itemsCount,
-      paymentMethodExpected: parsed.data.paymentMethodExpected,
+      orderNumber: newOrder.order_number,
       totalAmount
     },
     orderId: newOrder.id,
@@ -283,6 +260,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
-    message: "Pedido manual creado correctamente."
+    message: `Pedido ${formatOrderNumber(newOrder.order_number)} creado correctamente.`,
+    orderNumber: newOrder.order_number
   });
 }

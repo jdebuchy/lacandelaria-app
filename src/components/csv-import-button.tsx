@@ -22,7 +22,9 @@ const OPTIONAL_HEADERS = [
   "zona",
   "tipo_direccion",
   "notas_entrega",
-  "origen"
+  "origen",
+  "google_place_id",
+  "google_place_label"
 ];
 
 function parseCSVLine(line: string) {

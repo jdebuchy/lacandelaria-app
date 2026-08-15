@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/auth";
-import { deriveDeliveryArea, splitFullName } from "@/lib/address";
+import { AddressSource, deriveDeliveryArea, splitFullName } from "@/lib/address";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { normalizeArgentinaPhoneInput, normalizeInstagramUsername } from "@/lib/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -47,7 +47,9 @@ const customerRowSchema = z.object({
   zona: z.string().optional().or(z.literal("")),
   tipo_direccion: z.string().optional().or(z.literal("")),
   notas_entrega: z.string().optional().or(z.literal("")),
-  origen: z.string().optional().or(z.literal(""))
+  origen: z.string().optional().or(z.literal("")),
+  google_place_id: z.string().max(255).optional().or(z.literal("")),
+  google_place_label: z.string().max(255).optional().or(z.literal(""))
 });
 
 const importSchema = z.object({
@@ -71,9 +73,9 @@ type NormalizedImportRow = {
   locality: string | null;
   administrative_area_level_1: string | null;
   postal_code: string | null;
-  google_place_id: null;
-  google_place_label: null;
-  address_source: "manual";
+  google_place_id: string | null;
+  google_place_label: string | null;
+  address_source: AddressSource;
   delivery_area: string;
   delivery_notes: string | null;
   source: string;
@@ -130,6 +132,11 @@ export async function POST(request: Request) {
     const addressLine2 = row.direccion_2?.trim() || row.piso_depto?.trim() || null;
     const locality = row.localidad?.trim() || (gatedFlag ? "" : row.barrio?.trim()) || null;
     const administrativeAreaLevel1 = row.provincia?.trim() || null;
+    // Una dirección validada contra Google trae place_id; sin él la carga es manual.
+    // Mismo criterio que usa el alta de depósitos (logistics-depots-manager).
+    const googlePlaceId = row.google_place_id?.trim() || "";
+    const googlePlaceLabel = row.google_place_label?.trim() || "";
+    const addressSource: AddressSource = googlePlaceId ? "google_places" : "manual";
     const deliveryArea = row.zona?.trim()
       || deriveDeliveryArea({
         addressKind,
@@ -139,9 +146,9 @@ export async function POST(request: Request) {
         locality: locality ?? "",
         administrativeAreaLevel1: administrativeAreaLevel1 ?? "",
         postalCode: row.codigo_postal?.trim() || "",
-        googlePlaceId: "",
-        googlePlaceLabel: "",
-        addressSource: "manual"
+        googlePlaceId,
+        googlePlaceLabel,
+        addressSource
       });
 
     return {
@@ -156,9 +163,9 @@ export async function POST(request: Request) {
       locality,
       administrative_area_level_1: administrativeAreaLevel1,
       postal_code: row.codigo_postal?.trim() || null,
-      google_place_id: null,
-      google_place_label: null,
-      address_source: "manual",
+      google_place_id: googlePlaceId || null,
+      google_place_label: googlePlaceLabel || null,
+      address_source: addressSource,
       delivery_area: deliveryArea,
       delivery_notes: row.notas_entrega?.trim() || null,
       source,

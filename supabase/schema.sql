@@ -133,8 +133,14 @@ create table if not exists public.product_variant_components (
     check (bundle_variant_id <> component_variant_id)
 );
 
+create sequence if not exists public.orders_order_number_seq
+  as bigint
+  start with 1
+  increment by 1;
+
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
+  order_number bigint not null default nextval('public.orders_order_number_seq'),
   customer_id uuid references public.customers(id) on delete restrict,
   seller_user_id uuid references public.profiles(id) on delete set null,
   reseller_id uuid references public.resellers(id) on delete set null,
@@ -153,6 +159,12 @@ create table if not exists public.orders (
   notes text,
   created_at timestamptz not null default now()
 );
+
+alter sequence public.orders_order_number_seq
+owned by public.orders.order_number;
+
+create unique index if not exists orders_order_number_key
+  on public.orders(order_number);
 
 create table if not exists public.public_order_requests (
   id uuid primary key default gen_random_uuid(),
@@ -227,8 +239,14 @@ create table if not exists public.logistics_depots (
   created_at timestamptz not null default now()
 );
 
+create sequence if not exists public.delivery_trips_trip_number_seq
+  as bigint
+  start with 1
+  increment by 1;
+
 create table if not exists public.delivery_trips (
   id uuid primary key default gen_random_uuid(),
+  trip_number bigint not null default nextval('public.delivery_trips_trip_number_seq'),
   depot_id uuid not null references public.logistics_depots(id) on delete restrict,
   scheduled_date date not null,
   driver_user_id uuid references public.profiles(id) on delete set null,
@@ -239,6 +257,12 @@ create table if not exists public.delivery_trips (
   created_by_user_id uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+alter sequence public.delivery_trips_trip_number_seq
+owned by public.delivery_trips.trip_number;
+
+create unique index if not exists delivery_trips_trip_number_key
+  on public.delivery_trips(trip_number);
 
 create table if not exists public.delivery_trip_orders (
   id uuid primary key default gen_random_uuid(),

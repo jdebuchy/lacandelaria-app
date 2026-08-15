@@ -30,6 +30,11 @@ export type Column<T> = {
   primary?: boolean;
   /** Se omite en telefono. Para datos de relleno que no entran. */
   hideOnMobile?: boolean;
+  /**
+   * La celda tiene sus propios controles (un link, un boton). Se levanta por
+   * encima del link de fila para que reciba el click.
+   */
+  interactive?: boolean;
   /** Ancho en la grilla de escritorio. Default: 1fr. */
   width?: string;
 };
@@ -38,12 +43,32 @@ type DataTableProps<T> = {
   columns: Array<Column<T>>;
   empty?: ReactNode;
   getKey: (row: T) => string;
-  /** Si esta, la fila entera es un link. */
+  /** Si esta, la fila entera es clickeable. */
   href?: (row: T) => string;
+  /** Etiqueta accesible del link de fila. Sin esto es un link sin texto. */
+  rowLabel?: (row: T) => string;
   rows: T[];
 };
 
-export function DataTable<T>({ columns, empty, getKey, href, rows }: DataTableProps<T>) {
+/**
+ * Link que cubre la fila entera.
+ *
+ * Va superpuesto y no envolviendo: un <a> no puede contener otro <a>, y las
+ * filas suelen tener links propios (el numero de viaje, el boton de editar).
+ * Envolver produce HTML invalido y React se queja en consola.
+ */
+function RowLink({ href, label }: { href: string; label: string }) {
+  return <Link aria-label={label} className="absolute inset-0 z-0" href={href} />;
+}
+
+export function DataTable<T>({
+  columns,
+  empty,
+  getKey,
+  href,
+  rowLabel,
+  rows
+}: DataTableProps<T>) {
   if (rows.length === 0) {
     return empty ? <>{empty}</> : null;
   }
@@ -67,72 +92,62 @@ export function DataTable<T>({ columns, empty, getKey, href, rows }: DataTablePr
           ))}
         </div>
 
-        {rows.map((row) => {
-          const cells = (
-            <div
-              className="grid items-center gap-3 px-4 text-body"
-              style={{ gridTemplateColumns: gridTemplate, minHeight: "var(--spacing-row)" }}
-            >
-              {columns.map((column) => (
-                <div
-                  className={cn("min-w-0 py-2", column.align === "right" && "text-right")}
-                  key={column.key}
-                >
-                  {column.cell(row)}
-                </div>
-              ))}
-            </div>
-          );
-
-          return href ? (
-            <Link
-              className="block border-t border-line transition-colors first:border-t-0 hover:bg-paper-raised"
-              href={href(row)}
-              key={getKey(row)}
-            >
-              {cells}
-            </Link>
-          ) : (
-            <div className="border-t border-line first:border-t-0" key={getKey(row)}>
-              {cells}
-            </div>
-          );
-        })}
+        {rows.map((row) => (
+          <div
+            className={cn(
+              "relative grid items-center gap-3 border-t border-line px-4 text-body first:border-t-0",
+              href && "transition-colors hover:bg-paper-raised"
+            )}
+            key={getKey(row)}
+            style={{ gridTemplateColumns: gridTemplate, minHeight: "var(--spacing-row)" }}
+          >
+            {href ? <RowLink href={href(row)} label={rowLabel?.(row) ?? "Ver detalle"} /> : null}
+            {columns.map((column) => (
+              <div
+                className={cn(
+                  "min-w-0 py-2",
+                  column.align === "right" && "text-right",
+                  column.interactive && "relative z-10 justify-self-stretch"
+                )}
+                key={column.key}
+              >
+                {column.cell(row)}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
 
       {/* Telefono */}
       <div className="lg:hidden">
-        {rows.map((row) => {
-          const card = (
-            <div className="flex flex-col gap-2 px-4 py-3">
-              <div className="text-body">{primary.cell(row)}</div>
-              {secondary.length > 0 ? (
-                <dl className="flex flex-wrap gap-x-4 gap-y-1.5">
-                  {secondary.map((column) => (
-                    <div className="flex min-w-0 items-baseline gap-1.5" key={column.key}>
-                      <dt className="text-meta text-ink-faint">{column.header}</dt>
-                      <dd className="min-w-0 text-body text-ink">{column.cell(row)}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
-            </div>
-          );
-
-          return href ? (
-            <Link
-              className="block border-t border-line transition-colors first:border-t-0 active:bg-paper-raised"
-              href={href(row)}
-              key={getKey(row)}
-            >
-              {card}
-            </Link>
-          ) : (
-            <div className="border-t border-line first:border-t-0" key={getKey(row)}>
-              {card}
-            </div>
-          );
-        })}
+        {rows.map((row) => (
+          <div
+            className={cn(
+              "relative flex flex-col gap-2 border-t border-line px-4 py-3 first:border-t-0",
+              href && "active:bg-paper-raised"
+            )}
+            key={getKey(row)}
+          >
+            {href ? <RowLink href={href(row)} label={rowLabel?.(row) ?? "Ver detalle"} /> : null}
+            <div className="text-body">{primary.cell(row)}</div>
+            {secondary.length > 0 ? (
+              <dl className="flex flex-wrap gap-x-4 gap-y-1.5">
+                {secondary.map((column) => (
+                  <div
+                    className={cn(
+                      "flex min-w-0 items-baseline gap-1.5",
+                      column.interactive && "relative z-10"
+                    )}
+                    key={column.key}
+                  >
+                    <dt className="text-meta text-ink-faint">{column.header}</dt>
+                    <dd className="min-w-0 text-body text-ink">{column.cell(row)}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,15 +1,24 @@
-import { Suspense } from "react";
+import { faInbox, faPlus } from "@fortawesome/pro-regular-svg-icons";
 import Link from "next/link";
-import { OrderSearch } from "@/components/order-search";
+import { Suspense } from "react";
 import { OrderFilters } from "@/components/order-filters";
+import { OrderSearch } from "@/components/order-search";
+import { Badge, ZoneStamp } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { PageHeader, PageShell } from "@/components/ui/card";
+import { DataTable, Pagination, type Column } from "@/components/ui/data-table";
+import { EmptyState, Notice } from "@/components/ui/feedback";
+import { MetricCard, MetricGrid } from "@/components/ui/metric-card";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
+import { formatCurrency, formatDateShort } from "@/lib/format";
 import { formatOrderNumber, formatTripNumber, matchesOrderNumberQuery } from "@/lib/orders";
+import { buildPaymentSummary } from "@/lib/payments";
 import { formatItemsSummary } from "@/lib/products";
-import { buildPaymentSummary, formatCurrency } from "@/lib/payments";
 import { matchesNormalizedSearchValues } from "@/lib/search";
+import { orderStatusTone } from "@/lib/status-tone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type SearchParams = Promise<{ page?: string; q?: string; status?: string }>;
@@ -51,14 +60,6 @@ function takeSingleRelation<T>(value: T | T[] | null): T | null {
   return value ?? null;
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
-
 function getChannelLabel(channel: string) {
   switch (channel) {
     case "public_form":
@@ -86,25 +87,6 @@ function getDeliveryAreaLabel(area: string) {
       return "Sin zona";
     default:
       return area;
-  }
-}
-
-function getStatusBadgeClass(status: string) {
-  switch (status) {
-    case "pending_confirmation":
-      return "border-warn-line bg-warn-bg text-warn-fg";
-    case "confirmed":
-      return "border-info-line bg-info-bg text-info-fg";
-    case "assigned":
-      return "border-info-line bg-info-bg text-info-fg";
-    case "in_route":
-      return "border-accent bg-accent-soft text-accent";
-    case "delivered":
-      return "border-line bg-paper-muted text-ink-soft";
-    case "cancelled":
-      return "border-danger-line bg-danger-bg text-danger-fg";
-    default:
-      return "border-line bg-paper text-ink-soft";
   }
 }
 
@@ -266,299 +248,217 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     return query ? `/panel/orders?${query}` : "/panel/orders";
   }
 
+
+  type OrderRow = (typeof orderRows)[number];
+
+  const columns: Array<Column<OrderRow>> = [
+    {
+      cell: (order) => (
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span className="shrink-0 text-meta text-ink-faint" data-numeric>
+              {formatOrderNumber(order.orderNumber)}
+            </span>
+            <span className="truncate font-medium text-ink">{order.customerName}</span>
+            {order.channel !== "internal" ? (
+              <span className="shrink-0 text-meta text-ink-faint">
+                {getChannelLabel(order.channel)}
+              </span>
+            ) : null}
+          </div>
+          <p className="truncate text-meta text-ink-faint" data-numeric>
+            {formatWhatsAppPhone(order.customerPhone)}
+          </p>
+        </div>
+      ),
+      header: "Cliente",
+      key: "cliente",
+      primary: true,
+      width: "2fr"
+    },
+    {
+      cell: (order) => (
+        <div className="flex min-w-0 flex-col items-start gap-1">
+          <ZoneStamp>{getDeliveryAreaLabel(order.deliveryArea)}</ZoneStamp>
+          {order.locality ? (
+            <span className="truncate text-meta text-ink-faint">{order.locality}</span>
+          ) : null}
+        </div>
+      ),
+      header: "Zona",
+      key: "zona",
+      width: "1fr"
+    },
+    {
+      cell: (order) => (
+        <div className="flex min-w-0 flex-col items-start gap-1">
+          <Badge tone={orderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</Badge>
+          {order.trip ? (
+            <Link
+              className="text-meta text-ink-faint underline underline-offset-2 hover:text-ink"
+              href={`/panel/logistics/delivery/${order.trip.id}`}
+            >
+              {formatTripNumber(order.trip.number)}
+            </Link>
+          ) : null}
+        </div>
+      ),
+      header: "Estado",
+      interactive: true,
+      key: "estado",
+      width: "1fr"
+    },
+    {
+      cell: (order) => <span className="line-clamp-2 text-ink-soft">{order.itemsSummary}</span>,
+      header: "Ítems",
+      hideOnMobile: true,
+      key: "items",
+      width: "1.6fr"
+    },
+    {
+      align: "right",
+      cell: (order) => (
+        <div className="min-w-0">
+          <p className="text-ink" data-numeric>
+            {formatCurrency(order.totalAmount)}
+          </p>
+          {order.paymentBalanceAmount > 0 && order.paidAmount > 0 ? (
+            <p className="text-meta text-warn-fg" data-numeric>
+              Saldo {formatCurrency(order.paymentBalanceAmount)}
+            </p>
+          ) : null}
+        </div>
+      ),
+      header: "Total",
+      key: "total",
+      width: "0.9fr"
+    },
+    {
+      align: "right",
+      cell: (order) => (
+        <span className="text-ink-faint" data-numeric>
+          {formatDateShort(order.created_at)}
+        </span>
+      ),
+      header: "Alta",
+      hideOnMobile: true,
+      key: "alta",
+      width: "0.6fr"
+    },
+    {
+      align: "right",
+      cell: (order) =>
+        order.isEditable ? (
+          <Link
+            className="text-meta text-ink-faint underline underline-offset-2 hover:text-ink"
+            href={`/panel/orders/${order.id}/edit`}
+          >
+            Editar
+          </Link>
+        ) : null,
+      header: "",
+      hideOnMobile: true,
+      interactive: true,
+      key: "acciones",
+      width: "0.4fr"
+    }
+  ];
+
   return (
-    <main>
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-display font-semibold tracking-tight text-ink">
-              Pedidos
-            </h1>
-          </div>
-          <Link
-            href="/panel/orders/new"
-            className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
-          >
+    <PageShell>
+      <PageHeader
+        action={
+          <ButtonLink href="/panel/orders/new" icon={faPlus} variant="primary">
             Nuevo pedido
-          </Link>
-        </div>
+          </ButtonLink>
+        }
+        description={`${visibleOrderRows.length} ${normalizedQuery ? "resultados" : "pedidos"}`}
+        title="Pedidos"
+      />
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          <Link
-            href="/panel/orders?status=confirmed"
-            className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
-          >
-            <p className="text-body text-ink-soft">Esperando viaje</p>
-            <p className="mt-2 text-title font-semibold text-warn-fg">
-              {awaitingTripCount}
-            </p>
-          </Link>
-          <Link
-            href="/panel/orders?status=in_route"
-            className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
-          >
-            <p className="text-body text-ink-soft">En ruta</p>
-            <p className="mt-2 text-title font-semibold text-accent">
-              {inRouteOrders ?? 0}
-            </p>
-          </Link>
-          <Link
-            href="/panel/orders?status=pending_confirmation"
-            className="rounded-card border border-line bg-paper p-5 transition hover:border-line"
-          >
-            <p className="text-body text-ink-soft">A confirmar</p>
-            <p className="mt-2 text-title font-semibold text-info-fg">
-              {pendingOrders ?? 0}
-            </p>
-          </Link>
-          <article className="rounded-card border border-line bg-paper p-5">
-            <p className="text-body text-ink-soft">Pedidos</p>
-            <p className="mt-2 text-title font-semibold text-ink">
-              {totalOrders ?? 0}
-            </p>
-          </article>
-        </div>
+      {/* El tono de cada metrica es el mismo que el del badge del estado que
+          filtra. Antes no coincidian: "Esperando viaje" salia ambar arriba y
+          celeste en la tabla de abajo, para el mismo estado. */}
+      <MetricGrid>
+        <MetricCard
+          detail="Confirmados sin viaje"
+          href="/panel/orders?status=confirmed"
+          label="Esperando viaje"
+          tone="warn"
+          value={awaitingTripCount}
+        />
+        <MetricCard
+          href="/panel/orders?status=in_route"
+          label="En ruta"
+          tone="info"
+          value={inRouteOrders ?? 0}
+        />
+        <MetricCard
+          href="/panel/orders?status=pending_confirmation"
+          label="A confirmar"
+          tone="warn"
+          value={pendingOrders ?? 0}
+        />
+        <MetricCard href="/panel/orders" label="Total" value={totalOrders ?? 0} />
+      </MetricGrid>
 
-        {ordersError ? (
-          <div className="rounded-card border border-danger-line bg-danger-bg p-4 text-body text-danger-fg">
-            <p className="font-medium">No se pudieron cargar los pedidos.</p>
-            <p className="mt-1 text-danger-fg">
-              La lista de abajo está vacía por este error, no porque no haya pedidos.
-            </p>
-            <p className="mt-2 font-mono text-meta text-danger-fg">{ordersError.message}</p>
-          </div>
-        ) : null}
+      {ordersError ? (
+        <Notice tone="danger">
+          No se pudieron cargar los pedidos, así que la lista de abajo está vacía por el error y no
+          porque no haya pedidos. Detalle: {ordersError.message}
+        </Notice>
+      ) : null}
 
-        <section className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-title font-semibold text-ink">Todos los pedidos</h2>
-              <p className="mt-1 text-body text-ink-faint">
-                {visibleOrderRows.length} {normalizedQuery ? "resultado(s)" : "pedido(s)"}
-              </p>
-            </div>
-            <Suspense>
-              <OrderSearch defaultValue={normalizedQuery} />
-            </Suspense>
-          </div>
-
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <Suspense>
             <OrderFilters activeStatus={normalizedStatusFilter} />
           </Suspense>
+          <Suspense>
+            <OrderSearch defaultValue={normalizedQuery} />
+          </Suspense>
+        </div>
 
-          <div className="hidden overflow-hidden rounded-card border border-line bg-paper lg:block">
-            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-line bg-paper px-4 py-3 text-meta text-ink-soft">
-              <div>Cliente</div>
-              <div>Área</div>
-              <div>Estado</div>
-              <div>Ítems</div>
-              <div>Total</div>
-              <div>Alta</div>
-              <div></div>
-            </div>
-            {pagedOrderRows.length ? (
-              pagedOrderRows.map((order) => (
-                <div
-                  key={order.id}
-                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-line px-4 py-4 text-body text-ink-soft last:border-b-0 hover:bg-paper"
-                >
-                  <Link
-                    href={`/panel/orders/${order.id}`}
-                    className="absolute inset-0 z-0"
-                    aria-label={`Ver pedido de ${order.customerName}`}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-meta font-medium text-ink-faint">
-                        {formatOrderNumber(order.orderNumber)}
-                      </span>
-                      <p className="font-medium text-ink">{order.customerName}</p>
-                      {order.channel !== "internal" && (
-                        <span className="rounded-control border border-line px-2 py-0.5 text-meta text-ink-soft">
-                          {getChannelLabel(order.channel)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-meta text-ink-faint">
-                      {formatWhatsAppPhone(order.customerPhone)}
-                    </p>
-                  </div>
-                  <div>
-                    <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
-                    {order.locality && (
-                      <p className="mt-0.5 truncate text-meta text-ink-faint">{order.locality}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-meta font-medium ${getStatusBadgeClass(order.status)}`}>
-                      {getOrderStatusLabel(order.status)}
-                    </span>
-                    {order.trip && (
-                      <Link
-                        href={`/panel/logistics/delivery/${order.trip.id}`}
-                        className="relative z-10 mt-1.5 inline-block text-meta text-info-fg hover:text-info-fg"
-                      >
-                        {formatTripNumber(order.trip.number)}
-                      </Link>
-                    )}
-                  </div>
-                  <div className="line-clamp-2">{order.itemsSummary}</div>
-                  <div>
-                    <p>{formatCurrency(order.totalAmount)}</p>
-                    {order.paidAmount > 0 && (
-                      <>
-                        <p className="mt-1 text-meta text-ink-faint">
-                          Cobrado {formatCurrency(order.paidAmount)}
-                        </p>
-                        {order.paymentBalanceAmount > 0 && (
-                          <p className="mt-1 text-meta text-warn-fg">
-                            Saldo {formatCurrency(order.paymentBalanceAmount)}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  <div>{formatDate(order.created_at)}</div>
-                  <div className="relative z-10 flex justify-end">
-                    {order.isEditable ? (
-                      <Link
-                        href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-meta font-medium text-ink transition hover:border-line-strong hover:text-ink"
-                      >
-                        Editar
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/panel/orders/${order.id}`}
-                        className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-meta font-medium text-ink-soft transition hover:border-line hover:text-ink"
-                      >
-                        Ver
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="px-4 py-8 text-center text-body text-ink-faint">
-                {ordersError
-                  ? "No se pudo cargar la lista."
+        <DataTable
+          columns={columns}
+          empty={
+            <EmptyState
+              action={
+                normalizedQuery || normalizedStatusFilter ? (
+                  <ButtonLink href="/panel/orders" variant="secondary">
+                    Ver todos los pedidos
+                  </ButtonLink>
+                ) : (
+                  <ButtonLink href="/panel/orders/new" icon={faPlus} variant="primary">
+                    Nuevo pedido
+                  </ButtonLink>
+                )
+              }
+              description={
+                ordersError
+                  ? "Revisá el detalle del error de arriba y volvé a cargar la página."
                   : normalizedQuery
-                    ? "No hay pedidos para esa búsqueda."
-                    : "Todavia no hay pedidos cargados."}
-              </div>
-            )}
-          </div>
+                    ? `Ningún pedido coincide con "${normalizedQuery}".`
+                    : "Cuando entre el primer pedido del día va a aparecer acá."
+              }
+              icon={faInbox}
+              title={
+                ordersError
+                  ? "No se pudo cargar la lista"
+                  : normalizedQuery || normalizedStatusFilter
+                    ? "Sin resultados"
+                    : "Todavía no hay pedidos"
+              }
+            />
+          }
+          getKey={(order) => order.id}
+          href={(order) => `/panel/orders/${order.id}`}
+          rowLabel={(order) => `Ver pedido ${formatOrderNumber(order.orderNumber)} de ${order.customerName}`}
+          rows={pagedOrderRows}
+        />
 
-          <div className="grid gap-3 lg:hidden">
-            {pagedOrderRows.length ? (
-              pagedOrderRows.map((order) => (
-                <article key={order.id} className="rounded-card border border-line bg-paper p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-meta font-medium text-ink-faint">
-                        {formatOrderNumber(order.orderNumber)}
-                      </p>
-                      <p className="text-body font-semibold text-ink">{order.customerName}</p>
-                      <p className="mt-1 text-body text-ink-soft">
-                        {formatWhatsAppPhone(order.customerPhone)}
-                      </p>
-                    </div>
-                    <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
-                      {getChannelLabel(order.channel)}
-                    </span>
-                  </div>
-                  <div className="mt-4 grid gap-3 text-body">
-                    <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-meta text-ink-faint">Estado</p>
-                      <div className="mt-1">
-                        <span className={`inline-flex items-center rounded-control border px-2 py-0.5 text-meta font-medium ${getStatusBadgeClass(order.status)}`}>
-                          {getOrderStatusLabel(order.status)}
-                        </span>
-                      </div>
-                      {order.trip && (
-                        <Link
-                          href={`/panel/logistics/delivery/${order.trip.id}`}
-                          className="mt-1 inline-block text-meta text-info-fg hover:text-info-fg"
-                        >
-                          {formatTripNumber(order.trip.number)}
-                        </Link>
-                      )}
-                    </div>
-                    <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-meta text-ink-faint">Ítems</p>
-                      <p className="mt-1 text-ink">{order.itemsSummary}</p>
-                    </div>
-                    <div className="rounded-card bg-paper-muted p-3">
-                      <p className="text-meta text-ink-faint">Total</p>
-                      <p className="mt-1 text-ink">{formatCurrency(order.totalAmount)}</p>
-                      {order.paidAmount > 0 && (
-                        <p className="mt-1 text-meta text-ink-faint">
-                          Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
-                          {formatCurrency(order.paymentBalanceAmount)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      href={`/panel/orders/${order.id}`}
-                      className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body text-ink transition hover:border-line-strong hover:text-ink"
-                    >
-                      Ver pedido
-                    </Link>
-                    {order.isEditable ? (
-                      <Link
-                        href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body text-ink transition hover:border-line-strong hover:text-ink"
-                      >
-                        Editar pedido
-                      </Link>
-                    ) : (
-                      <span className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body text-ink-faint">
-                        Pedido bloqueado
-                      </span>
-                    )}
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-card border border-dashed border-line bg-paper px-4 py-8 text-center text-body text-ink-faint">
-                {ordersError
-                  ? "No se pudo cargar la lista."
-                  : normalizedQuery
-                    ? "No hay pedidos para esa búsqueda."
-                    : "Todavia no hay pedidos cargados."}
-              </div>
-            )}
-          </div>
-
-          {totalPages > 1 ? (
-            <div className="flex items-center justify-between gap-3 text-body">
-              <p className="text-ink-faint">
-                {pageStart + 1}–{pageStart + pagedOrderRows.length} de {visibleOrderRows.length}
-              </p>
-              <div className="flex gap-2">
-                {currentPage > 1 ? (
-                  <Link
-                    href={buildPageHref(currentPage - 1)}
-                    className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-ink transition hover:border-line-strong"
-                  >
-                    Anteriores
-                  </Link>
-                ) : null}
-                {currentPage < totalPages ? (
-                  <Link
-                    href={buildPageHref(currentPage + 1)}
-                    className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-ink transition hover:border-line-strong"
-                  >
-                    Siguientes
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-        </section>
-      </section>
-    </main>
+        <Pagination buildHref={buildPageHref} page={currentPage} totalPages={totalPages} />
+      </div>
+    </PageShell>
   );
 }

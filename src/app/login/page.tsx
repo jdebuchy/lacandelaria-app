@@ -9,52 +9,89 @@ type LoginPageProps = {
   }>;
 };
 
-function getReasonCopy(reason?: string) {
+type LoginNotice = {
+  body: string;
+  title: string;
+  tone: "warning" | "error";
+};
+
+/**
+ * Solo se avisa algo cuando hay algo que avisar. En el camino feliz la pantalla
+ * es el nombre y el boton, sin explicaciones.
+ */
+function getNotice(reason?: string): LoginNotice | null {
   switch (reason) {
-    case "forbidden":
-      return "Tu usuario existe, pero no tiene el rol necesario para entrar a esta seccion.";
-    case "missing_config":
-      return "Falta configurar Supabase Auth. Revisa variables de entorno y el proveedor de Google.";
     case "not_registered":
-      return "Solo pueden entrar usuarios registrados en la base con un rol activo.";
+      return {
+        body: "Pedile a alguien del equipo que te dé de alta con este mismo correo.",
+        title: "Esta cuenta todavía no tiene acceso",
+        tone: "warning"
+      };
+    case "forbidden":
+      return {
+        body: "Entrá con otra cuenta o pedí que te cambien el permiso.",
+        title: "Tu cuenta no llega a esta sección",
+        tone: "warning"
+      };
+    case "missing_config":
+      return {
+        body: "Falta conectar el acceso con Google. Avisale a quien administra el sistema.",
+        title: "El acceso no está configurado",
+        tone: "error"
+      };
     default:
-      return "Accede con Google y un perfil interno habilitado.";
+      return null;
   }
 }
+
+const NOTICE_TONE_CLASS = {
+  error: "border-rose-400/25 bg-rose-500/10 text-rose-100",
+  warning: "border-amber-400/25 bg-amber-500/10 text-amber-100"
+} as const;
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next, reason } = await searchParams;
   const nextPath = sanitizeRedirectPath(next);
   const authConfigured = Boolean(appConfig.supabaseUrl && appConfig.supabaseAnonKey);
+  const notice = authConfigured ? getNotice(reason) : getNotice("missing_config");
 
   return (
-    <main className="min-h-screen bg-stone-950 px-4 py-10 text-stone-100 sm:px-6">
-      <section className="mx-auto flex max-w-md flex-col gap-6 rounded-[2rem] border border-stone-800 bg-stone-900/70 p-6 sm:p-8">
-        <div className="space-y-3">
-          <span className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-200">
-            Acceso interno
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-50">
-            Panel con Google SSO
+    <main className="flex min-h-screen items-center justify-center px-5 py-12">
+      <section className="w-full max-w-sm">
+        <div className="rounded-[1.75rem] border border-stone-800/80 bg-stone-900/60 p-7 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-9">
+          <div className="flex items-baseline gap-2">
+            <span
+              aria-hidden
+              className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_18px_2px_rgba(52,211,153,0.55)]"
+            />
+            <p className="text-xs uppercase tracking-[0.28em] text-emerald-300/80">Paltas</p>
+          </div>
+
+          <h1 className="mt-3 text-4xl font-semibold leading-none tracking-tight text-stone-50">
+            La Candelaria
           </h1>
-          <p className="text-sm leading-6 text-stone-300">{getReasonCopy(reason)}</p>
+          <p className="mt-3 text-sm leading-6 text-stone-400">
+            Panel interno de pedidos y reparto.
+          </p>
+
+          {notice ? (
+            <div
+              role="status"
+              className={`mt-6 rounded-2xl border p-4 text-sm ${NOTICE_TONE_CLASS[notice.tone]}`}
+            >
+              <p className="font-medium">{notice.title}</p>
+              <p className="mt-1 opacity-80">{notice.body}</p>
+            </div>
+          ) : null}
+
+          <div className="mt-7">
+            {authConfigured ? <GoogleLoginButton nextPath={nextPath} /> : null}
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-stone-800 bg-stone-950/80 p-4 text-sm text-stone-300">
-          <p>Ruta solicitada: {nextPath}</p>
-          <p className="mt-2">
-            Para entrar, tu email de Google tiene que existir en `profiles.email`, estar activo y
-            tener un `role` permitido.
-          </p>
-        </div>
-
-        {authConfigured ? (
-          <GoogleLoginButton nextPath={nextPath} />
-        ) : (
-          <p className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-200">
-            Falta configurar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-          </p>
-        )}
+        <p className="mt-6 text-center text-xs uppercase tracking-[0.22em] text-stone-600">
+          Pedidos · Reparto · Cobranzas
+        </p>
       </section>
     </main>
   );

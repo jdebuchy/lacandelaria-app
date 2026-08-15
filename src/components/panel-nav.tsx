@@ -274,17 +274,10 @@ const linksByRole: Record<UserRole, NavItem[]> = {
   ],
   driver: [
     {
-      href: "/panel/logistics/delivery",
+      href: "/reparto",
       iconKey: "logistics",
-      label: "Logística",
-      match: ["/panel/logistics/delivery", "/driver"],
-      children: [
-        {
-          href: "/panel/logistics/delivery",
-          label: "Delivery",
-          match: ["/panel/logistics/delivery", "/driver"]
-        }
-      ],
+      label: "Mi reparto",
+      match: ["/reparto", "/driver"],
       section: "main"
     }
   ]

@@ -6,6 +6,7 @@ import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
 import { loadActiveLogisticsDepots } from "@/lib/logistics-depots";
+import { formatTripNumber } from "@/lib/orders";
 import { formatItemsSummary } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -35,6 +36,7 @@ type TripRow = {
   id: string;
   scheduled_date: string;
   status: "assigned" | "completed" | "in_route";
+  trip_number: number | null;
 };
 
 function takeSingleRelation<T>(value: T | T[] | null): T | null {
@@ -111,7 +113,7 @@ export default async function LogisticsPage() {
       .order("created_at", { ascending: true }),
     supabase
       .from("delivery_trips")
-      .select("id, scheduled_date, status, driver_user_id, created_at")
+      .select("id, trip_number, scheduled_date, status, driver_user_id, created_at")
       .in("status", ["assigned", "in_route", "completed"])
       .order("scheduled_date", { ascending: true })
       .order("created_at", { ascending: false })
@@ -224,7 +226,7 @@ export default async function LogisticsPage() {
                   className="grid gap-3 px-1 py-4 transition hover:bg-stone-900/50 md:grid-cols-[minmax(0,1fr)_auto_auto]"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-stone-100">Viaje {trip.id.slice(0, 8)}</p>
+                    <p className="text-sm font-semibold text-stone-100">{formatTripNumber(trip.trip_number)}</p>
                     <p className="mt-1 text-sm text-stone-400">{formatDate(trip.scheduled_date)}</p>
                   </div>
                   <p className="text-sm text-stone-300">{tripCounts.get(trip.id) ?? 0} pedidos</p>

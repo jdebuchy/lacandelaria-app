@@ -80,6 +80,7 @@ type TripRow = {
   scheduled_date: string;
   started_at?: string | null;
   status: DeliveryTripStatus;
+  trip_number?: number | null;
 };
 
 type TripOrderRow = {
@@ -100,6 +101,7 @@ type TripOrderWithRelations = {
   items_count?: number | null;
   notes?: string | null;
   order_items?: RelatedOrderItem[] | null;
+  order_number?: number | null;
   payment_method_expected: ExpectedPaymentMethod;
   payment_status: PaymentStatus;
   reseller_id?: string | null;
@@ -134,6 +136,7 @@ export type DeliveryPlanningStop = {
   locality: string;
   notes: string | null;
   orderId: string;
+  orderNumber: number | null;
   orderStatus: string;
   paymentMethodExpected: ExpectedPaymentMethod;
   paymentStatus: PaymentStatus;
@@ -157,6 +160,7 @@ export type DeliveryPlanningAvailableOrder = {
   itemsSummary: string;
   locality: string;
   orderId: string;
+  orderNumber: number | null;
   totalAmount: number;
 };
 
@@ -173,6 +177,7 @@ export type DeliveryPlanningTrip = {
   startedAt: string | null;
   status: DeliveryTripStatus;
   stops: DeliveryPlanningStop[];
+  tripNumber: number | null;
 };
 
 function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
@@ -248,6 +253,7 @@ function buildPlanningStop(tripOrder: TripOrderRow, order: TripOrderWithRelation
     locality: customer?.locality ?? "",
     notes: delivery?.proof_note || order.notes || customer?.delivery_notes || null,
     orderId: order.id,
+    orderNumber: order.order_number ?? null,
     orderStatus: order.status,
     paymentMethodExpected: order.payment_method_expected,
     paymentStatus: order.payment_status,
@@ -275,6 +281,7 @@ export async function loadDeliveryTripPlanning(
       .select(
         `
           id,
+          trip_number,
           depot_id,
           scheduled_date,
           driver_user_id,
@@ -304,7 +311,7 @@ export async function loadDeliveryTripPlanning(
   if (tripResult.error) {
     const fallbackTripResult = await supabase
       .from("delivery_trips")
-      .select("id, scheduled_date, driver_user_id, status, notes, started_at, completed_at, created_at")
+      .select("id, trip_number, scheduled_date, driver_user_id, status, notes, started_at, completed_at, created_at")
       .eq("id", tripId)
       .single();
 
@@ -338,6 +345,7 @@ export async function loadDeliveryTripPlanning(
         .select(
           `
             id,
+            order_number,
             sales_channel,
             reseller_id,
             items_count,
@@ -401,6 +409,7 @@ export async function loadDeliveryTripPlanning(
       .select(
         `
           id,
+          order_number,
           status,
           total_amount,
           items_count,
@@ -464,6 +473,7 @@ export async function loadDeliveryTripPlanning(
         itemsSummary: formatItemsSummary(items, 2),
         locality: customer?.locality ?? "",
         orderId: order.id,
+        orderNumber: order.order_number ?? null,
         totalAmount: Number(order.total_amount ?? 0)
       } satisfies DeliveryPlanningAvailableOrder;
     });
@@ -482,7 +492,8 @@ export async function loadDeliveryTripPlanning(
       scheduledDate: trip.scheduled_date,
       startedAt: trip.started_at ?? null,
       status: trip.status,
-      stops
+      stops,
+      tripNumber: trip.trip_number ?? null
     }
   };
 }

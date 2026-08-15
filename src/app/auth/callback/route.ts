@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthContext } from "@/lib/auth";
 import { sanitizeRedirectPath } from "@/lib/auth-shared";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,6 +29,15 @@ export async function GET(request: NextRequest) {
   if (error) {
     console.error("exchangeCodeForSession failed", error);
     return NextResponse.redirect(`${redirectOrigin}/login?reason=not_registered`);
+  }
+
+  // El repartidor no tiene nada que hacer en el panel: su unica superficie es /reparto.
+  if (!nextPath.startsWith("/reparto")) {
+    const auth = await getAuthContext();
+
+    if (auth?.profile.role === "driver") {
+      return NextResponse.redirect(`${redirectOrigin}/reparto`);
+    }
   }
 
   return NextResponse.redirect(`${redirectOrigin}${nextPath}`);

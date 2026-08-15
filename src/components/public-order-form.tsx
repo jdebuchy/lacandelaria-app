@@ -124,7 +124,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
             placeholder="Jose"
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -135,7 +135,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
             placeholder="Debuchy"
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -148,7 +148,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
             value={instagram}
             onChange={(event) => setInstagram(event.target.value)}
             placeholder="usuario"
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
           />
           <span aria-hidden="true" className="text-xs text-transparent">
             .
@@ -163,7 +163,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
             name="paymentMethodExpected"
             value={paymentMethodExpected}
             onChange={(event) => setPaymentMethodExpected(event.target.value as ExpectedPaymentMethod)}
-            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
           >
             <option value="unknown">No definido</option>
             <option value="cash">Efectivo</option>
@@ -187,7 +187,7 @@ export function PublicOrderForm({ products }: PublicOrderFormProps) {
             rows={4}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-none focus:border-emerald-400"
+            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
       </div>

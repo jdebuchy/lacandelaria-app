@@ -96,7 +96,7 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
           <WhatsappCrmNav activeHref="/panel/crm/whatsapp" />
         </div>
 
-        <section className="grid min-h-[680px] overflow-hidden rounded-[2rem] border border-stone-800 bg-stone-950 shadow-2xl shadow-black/20 lg:grid-cols-[390px_1fr]">
+        <section className="grid min-h-[680px] overflow-hidden rounded-4xl border border-stone-800 bg-stone-950 shadow-2xl shadow-black/20 lg:grid-cols-[390px_1fr]">
           <aside className="flex min-h-0 flex-col border-b border-stone-800 bg-stone-950 lg:border-b-0 lg:border-r">
             <div className="border-b border-stone-800 p-5">
               <div className="flex items-center justify-between gap-3">

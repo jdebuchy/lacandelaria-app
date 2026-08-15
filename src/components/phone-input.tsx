@@ -147,7 +147,7 @@ export function PhoneInput({ value, onChange, required, label = "WhatsApp", clas
   }
 
   const base =
-    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-emerald-400 text-sm";
+    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden focus:border-emerald-400 text-sm";
 
   const areaPlaceholder = "11";
   const localPlaceholder =

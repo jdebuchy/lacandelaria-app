@@ -59,7 +59,7 @@ export function WhatsappChatComposer({ conversationId }: { conversationId: strin
           value={body}
           onChange={(event) => setBody(event.target.value)}
           rows={1}
-          className="min-h-11 flex-1 resize-none rounded-2xl border border-stone-800 bg-stone-900 px-4 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-emerald-400"
+          className="min-h-11 flex-1 resize-none rounded-2xl border border-stone-800 bg-stone-900 px-4 py-3 text-sm text-stone-100 outline-hidden transition placeholder:text-stone-600 focus:border-emerald-400"
           placeholder="Escribir mensaje"
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {

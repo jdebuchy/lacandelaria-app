@@ -130,7 +130,7 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
           </div>
         </div>
 
-        <section className="grid min-h-[680px] overflow-hidden rounded-[2rem] border border-stone-800 bg-stone-950 shadow-2xl shadow-black/20 lg:grid-cols-[390px_1fr]">
+        <section className="grid min-h-[680px] overflow-hidden rounded-4xl border border-stone-800 bg-stone-950 shadow-2xl shadow-black/20 lg:grid-cols-[390px_1fr]">
           <aside className="flex min-h-0 flex-col border-b border-stone-800 bg-stone-950 lg:border-b-0 lg:border-r">
             <div className="border-b border-stone-800 p-5">
               <div className="flex items-center justify-between gap-3">
@@ -298,15 +298,15 @@ export default async function InstagramInboxPage({ searchParams }: { searchParam
                       </div>
                       <div>
                         <dt className="text-stone-500">Campana</dt>
-                        <dd className="mt-1 break-words text-stone-100">{getCampaignLabel(selectedConversation)}</dd>
+                        <dd className="mt-1 wrap-break-word text-stone-100">{getCampaignLabel(selectedConversation)}</dd>
                       </div>
                       <div>
                         <dt className="text-stone-500">Ad set</dt>
-                        <dd className="mt-1 break-words text-stone-100">{selectedConversation.adset_id || "-"}</dd>
+                        <dd className="mt-1 wrap-break-word text-stone-100">{selectedConversation.adset_id || "-"}</dd>
                       </div>
                       <div>
                         <dt className="text-stone-500">Ad</dt>
-                        <dd className="mt-1 break-words text-stone-100">{selectedConversation.ad_id || "-"}</dd>
+                        <dd className="mt-1 wrap-break-word text-stone-100">{selectedConversation.ad_id || "-"}</dd>
                       </div>
                       <div>
                         <dt className="text-stone-500">Ultimo inbound</dt>

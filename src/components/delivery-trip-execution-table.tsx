@@ -241,7 +241,7 @@ export function DeliveryTripExecutionTable({
                                     [stop.id]: event.target.value
                                   }))
                                 }
-                                className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-emerald-300"
+                                className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-emerald-300"
                                 placeholder="Monto en efectivo"
                               />
                               <div className="grid gap-2 sm:grid-cols-2">
@@ -292,7 +292,7 @@ export function DeliveryTripExecutionTable({
                                 [stop.id]: event.target.value as DeliveryFailureReason
                               }))
                             }
-                            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-xs text-stone-100 outline-none transition focus:border-rose-300"
+                            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-xs text-stone-100 outline-hidden transition focus:border-rose-300"
                           >
                             {FAILURE_REASON_OPTIONS.map((option) => (
                               <option key={option} value={option}>
@@ -310,7 +310,7 @@ export function DeliveryTripExecutionTable({
                               }))
                             }
                             placeholder="Comentario"
-                            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-xs text-stone-100 outline-none transition focus:border-stone-500"
+                            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-xs text-stone-100 outline-hidden transition focus:border-stone-500"
                           />
                           <button
                             type="button"

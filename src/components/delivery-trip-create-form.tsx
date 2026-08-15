@@ -152,7 +152,7 @@ export function DeliveryTripCreateForm({
           <select
             value={depotId}
             onChange={(event) => setDepotId(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
             required
           >
             {depots.map((depot) => (
@@ -168,7 +168,7 @@ export function DeliveryTripCreateForm({
           <DateInput
             value={scheduledDate}
             onChange={setScheduledDate}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
             required
           />
         </label>
@@ -178,7 +178,7 @@ export function DeliveryTripCreateForm({
           <select
             value={driverUserId}
             onChange={(event) => setDriverUserId(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
           >
             <option value="">Sin asignar</option>
             {drivers.map((driver) => (
@@ -196,7 +196,7 @@ export function DeliveryTripCreateForm({
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           rows={3}
-          className="rounded-2xl border border-stone-700 bg-stone-950 px-3 py-3 text-stone-100 outline-none transition focus:border-sky-400"
+          className="rounded-2xl border border-stone-700 bg-stone-950 px-3 py-3 text-stone-100 outline-hidden transition focus:border-sky-400"
           placeholder="Indicaciones para el armado o el reparto"
         />
       </label>
@@ -224,7 +224,7 @@ export function DeliveryTripCreateForm({
               <select
                 value={areaFilter}
                 onChange={(event) => setAreaFilter(event.target.value as AreaFilter)}
-                className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+                className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
               >
                 <option value="all">Todos</option>
                 <option value="capital_federal">Capital</option>
@@ -240,7 +240,7 @@ export function DeliveryTripCreateForm({
                 type="checkbox"
                 checked={visibleSelectedCount > 0 && visibleSelectedCount === filteredOrders.length}
                 onChange={(event) => toggleVisibleOrders(event.target.checked)}
-                className="h-4 w-4 rounded border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
+                className="h-4 w-4 rounded-sm border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
               />
               Seleccionar visibles
             </label>
@@ -265,7 +265,7 @@ export function DeliveryTripCreateForm({
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleOrder(order.id)}
-                    className="h-4 w-4 rounded border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
+                    className="h-4 w-4 rounded-sm border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
                   />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-stone-100">{order.customerName}</p>

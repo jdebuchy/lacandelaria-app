@@ -167,7 +167,7 @@ export function CsvImportButton() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="w-full max-w-2xl rounded-3xl border border-stone-800 bg-stone-950 p-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-stone-50">Importar clientes desde CSV</h2>

@@ -98,7 +98,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
               type="text"
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden transition focus:border-sky-400"
               placeholder="Carlos Gómez"
               required
             />
@@ -110,7 +110,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden transition focus:border-sky-400"
               placeholder="reparto1@fake.local"
               required
             />
@@ -121,7 +121,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
             <select
               value={role}
               onChange={(event) => setRole(event.target.value as UserRole)}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               {ROLE_OPTIONS.map((value) => (
                 <option key={value} value={value}>
@@ -136,7 +136,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
               type="checkbox"
               checked={active}
               onChange={(event) => setActive(event.target.checked)}
-              className="h-4 w-4 rounded border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
+              className="h-4 w-4 rounded-sm border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
             />
             Usuario activo
           </label>

@@ -57,7 +57,7 @@ export function OrderDeliveryWindowForm({
           type="time"
           value={start}
           onChange={(event) => setStart(event.target.value)}
-          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400"
+          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden focus:border-sky-400"
         />
         <span className="text-stone-500">a</span>
         <input
@@ -65,7 +65,7 @@ export function OrderDeliveryWindowForm({
           type="time"
           value={end}
           onChange={(event) => setEnd(event.target.value)}
-          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400"
+          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden focus:border-sky-400"
         />
         {isDirty ? (
           <button

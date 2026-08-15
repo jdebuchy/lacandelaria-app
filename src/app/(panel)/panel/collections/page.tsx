@@ -268,7 +268,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
               name="q"
               defaultValue={getSearchValue(resolvedSearchParams, "q")}
               placeholder="Cliente o telefono"
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition placeholder:text-stone-600 focus:border-sky-400"
             />
           </label>
           <label className="grid gap-1 text-xs text-stone-400">
@@ -276,7 +276,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
             <select
               name="status"
               defaultValue={statusFilter}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="open">Pendientes y parciales</option>
               <option value="pending">Pendientes</option>
@@ -290,7 +290,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
             <select
               name="method"
               defaultValue={methodFilter}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="all">Todos</option>
               <option value="unknown">No definido</option>

@@ -189,7 +189,7 @@ export function StopSheet({
                 Monto a cobrar
                 <input
                   autoFocus
-                  className="mt-2 h-14 w-full rounded-2xl border border-stone-500 bg-stone-900 px-4 text-xl tabular-nums text-stone-50 outline-none focus:border-yellow-400"
+                  className="mt-2 h-14 w-full rounded-2xl border border-stone-500 bg-stone-900 px-4 text-xl tabular-nums text-stone-50 outline-hidden focus:border-yellow-400"
                   inputMode="decimal"
                   min="0"
                   onChange={(event) => setCustomAmount(event.target.value)}
@@ -234,7 +234,7 @@ export function StopSheet({
             <label className="mt-5 block text-sm text-stone-400">
               Comentario (obligatorio solo en “Otro”)
               <input
-                className="mt-2 h-14 w-full rounded-2xl border border-stone-500 bg-stone-900 px-4 text-[17px] text-stone-50 outline-none placeholder:text-stone-400 focus:border-stone-400"
+                className="mt-2 h-14 w-full rounded-2xl border border-stone-500 bg-stone-900 px-4 text-[17px] text-stone-50 outline-hidden placeholder:text-stone-400 focus:border-stone-400"
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Qué pasó"
                 type="text"

@@ -61,7 +61,7 @@ export function GoogleLoginButton({ nextPath }: GoogleLoginButtonProps) {
         type="button"
         onClick={handleLogin}
         disabled={pending}
-        className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-stone-50 px-5 text-sm font-medium text-stone-900 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-stone-50 px-5 text-sm font-medium text-stone-900 transition hover:bg-white focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
       >
         <GoogleMark />
         {pending ? "Abriendo Google..." : "Entrar con Google"}

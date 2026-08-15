@@ -58,7 +58,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <section className="w-full max-w-sm">
-        <div className="rounded-[1.75rem] border border-stone-800/80 bg-stone-900/60 p-7 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-9">
+        <div className="rounded-[1.75rem] border border-stone-800/80 bg-stone-900/60 p-7 shadow-2xl shadow-black/40 backdrop-blur-xs sm:p-9">
           <div className="flex items-baseline gap-2">
             <span
               aria-hidden

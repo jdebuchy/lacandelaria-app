@@ -42,7 +42,7 @@ function MenuIcon({ open }: { open: boolean }) {
       />
       <span
         className={`absolute left-0 top-[14px] h-0.5 w-5 rounded-full bg-current transition ${
-          open ? "-translate-y-[7px] -rotate-45" : ""
+          open ? "translate-y-[-7px] -rotate-45" : ""
         }`}
       />
     </span>
@@ -72,7 +72,7 @@ export function SiteNav() {
 
   return (
     <header className="relative z-30">
-      <div className="flex items-center justify-between gap-3 rounded-3xl border border-stone-800 bg-stone-950/85 px-4 py-3 backdrop-blur sm:hidden">
+      <div className="flex items-center justify-between gap-3 rounded-3xl border border-stone-800 bg-stone-950/85 px-4 py-3 backdrop-blur-sm sm:hidden">
         <div>
           <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Navegacion</p>
           <p className="mt-1 text-sm font-medium text-stone-100">
@@ -118,12 +118,12 @@ export function SiteNav() {
             type="button"
             aria-label="Cerrar menu"
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs"
           />
 
           <nav
             id="site-mobile-nav"
-            className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-50 rounded-[2rem] border border-stone-800 bg-stone-950/95 p-3 shadow-2xl shadow-black/40"
+            className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-50 rounded-4xl border border-stone-800 bg-stone-950/95 p-3 shadow-2xl shadow-black/40"
           >
             <div className="grid gap-2">
               {links.map((link) => {
@@ -133,7 +133,7 @@ export function SiteNav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`rounded-[1.5rem] border px-4 py-4 transition ${
+                    className={`rounded-3xl border px-4 py-4 transition ${
                       isActive
                         ? "border-emerald-400/40 bg-emerald-500/10"
                         : "border-stone-800 bg-stone-900/80"

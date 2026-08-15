@@ -124,7 +124,7 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
   }
 
   const inputClass =
-    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none transition focus:border-sky-400";
+    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden transition focus:border-sky-400";
 
   return (
     <section className="grid gap-5">
@@ -222,7 +222,7 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
                     <input
                       value={form.address.googlePlaceId}
                       readOnly
-                      className="h-10 rounded-xl border border-stone-800 bg-stone-950/70 px-3 text-sm text-stone-500 outline-none"
+                      className="h-10 rounded-xl border border-stone-800 bg-stone-950/70 px-3 text-sm text-stone-500 outline-hidden"
                       placeholder="Se completa al elegir una sugerencia"
                     />
                   </label>
@@ -233,7 +233,7 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
                     type="checkbox"
                     checked={form.active}
                     onChange={(event) => updateForm(depot.id, { active: event.target.checked })}
-                    className="h-4 w-4 rounded border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
+                    className="h-4 w-4 rounded-sm border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
                   />
                   Disponible para nuevos viajes
                 </label>

@@ -90,7 +90,7 @@ export function PaymentRegisterForm({
             step="0.01"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
-            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
           />
         </label>
         <label className="grid gap-1 text-xs text-stone-400">
@@ -108,7 +108,7 @@ export function PaymentRegisterForm({
                 )
               );
             }}
-            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
           >
             <option value="cash">{getPaymentMethodLabel("cash")}</option>
             <option value="transfer">{getPaymentMethodLabel("transfer")}</option>
@@ -122,7 +122,7 @@ export function PaymentRegisterForm({
           value={reference}
           onChange={(event) => setReference(event.target.value)}
           placeholder="Nota, comprobante o aclaracion"
-          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-sky-400"
+          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition placeholder:text-stone-600 focus:border-sky-400"
         />
       </label>
       {exceedsBalance ? (

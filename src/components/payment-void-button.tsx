@@ -61,7 +61,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
       {feedback ? <p className="text-xs text-stone-500">{feedback}</p> : null}
 
       {dialogOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 px-4 py-5 backdrop-blur sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 px-4 py-5 backdrop-blur-sm sm:items-center">
           <div
             role="dialog"
             aria-modal="true"
@@ -103,7 +103,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 rows={3}
                 maxLength={240}
                 placeholder="Ej: cargado por error, pedido equivocado, importe incorrecto"
-                className="resize-none rounded-2xl border border-stone-700 bg-stone-950 px-3 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-rose-300"
+                className="resize-none rounded-2xl border border-stone-700 bg-stone-950 px-3 py-3 text-sm text-stone-100 outline-hidden transition placeholder:text-stone-600 focus:border-rose-300"
               />
             </label>
 

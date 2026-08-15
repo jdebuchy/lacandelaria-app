@@ -422,7 +422,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               value={scheduledDate}
               onChange={setScheduledDate}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden focus:border-sky-400 disabled:opacity-60"
             />
           </label>
           <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
@@ -431,7 +431,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               value={driverUserId}
               onChange={(event) => setDriverUserId(event.target.value)}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden focus:border-sky-400 disabled:opacity-60"
             >
               <option value="">Sin asignar</option>
               {drivers.map((driver) => (
@@ -451,7 +451,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               value={depotId}
               onChange={(event) => handleDepotChange(event.target.value)}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden focus:border-sky-400 disabled:opacity-60"
             >
               {depotOptions.map((depot) => (
                 <option key={depot.id} value={depot.id}>
@@ -484,7 +484,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               disabled={!canEditTrip}
-              className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-stone-100 outline-hidden focus:border-sky-400 disabled:opacity-60"
             />
           </label>
         </div>
@@ -508,7 +508,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
             value={availableQuery}
             onChange={(event) => setAvailableQuery(event.target.value)}
             placeholder="Buscar por cliente o dirección..."
-            className="mt-4 h-11 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-sky-400"
+            className="mt-4 h-11 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-sky-400"
           />
 
           <div className="mt-4 grid gap-3">

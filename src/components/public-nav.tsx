@@ -8,7 +8,7 @@ export function PublicNav() {
   const isOnOrderPage = pathname === "/order";
 
   return (
-    <header className="border-b border-stone-800/60 bg-stone-950/90 backdrop-blur">
+    <header className="border-b border-stone-800/60 bg-stone-950/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5 group">
           <span className="h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20 transition group-hover:ring-emerald-400/40" />

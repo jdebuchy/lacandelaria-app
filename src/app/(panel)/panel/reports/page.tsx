@@ -699,7 +699,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               name="start"
               type="date"
               defaultValue={filters.startDate}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             />
           </label>
           <label className="grid gap-1 text-xs text-stone-400">
@@ -708,7 +708,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               name="end"
               type="date"
               defaultValue={filters.endDate}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             />
           </label>
           <label className="grid gap-1 text-xs text-stone-400">
@@ -716,7 +716,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <select
               name="groupBy"
               defaultValue={searchValue(filters, "groupBy")}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="day">Día</option>
               <option value="week">Semana</option>
@@ -728,7 +728,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <select
               name="channel"
               defaultValue={searchValue(filters, "channel")}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="all">Todos</option>
               {Object.entries(CHANNEL_LABELS).map(([value, label]) => (
@@ -743,7 +743,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <select
               name="status"
               defaultValue={searchValue(filters, "status")}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="all">Todos</option>
               {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
@@ -758,7 +758,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <select
               name="method"
               defaultValue={searchValue(filters, "method")}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="all">Todos</option>
               {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
@@ -773,7 +773,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <select
               name="zone"
               defaultValue={searchValue(filters, "zone")}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="all">Todas</option>
               {zoneOptions.map((zone) => (
@@ -788,7 +788,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <select
               name="product"
               defaultValue={filters.productId}
-              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-sky-400"
+              className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-sky-400"
             >
               <option value="all">Todos</option>
               {productOptions.map((product) => (

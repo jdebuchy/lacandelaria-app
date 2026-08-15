@@ -130,9 +130,9 @@ export function AddressInput({ value, onChange, required, className, afterPostal
   }
 
   const inputClass =
-    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400";
+    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400";
   const textareaClass =
-    "rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-none focus:border-emerald-400";
+    "rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-hidden focus:border-emerald-400";
 
   return (
     <div className={`grid gap-3 md:grid-cols-6${className ? ` ${className}` : ""}`}>
@@ -185,7 +185,7 @@ export function AddressInput({ value, onChange, required, className, afterPostal
           type="checkbox"
           checked={value.addressKind === "gated"}
           onChange={(event) => setField("addressKind", event.target.checked ? "gated" : "standard")}
-          className="h-4 w-4 rounded border-stone-700 bg-stone-950 text-emerald-500 focus:ring-emerald-400"
+          className="h-4 w-4 rounded-sm border-stone-700 bg-stone-950 text-emerald-500 focus:ring-emerald-400"
         />
         ¿Barrio cerrado / privado?
       </label>

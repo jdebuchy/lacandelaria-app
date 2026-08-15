@@ -81,7 +81,7 @@ export function AddCustomerButton() {
   }
 
   const inputClass =
-    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400";
+    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400";
 
   return (
     <>
@@ -94,7 +94,7 @@ export function AddCustomerButton() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-xs">
           <div className="my-8 w-full max-w-3xl rounded-3xl border border-stone-800 bg-stone-950 p-7 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-stone-50">Nuevo cliente</h2>
@@ -176,7 +176,7 @@ export function AddCustomerButton() {
                   onChange={(e) => set("deliveryNotes", e.target.value)}
                   rows={3}
                   maxLength={500}
-                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-none focus:border-emerald-400"
+                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
                   placeholder="Ej: Dejar en portería, timbre 2B"
                 />
               </label>

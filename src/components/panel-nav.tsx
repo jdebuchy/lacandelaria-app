@@ -1,10 +1,23 @@
 "use client";
 
+import { faArrowRightFromBracket, faBars, faHouse, faXmark } from "@fortawesome/pro-regular-svg-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { IconButton } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { getRoleLabel } from "@/lib/auth-shared";
+import { cn } from "@/lib/cn";
 import type { UserRole } from "@/lib/types";
+import {
+  NAV_ICONS,
+  getActiveItemLabel,
+  isItemActive,
+  isMatchActive,
+  linksByRole,
+  type NavItem
+} from "./panel-nav-links";
 
 type PanelNavProps = {
   role: UserRole;
@@ -12,495 +25,91 @@ type PanelNavProps = {
   userName: string;
 };
 
-type NavIconKey =
-  | "crm"
-  | "overview"
-  | "orders"
-  | "reports"
-  | "collections"
-  | "logistics"
-  | "customers"
-  | "users"
-  | "products"
-  | "driver";
+const SECTIONS = [
+  { key: "main", label: "Operación" },
+  { key: "management", label: "Gestión" },
+  { key: "system", label: "Sistema" }
+] as const;
 
-type NavMatch = {
-  exact?: boolean;
-  exclude?: string[];
-  match: string[];
-};
-
-type NavChildItem = NavMatch & {
-  href: string;
-  label: string;
-};
-
-type NavItem = {
-  children?: NavChildItem[];
-  href: string;
-  iconKey: NavIconKey;
-  label: string;
-  match: string[];
-  exact?: boolean;
-  exclude?: string[];
-  section: "main" | "management" | "system";
-};
-
-const linksByRole: Record<UserRole, NavItem[]> = {
-  admin: [
-    {
-      href: "/panel",
-      exact: true,
-      iconKey: "overview",
-      label: "Resumen",
-      match: ["/panel"],
-      section: "main"
-    },
-    {
-      href: "/panel/customers",
-      iconKey: "crm",
-      label: "CRM",
-      match: ["/panel/customers", "/panel/crm"],
-      children: [
-        {
-          href: "/panel/customers",
-          label: "Clientes",
-          match: ["/panel/customers"]
-        },
-        {
-          href: "/panel/crm/whatsapp",
-          label: "WhatsApp",
-          match: ["/panel/crm/whatsapp"]
-        },
-        {
-          href: "/panel/crm/instagram",
-          label: "Instagram",
-          match: ["/panel/crm/instagram"]
-        }
-      ],
-      section: "management"
-    },
-    {
-      href: "/panel/orders",
-      iconKey: "orders",
-      label: "Pedidos",
-      match: ["/panel/orders"],
-      section: "main"
-    },
-    {
-      href: "/panel/logistics",
-      iconKey: "logistics",
-      label: "Logística",
-      match: ["/panel/logistics"],
-      children: [
-        {
-          href: "/panel/logistics",
-          label: "Armado de viajes",
-          match: ["/panel/logistics"],
-          exclude: ["/panel/logistics/delivery", "/panel/logistics/depots"]
-        },
-        {
-          href: "/panel/logistics/delivery",
-          label: "Delivery",
-          match: ["/panel/logistics/delivery", "/driver"]
-        },
-        {
-          href: "/panel/logistics/depots",
-          label: "Depósitos",
-          match: ["/panel/logistics/depots"]
-        }
-      ],
-      section: "main"
-    },
-    {
-      href: "/panel/collections",
-      iconKey: "collections",
-      label: "Cobranza",
-      match: ["/panel/collections"],
-      section: "main"
-    },
-    {
-      href: "/panel/products",
-      iconKey: "products",
-      label: "Productos",
-      match: ["/panel/products"],
-      section: "management"
-    },
-    {
-      href: "/panel/reports",
-      iconKey: "reports",
-      label: "Reportes",
-      match: ["/panel/reports"],
-      section: "management"
-    },
-    {
-      href: "/panel/users",
-      iconKey: "users",
-      label: "Usuarios",
-      match: ["/panel/users"],
-      section: "system"
-    }
-  ],
-  seller: [
-    {
-      href: "/panel",
-      exact: true,
-      iconKey: "overview",
-      label: "Resumen",
-      match: ["/panel"],
-      section: "main"
-    },
-    {
-      href: "/panel/customers",
-      iconKey: "crm",
-      label: "CRM",
-      match: ["/panel/customers", "/panel/crm"],
-      children: [
-        {
-          href: "/panel/customers",
-          label: "Clientes",
-          match: ["/panel/customers"]
-        },
-        {
-          href: "/panel/crm/whatsapp",
-          label: "WhatsApp",
-          match: ["/panel/crm/whatsapp"]
-        },
-        {
-          href: "/panel/crm/instagram",
-          label: "Instagram",
-          match: ["/panel/crm/instagram"]
-        }
-      ],
-      section: "management"
-    },
-    {
-      href: "/panel/orders",
-      iconKey: "orders",
-      label: "Pedidos",
-      match: ["/panel/orders"],
-      section: "main"
-    },
-    {
-      href: "/panel/reports",
-      iconKey: "reports",
-      label: "Reportes",
-      match: ["/panel/reports"],
-      section: "management"
-    },
-    {
-      href: "/panel/logistics",
-      iconKey: "logistics",
-      label: "Logística",
-      match: ["/panel/logistics"],
-      children: [
-        {
-          href: "/panel/logistics",
-          label: "Armado de viajes",
-          match: ["/panel/logistics"]
-        }
-      ],
-      section: "main"
-    },
-    {
-      href: "/panel/collections",
-      iconKey: "collections",
-      label: "Cobranza",
-      match: ["/panel/collections"],
-      section: "main"
-    }
-  ],
-  collector: [
-    {
-      href: "/panel",
-      exact: true,
-      iconKey: "overview",
-      label: "Resumen",
-      match: ["/panel"],
-      section: "main"
-    },
-    {
-      href: "/panel/customers",
-      iconKey: "crm",
-      label: "CRM",
-      match: ["/panel/customers", "/panel/crm"],
-      children: [
-        {
-          href: "/panel/customers",
-          label: "Clientes",
-          match: ["/panel/customers"]
-        },
-        {
-          href: "/panel/crm/whatsapp",
-          label: "WhatsApp",
-          match: ["/panel/crm/whatsapp"]
-        },
-        {
-          href: "/panel/crm/instagram",
-          label: "Instagram",
-          match: ["/panel/crm/instagram"]
-        }
-      ],
-      section: "management"
-    },
-    {
-      href: "/panel/orders",
-      iconKey: "orders",
-      label: "Pedidos",
-      match: ["/panel/orders"],
-      section: "main"
-    },
-    {
-      href: "/panel/reports",
-      iconKey: "reports",
-      label: "Reportes",
-      match: ["/panel/reports"],
-      section: "management"
-    },
-    {
-      href: "/panel/logistics",
-      iconKey: "logistics",
-      label: "Logística",
-      match: ["/panel/logistics"],
-      children: [
-        {
-          href: "/panel/logistics",
-          label: "Armado de viajes",
-          match: ["/panel/logistics"]
-        }
-      ],
-      section: "main"
-    }
-  ],
-  driver: [
-    {
-      href: "/reparto",
-      iconKey: "logistics",
-      label: "Mi reparto",
-      match: ["/reparto", "/driver"],
-      section: "main"
-    }
-  ]
-};
-
-function classNames(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function MenuIcon({ open }: { open: boolean }) {
+function initials(name: string) {
   return (
-    <span className="relative block h-4 w-5" aria-hidden="true">
-      <span
-        className={classNames(
-          "absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition",
-          open && "translate-y-[7px] rotate-45"
-        )}
-      />
-      <span
-        className={classNames(
-          "absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-current transition",
-          open && "opacity-0"
-        )}
-      />
-      <span
-        className={classNames(
-          "absolute left-0 top-[14px] h-0.5 w-5 rounded-full bg-current transition",
-          open && "-translate-y-[7px] -rotate-45"
-        )}
-      />
-    </span>
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "LC"
   );
 }
 
-function NavIcon({ iconKey }: { iconKey: NavIconKey }) {
-  const commonProps = {
-    className: "h-5 w-5",
-    fill: "none",
-    stroke: "currentColor",
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    strokeWidth: 1.8,
-    viewBox: "0 0 24 24"
-  };
-
-  switch (iconKey) {
-    case "crm":
-      return (
-        <svg {...commonProps}>
-          <path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-          <path d="M3.5 19a5 5 0 0 1 10 0" />
-          <path d="M15 7.5h4.5" />
-          <path d="M15 11.5h5.5" />
-          <path d="M15 15.5h3.5" />
-        </svg>
-      );
-    case "overview":
-      return (
-        <svg {...commonProps}>
-          <path d="M4 12.5 12 5l8 7.5" />
-          <path d="M6.5 10.5V20h11V10.5" />
-          <path d="M10 20v-5h4v5" />
-        </svg>
-      );
-    case "orders":
-      return (
-        <svg {...commonProps}>
-          <rect x="4" y="5" width="16" height="14" rx="2.5" />
-          <path d="M8 9.5h8" />
-          <path d="M8 13h8" />
-          <path d="M8 16.5h5" />
-        </svg>
-      );
-    case "reports":
-      return (
-        <svg {...commonProps}>
-          <path d="M4 19V5" />
-          <path d="M4 19h16" />
-          <path d="M8 16v-5" />
-          <path d="M12 16V8" />
-          <path d="M16 16v-7" />
-          <path d="m7.5 8.5 3 2.5 3.5-4 4 2" />
-        </svg>
-      );
-    case "collections":
-      return (
-        <svg {...commonProps}>
-          <path d="M4.5 7.5h15v10h-15z" />
-          <path d="M7 10h2.5" />
-          <path d="M14.5 15h2.5" />
-          <path d="M12 15.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-        </svg>
-      );
-    case "logistics":
-      return (
-        <svg {...commonProps}>
-          <path d="M4 7.5h10v8H4z" />
-          <path d="M14 10h3l3 3v2.5h-2" />
-          <path d="M7.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-          <path d="M16.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-        </svg>
-      );
-    case "customers":
-      return (
-        <svg {...commonProps}>
-          <path d="M12 12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-          <path d="M5 19a7 7 0 0 1 14 0" />
-        </svg>
-      );
-    case "users":
-      return (
-        <svg {...commonProps}>
-          <path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-          <path d="M17 12.5a2.5 2.5 0 1 0 0-5" />
-          <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
-          <path d="M15 16.5a4.5 4.5 0 0 1 5.5 2.5" />
-        </svg>
-      );
-    case "products":
-      return (
-        <svg {...commonProps}>
-          <path d="M12 4 5 7.5 12 11l7-3.5L12 4Z" />
-          <path d="M5 7.5V16l7 4 7-4V7.5" />
-          <path d="M12 11v9" />
-        </svg>
-      );
-    case "driver":
-      return (
-        <svg {...commonProps}>
-          <path d="M5 8h9v6H5z" />
-          <path d="M14 10h2.5l2.5 2.5V14h-2" />
-          <path d="M8 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-          <path d="M17 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-        </svg>
-      );
-  }
-}
-
-function FooterActionIcon({ type }: { type: "home" | "logout" | "menu" }) {
-  const commonProps = {
-    className: "h-4 w-4",
-    fill: "none",
-    stroke: "currentColor",
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    strokeWidth: 1.8,
-    viewBox: "0 0 24 24"
-  };
-
-  if (type === "home") {
-    return (
-      <svg {...commonProps}>
-        <path d="M4 12.5 12 5l8 7.5" />
-        <path d="M7 10.5V19h10v-8.5" />
-      </svg>
-    );
-  }
-
-  if (type === "menu") {
-    return (
-      <svg {...commonProps}>
-        <circle cx="5" cy="12" r="1.25" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none" />
-        <circle cx="19" cy="12" r="1.25" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
+/**
+ * Un item del menu, con sus hijos si los tiene.
+ *
+ * Antes este bloque estaba escrito tres veces, una por seccion, identico salvo
+ * por el array que recorria. Cualquier ajuste habia que hacerlo tres veces.
+ */
+function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+  const active = isItemActive(pathname, item);
 
   return (
-    <svg {...commonProps}>
-      <path d="M10 7H6.5A1.5 1.5 0 0 0 5 8.5v7A1.5 1.5 0 0 0 6.5 17H10" />
-      <path d="M13 8.5 17.5 12 13 15.5" />
-      <path d="M9 12h8.5" />
-    </svg>
+    <li>
+      <Link
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "flex items-center gap-3 rounded-control px-3 py-2 text-body transition-colors",
+          active
+            ? "bg-accent-soft font-medium text-accent"
+            : "text-ink-soft hover:bg-paper-raised hover:text-ink"
+        )}
+        href={item.href}
+      >
+        <Icon aria-hidden className="shrink-0 text-base" icon={NAV_ICONS[item.iconKey]} />
+        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      </Link>
+
+      {item.children?.length ? (
+        <ul className="mt-0.5 space-y-0.5 border-l border-line pl-3 ml-6">
+          {item.children.map((child) => {
+            const childActive = isMatchActive(pathname, child);
+
+            return (
+              <li key={child.href}>
+                <Link
+                  aria-current={childActive ? "page" : undefined}
+                  className={cn(
+                    "block truncate rounded-control px-3 py-1.5 text-body transition-colors",
+                    childActive
+                      ? "font-medium text-accent"
+                      : "text-ink-faint hover:bg-paper-raised hover:text-ink"
+                  )}
+                  href={child.href}
+                >
+                  {child.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </li>
   );
-}
-
-function isMatchActive(pathname: string, item: NavMatch) {
-  if (item.exclude?.some((excluded) => pathname === excluded || pathname.startsWith(`${excluded}/`))) {
-    return false;
-  }
-
-  return item.match.some((match) =>
-    item.exact ? pathname === match : pathname === match || pathname.startsWith(`${match}/`)
-  );
-}
-
-function isItemActive(pathname: string, item: NavItem) {
-  return isMatchActive(pathname, item) || item.children?.some((child) => isMatchActive(pathname, child)) || false;
-}
-
-function getActiveItemLabel(links: NavItem[], pathname: string) {
-  for (const item of links) {
-    const activeChild = item.children?.find((child) => isMatchActive(pathname, child));
-
-    if (activeChild) {
-      return activeChild.label;
-    }
-
-    if (isMatchActive(pathname, item)) {
-      return item.label;
-    }
-  }
-
-  return links[0]?.label ?? "Navegación";
 }
 
 function SidebarContent({
   links,
+  onNavigate,
   pathname,
   role,
   userEmail,
   userName
 }: {
   links: NavItem[];
+  onNavigate?: () => void;
   pathname: string;
   role: UserRole;
   userEmail: string | null;
   userName: string;
 }) {
-  const mainLinks = links.filter((item) => item.section === "main");
-  const managementLinks = links.filter((item) => item.section === "management");
-  const systemLinks = links.filter((item) => item.section === "system");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -531,262 +140,83 @@ function SidebarContent({
   }, [userMenuOpen]);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="px-5 py-6">
-        <Link href="/" className="inline-flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/10 text-sm font-semibold text-sky-200">
+    <div className="flex h-full flex-col bg-paper">
+      <div className="flex items-center justify-between gap-2 px-4 py-4">
+        <Link className="flex min-w-0 items-center gap-2.5" href="/" onClick={onNavigate}>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-accent text-label font-semibold text-accent-fg">
             LC
           </span>
-          <span className="min-w-0">
-            <span className="block text-xs uppercase tracking-[0.28em] text-stone-500">
-              La Candelaria
-            </span>
-            <span className="mt-1 block truncate text-base font-semibold text-stone-50">
-              Panel interno
-            </span>
-          </span>
+          <span className="min-w-0 truncate text-body font-semibold text-ink">La Candelaria</span>
         </Link>
+        <ThemeToggle />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3">
-        <p className="px-3 text-[11px] uppercase tracking-[0.24em] text-stone-500">Operación</p>
-        <nav className="mt-3">
-          <ul className="space-y-1">
-            {mainLinks.map((item) => {
-              const isActive = isItemActive(pathname, item);
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        {SECTIONS.map((section) => {
+          const items = links.filter((item) => item.section === section.key);
 
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={classNames(
-                      "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
-                      isActive
-                        ? "bg-stone-900 text-stone-50"
-                        : "text-stone-400 hover:bg-stone-900/70 hover:text-stone-100"
-                    )}
-                  >
-                    <span
-                      className={classNames(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition",
-                        isActive
-                          ? "text-sky-200"
-                          : "text-stone-500 group-hover:text-stone-300"
-                      )}
-                    >
-                      <NavIcon iconKey={item.iconKey} />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
-                  </Link>
+          if (items.length === 0) {
+            return null;
+          }
 
-                  {item.children?.length ? (
-                    <ul className="mt-1 space-y-1 pl-12">
-                      {item.children.map((child) => {
-                        const isChildActive = isMatchActive(pathname, child);
-
-                        return (
-                          <li key={child.href}>
-                            <Link
-                              href={child.href}
-                              className={classNames(
-                                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
-                                isChildActive
-                                  ? "bg-stone-900/80 text-sky-100"
-                                  : "text-stone-500 hover:bg-stone-900/60 hover:text-stone-200"
-                              )}
-                            >
-                              <span
-                                className={classNames(
-                                  "h-1.5 w-1.5 rounded-full transition",
-                                  isChildActive ? "bg-sky-300" : "bg-stone-700"
-                                )}
-                              />
-                              <span className="truncate">{child.label}</span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        {managementLinks.length ? (
-          <>
-            <div className="mx-3 my-5 border-t border-stone-800/80" />
-            <p className="px-3 text-[11px] uppercase tracking-[0.24em] text-stone-500">Gestión</p>
-            <nav className="mt-3">
-              <ul className="space-y-1">
-                {managementLinks.map((item) => {
-                  const isActive = isItemActive(pathname, item);
-
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={classNames(
-                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
-                          isActive
-                            ? "bg-stone-900 text-stone-50"
-                            : "text-stone-400 hover:bg-stone-900/70 hover:text-stone-100"
-                        )}
-                      >
-                        <span
-                          className={classNames(
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition",
-                            isActive
-                              ? "text-sky-200"
-                              : "text-stone-500 group-hover:text-stone-300"
-                          )}
-                        >
-                          <NavIcon iconKey={item.iconKey} />
-                        </span>
-                        <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
-                      </Link>
-
-                      {item.children?.length ? (
-                        <ul className="mt-1 space-y-1 pl-12">
-                          {item.children.map((child) => {
-                            const isChildActive = isMatchActive(pathname, child);
-
-                            return (
-                              <li key={child.href}>
-                                <Link
-                                  href={child.href}
-                                  className={classNames(
-                                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
-                                    isChildActive
-                                      ? "bg-stone-900/80 text-sky-100"
-                                      : "text-stone-500 hover:bg-stone-900/60 hover:text-stone-200"
-                                  )}
-                                >
-                                  <span
-                                    className={classNames(
-                                      "h-1.5 w-1.5 rounded-full transition",
-                                      isChildActive ? "bg-sky-300" : "bg-stone-700"
-                                    )}
-                                  />
-                                  <span className="truncate">{child.label}</span>
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      ) : null}
-                    </li>
-                  );
-                })}
+          return (
+            <nav aria-label={section.label} className="mt-4 first:mt-0" key={section.key}>
+              <p className="px-3 pb-1.5 text-label text-ink-faint">{section.label}</p>
+              <ul className="space-y-0.5" onClick={onNavigate}>
+                {items.map((item) => (
+                  <NavLink item={item} key={item.href} pathname={pathname} />
+                ))}
               </ul>
             </nav>
-          </>
-        ) : null}
-
-        {systemLinks.length ? (
-          <>
-            <div className="mx-3 my-5 border-t border-stone-800/80" />
-            <p className="px-3 text-[11px] uppercase tracking-[0.24em] text-stone-500">Sistema</p>
-            <nav className="mt-3">
-              <ul className="space-y-1">
-                {systemLinks.map((item) => {
-                  const isActive = isItemActive(pathname, item);
-
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={classNames(
-                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
-                          isActive
-                            ? "bg-stone-900 text-stone-50"
-                            : "text-stone-400 hover:bg-stone-900/70 hover:text-stone-100"
-                        )}
-                      >
-                        <span
-                          className={classNames(
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition",
-                            isActive
-                              ? "text-sky-200"
-                              : "text-stone-500 group-hover:text-stone-300"
-                          )}
-                        >
-                          <NavIcon iconKey={item.iconKey} />
-                        </span>
-                        <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-          </>
-        ) : null}
+          );
+        })}
       </div>
 
-      <div className="border-t border-stone-800/80 px-4 py-3">
-        <div ref={userMenuRef} className="relative flex items-center gap-2">
+      <div className="border-t border-line p-3">
+        <div className="relative" ref={userMenuRef}>
           <button
-            type="button"
             aria-expanded={userMenuOpen}
             aria-haspopup="menu"
-            aria-label="Abrir menú de usuario"
+            className="flex w-full min-w-0 items-center gap-2.5 rounded-control px-2 py-2 text-left transition-colors hover:bg-paper-raised"
             onClick={() => setUserMenuOpen((current) => !current)}
-            className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-stone-800 bg-stone-900/50 px-3 py-2 text-left text-stone-400 transition hover:border-stone-700 hover:text-stone-100"
+            type="button"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-xs font-semibold text-emerald-200">
-              {userName
-                .split(" ")
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((part) => part[0]?.toUpperCase() ?? "")
-                .join("") || "LC"}
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-label font-semibold text-accent">
+              {initials(userName)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-stone-100">{userName}</span>
-              <span className="block truncate text-xs text-stone-500">
+              <span className="block truncate text-body font-medium text-ink">{userName}</span>
+              <span className="block truncate text-meta text-ink-faint">
                 {userEmail || getRoleLabel(role)}
               </span>
-            </span>
-            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-800 bg-stone-950/70">
-              <FooterActionIcon type="menu" />
             </span>
           </button>
 
           {userMenuOpen ? (
-            <div className="absolute bottom-[calc(100%+0.75rem)] left-0 right-0 z-20 overflow-hidden rounded-3xl border border-stone-800 bg-stone-950/95 shadow-2xl shadow-black/50 backdrop-blur">
-              <div className="border-b border-stone-800 px-4 py-4">
-                <p className="truncate text-sm font-medium text-stone-100">{userName}</p>
-                <p className="mt-1 truncate text-xs text-stone-500">
-                  {userEmail || getRoleLabel(role)}
-                </p>
-              </div>
+            <div
+              className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-20 overflow-hidden rounded-card border border-line bg-paper shadow-overlay"
+              role="menu"
+            >
+              <Link
+                className="flex items-center gap-2.5 px-3 py-2.5 text-body text-ink-soft transition-colors hover:bg-paper-raised hover:text-ink"
+                href="/"
+                onClick={() => setUserMenuOpen(false)}
+                role="menuitem"
+              >
+                <Icon aria-hidden icon={faHouse} />
+                Sitio principal
+              </Link>
 
-              <div className="p-2">
-                <Link
-                  href="/"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center justify-between rounded-2xl px-3 py-3 text-sm text-stone-300 transition hover:bg-stone-900 hover:text-stone-100"
+              <form action="/api/auth/signout" method="post">
+                <button
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-body text-ink-soft transition-colors hover:bg-paper-raised hover:text-ink"
+                  role="menuitem"
+                  type="submit"
                 >
-                  <span>Sitio principal</span>
-                  <span className="text-stone-500">
-                    <FooterActionIcon type="home" />
-                  </span>
-                </Link>
-
-                <form action="/api/auth/signout" method="post">
-                  <button
-                    type="submit"
-                    className="flex w-full items-center justify-between rounded-2xl px-3 py-3 text-sm text-stone-300 transition hover:bg-stone-900 hover:text-stone-100"
-                  >
-                    <span>Log out</span>
-                    <span className="text-stone-500">
-                      <FooterActionIcon type="logout" />
-                    </span>
-                  </button>
-                </form>
-              </div>
+                  <Icon aria-hidden icon={faArrowRightFromBracket} />
+                  Cerrar sesión
+                </button>
+              </form>
             </div>
           ) : null}
         </div>
@@ -820,7 +250,7 @@ export function PanelNav({ role, userEmail, userName }: PanelNavProps) {
 
   return (
     <>
-      <aside className="hidden lg:flex lg:w-[16.5rem] lg:flex-col lg:border-r lg:border-stone-800/70 lg:bg-stone-950/90 lg:backdrop-blur xl:w-[17.5rem]">
+      <aside className="hidden border-r border-line lg:flex lg:w-64 lg:flex-col">
         <div className="lg:sticky lg:top-0 lg:h-screen">
           <SidebarContent
             links={links}
@@ -832,43 +262,37 @@ export function PanelNav({ role, userEmail, userName }: PanelNavProps) {
         </div>
       </aside>
 
-      <div className="sticky top-0 z-30 border-b border-stone-800/70 bg-stone-950/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-stone-500">Panel interno</p>
-            <p className="mt-1 truncate text-sm font-medium text-stone-100">
-              {activeLabel}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            aria-expanded={mobileOpen}
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-paper px-4 py-2.5 lg:hidden">
+        <p className="min-w-0 truncate text-body font-medium text-ink">{activeLabel}</p>
+        <div className="flex shrink-0 items-center gap-1">
+          <ThemeToggle />
+          <IconButton
             aria-controls="panel-mobile-nav"
-            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileOpen}
+            icon={mobileOpen ? faXmark : faBars}
+            label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
             onClick={() => setMobileOpen((current) => !current)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-700 bg-stone-900 text-stone-100 transition hover:border-sky-400/40 hover:text-sky-200"
-          >
-            <MenuIcon open={mobileOpen} />
-          </button>
+            variant="ghost"
+          />
         </div>
       </div>
 
       {mobileOpen ? (
         <div className="lg:hidden">
           <button
-            type="button"
             aria-label="Cerrar menú"
+            className="fixed inset-0 z-40 bg-ink/40"
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
+            type="button"
           />
 
           <aside
+            className="fixed inset-y-0 left-0 z-50 w-full max-w-xs border-r border-line shadow-overlay"
             id="panel-mobile-nav"
-            className="fixed inset-y-0 left-0 z-50 w-full max-w-sm border-r border-stone-800 bg-stone-950 shadow-2xl shadow-black/50"
           >
             <SidebarContent
               links={links}
+              onNavigate={() => setMobileOpen(false)}
               pathname={pathname}
               role={role}
               userEmail={userEmail}

@@ -138,7 +138,7 @@ function CustomerEditForm({
           <input
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -147,7 +147,7 @@ function CustomerEditForm({
           <input
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -158,7 +158,7 @@ function CustomerEditForm({
           <input
             value={instagram}
             onChange={(event) => setInstagram(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
             placeholder="usuario"
           />
           <span aria-hidden="true" className="text-xs text-transparent">
@@ -175,7 +175,7 @@ function CustomerEditForm({
               <select
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
-                className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+                className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
               >
                 {sourceOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -193,7 +193,7 @@ function CustomerEditForm({
             value={deliveryNotes}
             onChange={(event) => setDeliveryNotes(event.target.value)}
             rows={3}
-            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-none focus:border-emerald-400"
+            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
       </div>

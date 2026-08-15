@@ -276,7 +276,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                                 [stop.id]: event.target.value
                               }))
                             }
-                            className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-emerald-300"
+                            className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-emerald-300"
                           />
                         </label>
                         {numericPaymentAmount > stop.cashPaymentBalanceAmount ? (
@@ -328,7 +328,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                           [stop.id]: event.target.value as DeliveryFailureReason
                         }))
                       }
-                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-rose-300"
+                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-rose-300"
                     >
                       {FAILURE_REASON_OPTIONS.map((option) => (
                         <option key={option} value={option}>
@@ -346,7 +346,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                         }))
                       }
                       placeholder="Comentario"
-                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-stone-500"
+                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition placeholder:text-stone-600 focus:border-stone-500"
                     />
                     <button
                       type="button"

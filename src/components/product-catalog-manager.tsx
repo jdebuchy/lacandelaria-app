@@ -346,7 +346,7 @@ function VariantFields({
             value={variant.label}
             onChange={(event) => onSetVariantField(index, { label: event.target.value })}
             placeholder="Ej: 500 g"
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -356,7 +356,7 @@ function VariantFields({
             value={variant.slug}
             onChange={(event) => onSetVariantField(index, { slug: event.target.value })}
             placeholder="ej-500g"
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -366,7 +366,7 @@ function VariantFields({
             rows={isMobile ? 3 : 2}
             value={variant.description}
             onChange={(event) => onSetVariantField(index, { description: event.target.value })}
-            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -377,7 +377,7 @@ function VariantFields({
             min="1"
             value={variant.cashPrice}
             onChange={(event) => onSetVariantField(index, { cashPrice: event.target.value })}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -388,7 +388,7 @@ function VariantFields({
             min="1"
             value={variant.transferPrice}
             onChange={(event) => onSetVariantField(index, { transferPrice: event.target.value })}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -397,7 +397,7 @@ function VariantFields({
           <select
             value={variant.active ? "active" : "inactive"}
             onChange={(event) => onSetVariantField(index, { active: event.target.value === "active" })}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           >
             <option value="active">Activa</option>
             <option value="inactive">Inactiva</option>
@@ -415,7 +415,7 @@ function VariantFields({
                   event.target.value === "internal" && variant.isDefault ? false : variant.isDefault
               })
             }
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           >
             <option value="sellable">Vendible</option>
             <option value="internal">Solo interna</option>
@@ -432,7 +432,7 @@ function VariantFields({
                 components: event.target.value === "bundle" ? variant.components : []
               })
             }
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           >
             <option value="simple">Simple</option>
             <option value="bundle">Compuesta</option>
@@ -446,7 +446,7 @@ function VariantFields({
             min="0"
             value={variant.displayOrder}
             onChange={(event) => onSetVariantField(index, { displayOrder: event.target.value })}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
           />
         </label>
 
@@ -494,7 +494,7 @@ function VariantFields({
                         componentVariantId: event.target.value
                       })
                     }
-                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
                   >
                     <option value="">Elegir variante simple</option>
                     {componentOptions.map((option) => (
@@ -514,7 +514,7 @@ function VariantFields({
                         quantity: event.target.value
                       })
                     }
-                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-400"
+                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden focus:border-emerald-400"
                   />
 
                   <button
@@ -853,7 +853,7 @@ export function ProductCatalogManager({
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Buscar productos"
-                  className="h-12 rounded-2xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-2xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                 />
               </label>
               <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -904,7 +904,7 @@ export function ProductCatalogManager({
       {isEditorRoute ? (
         <>
           <div className="hidden lg:block">
-            <div className="fixed inset-0 z-40 bg-stone-950/75 backdrop-blur-sm" aria-hidden="true" />
+            <div className="fixed inset-0 z-40 bg-stone-950/75 backdrop-blur-xs" aria-hidden="true" />
           </div>
 
           <div className="relative z-50 overflow-y-auto overscroll-contain lg:fixed lg:inset-y-0 lg:right-0 lg:w-[min(760px,calc(100vw-4rem))]">
@@ -980,7 +980,7 @@ export function ProductCatalogManager({
                           <input
                             value={form.name}
                             onChange={(event) => setForm({ ...form, name: event.target.value })}
-                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                           />
                         </label>
 
@@ -989,7 +989,7 @@ export function ProductCatalogManager({
                           <input
                             value={form.slug}
                             onChange={(event) => setForm({ ...form, slug: event.target.value })}
-                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                           />
                         </label>
 
@@ -999,7 +999,7 @@ export function ProductCatalogManager({
                             rows={4}
                             value={form.description}
                             onChange={(event) => setForm({ ...form, description: event.target.value })}
-                            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-none focus:border-emerald-400"
+                            className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                           />
                         </label>
 
@@ -1010,7 +1010,7 @@ export function ProductCatalogManager({
                             min="0"
                             value={form.displayOrder}
                             onChange={(event) => setForm({ ...form, displayOrder: event.target.value })}
-                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                           />
                         </label>
 
@@ -1019,7 +1019,7 @@ export function ProductCatalogManager({
                           <select
                             value={form.active ? "active" : "inactive"}
                             onChange={(event) => setForm({ ...form, active: event.target.value === "active" })}
-                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                            className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                           >
                             <option value="active">Activo</option>
                             <option value="inactive">Inactivo</option>

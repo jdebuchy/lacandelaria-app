@@ -390,13 +390,13 @@ export default async function LogisticsDeliveryPage({
                 name="q"
                 defaultValue={params.q ?? ""}
                 placeholder="Buscar por ID de viaje, repartidor o cliente"
-                className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none transition focus:border-stone-500"
+                className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-hidden transition focus:border-stone-500"
               />
             </div>
             <select
               name="status"
               defaultValue={statusFilter}
-              className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-stone-500"
+              className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-stone-500"
             >
               <option value="all">Estado: Todos</option>
               <option value="assigned">Estado: Asignados</option>
@@ -406,7 +406,7 @@ export default async function LogisticsDeliveryPage({
             <select
               name="date"
               defaultValue={dateFilter}
-              className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-stone-500"
+              className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-stone-500"
             >
               <option value="all">Fecha: Todas</option>
               <option value="today">Fecha: Hoy</option>
@@ -417,7 +417,7 @@ export default async function LogisticsDeliveryPage({
             <select
               name="driver"
               defaultValue={driverFilter}
-              className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-stone-500"
+              className="h-11 w-full min-w-0 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-hidden transition focus:border-stone-500"
             >
               <option value="all">Reparto: Todos</option>
               {(drivers ?? []).map((driver: DriverProfile) => (

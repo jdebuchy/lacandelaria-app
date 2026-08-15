@@ -92,7 +92,7 @@ export function DeliveryTripEditor({
           <DateInput
             value={scheduledDate}
             onChange={setScheduledDate}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
             required
           />
         </label>
@@ -101,7 +101,7 @@ export function DeliveryTripEditor({
           <select
             value={driverUserId}
             onChange={(event) => setDriverUserId(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
           >
             <option value="">Sin asignar</option>
             {drivers.map((driver) => (
@@ -117,7 +117,7 @@ export function DeliveryTripEditor({
             type="text"
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none transition focus:border-sky-400"
+            className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-hidden transition focus:border-sky-400"
             placeholder="Comentarios del viaje"
           />
         </label>
@@ -140,7 +140,7 @@ export function DeliveryTripEditor({
                 min={1}
                 value={sequence[stop.orderId] ?? stop.sequenceNumber}
                 onChange={(event) => setOrderSequence(stop.orderId, Number(event.target.value) || 1)}
-                className="h-10 w-20 rounded-xl border border-stone-700 bg-stone-900 px-3 text-right text-stone-100 outline-none transition focus:border-sky-400"
+                className="h-10 w-20 rounded-xl border border-stone-700 bg-stone-900 px-3 text-right text-stone-100 outline-hidden transition focus:border-sky-400"
               />
             </label>
           </div>

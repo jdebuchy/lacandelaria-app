@@ -135,7 +135,7 @@ export function ManualWhatsappMessageButton() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-xs">
           <div className="my-8 w-full max-w-3xl rounded-3xl border border-stone-800 bg-stone-950 p-7 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -162,7 +162,7 @@ export function ManualWhatsappMessageButton() {
                     setQuery(event.target.value);
                     setSelectedCustomer(null);
                   }}
-                  className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
                   placeholder="Buscar por nombre, teléfono o Instagram"
                 />
                 {results.length ? (
@@ -188,7 +188,7 @@ export function ManualWhatsappMessageButton() {
                   <select
                     value={messageType}
                     onChange={(event) => handleMessageTypeChange(event.target.value as (typeof messageTypes)[number])}
-                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
                   >
                     {messageTypes.map((type) => (
                       <option key={type} value={type}>
@@ -204,7 +204,7 @@ export function ManualWhatsappMessageButton() {
                     type="datetime-local"
                     value={scheduledFor}
                     onChange={(event) => setScheduledFor(event.target.value)}
-                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+                    className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
                   />
                 </label>
               </div>
@@ -214,7 +214,7 @@ export function ManualWhatsappMessageButton() {
                 <input
                   value={orderId}
                   onChange={(event) => setOrderId(event.target.value)}
-                  className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-stone-100 outline-hidden focus:border-emerald-400"
                   placeholder="UUID del pedido si querés deduplicar por pedido/tipo"
                 />
               </label>
@@ -225,7 +225,7 @@ export function ManualWhatsappMessageButton() {
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   rows={7}
-                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-none focus:border-emerald-400"
+                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-hidden focus:border-emerald-400"
                 />
               </label>
 

@@ -354,7 +354,7 @@ export function ManualOrderForm({
                     }
                   }}
                   placeholder="Nombre, telefono o Instagram"
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-sky-400"
+                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-sky-400"
                 />
 
                 {results.length ? (
@@ -482,7 +482,7 @@ export function ManualOrderForm({
                 name="deliveryDate"
                 value={deliveryDate}
                 onChange={setDeliveryDate}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
               />
             </label>
 
@@ -493,7 +493,7 @@ export function ManualOrderForm({
                 rows={4}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-hidden focus:border-emerald-400"
               />
             </label>
           </section>
@@ -523,7 +523,7 @@ export function ManualOrderForm({
       </form>
 
       {isCustomerModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-stone-950/80 p-4 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-stone-950/80 p-4 backdrop-blur-xs sm:items-center">
           <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-stone-700 bg-stone-900 p-4 shadow-2xl sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -554,7 +554,7 @@ export function ManualOrderForm({
                       clearSelectedCustomer();
                     }
                   }}
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                   placeholder="Ej: María"
                 />
               </label>
@@ -570,7 +570,7 @@ export function ManualOrderForm({
                       clearSelectedCustomer();
                     }
                   }}
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                   placeholder="Ej: González"
                 />
               </label>
@@ -601,7 +601,7 @@ export function ManualOrderForm({
                     }
                   }}
                   placeholder="usuario"
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                 />
                 <span aria-hidden="true" className="text-xs text-transparent">
                   .
@@ -617,7 +617,7 @@ export function ManualOrderForm({
                   rows={3}
                   value={deliveryNotes}
                   onChange={(event) => setDeliveryNotes(event.target.value)}
-                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                 />
               </label>
             </div>

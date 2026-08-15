@@ -171,7 +171,7 @@ export function OrderItemsEditor({
                       productId: nextVariantId
                     });
                   }}
-                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                 >
                   {activeFamilies.map((entry) => (
                     <option key={entry.id} value={entry.id}>
@@ -191,7 +191,7 @@ export function OrderItemsEditor({
                       productId: event.target.value
                     })
                   }
-                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                 >
                   {familyVariants.map((entry) => (
                     <option
@@ -219,7 +219,7 @@ export function OrderItemsEditor({
                       quantity: Math.max(1, Number(event.target.value) || 1)
                     })
                   }
-                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-hidden focus:border-emerald-400"
                 />
               </label>
 

@@ -94,7 +94,7 @@ export default function HomePage() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-3xl border border-stone-800 bg-gradient-to-br from-stone-900 to-stone-950 p-8">
+          <article className="rounded-3xl border border-stone-800 bg-linear-to-br from-stone-900 to-stone-950 p-8">
             <h2 className="text-2xl font-semibold text-stone-50">Modulos del MVP</h2>
             <ul className="mt-6 grid gap-3 text-stone-300">
               {modules.map((module) => (
@@ -105,7 +105,7 @@ export default function HomePage() {
             </ul>
           </article>
 
-          <article className="rounded-3xl border border-stone-800 bg-gradient-to-br from-emerald-950/50 to-stone-950 p-8">
+          <article className="rounded-3xl border border-stone-800 bg-linear-to-br from-emerald-950/50 to-stone-950 p-8">
             <h2 className="text-2xl font-semibold text-stone-50">Roles y permisos</h2>
             <div className="mt-6 grid gap-3">
               {roles.map((role) => (

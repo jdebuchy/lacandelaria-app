@@ -245,6 +245,8 @@ function getChannelLabel(channel: string) {
       return "WhatsApp IA";
     case "instagram_ai":
       return "Instagram IA";
+    case "telegram_ai":
+      return "Telegram IA";
     default:
       return channel;
   }

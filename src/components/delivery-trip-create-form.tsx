@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ZoneStamp } from "@/components/ui/badge";
 import { FormEvent, useMemo, useState, useTransition } from "react";
 import { DateInput } from "@/components/date-input";
 import {
@@ -274,16 +275,11 @@ export function DeliveryTripCreateForm({
                   <div className="min-w-0">
                     <p className="truncate text-body text-ink-soft">{order.itemsSummary}</p>
                   </div>
+                  {/* Aca el sello se gana el lugar: la zona es el criterio con
+                      el que se decide que pedidos entran en cada camioneta, y
+                      aparece agrupado en vez de salpicado en 50 filas. */}
                   <div className="justify-self-end">
-                    <span
-                      className={`rounded-control border px-3 py-1 text-meta ${
-                        order.area === "capital_federal"
-                          ? "border-warn-line bg-warn-bg text-warn-fg"
-                          : "border-accent bg-accent-soft text-accent"
-                      }`}
-                    >
-                      {getAreaLabel(order.area)}
-                    </span>
+                    <ZoneStamp>{getAreaLabel(order.area)}</ZoneStamp>
                   </div>
                 </label>
               );

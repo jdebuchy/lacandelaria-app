@@ -1,14 +1,13 @@
-import { faInbox, faPlus } from "@fortawesome/pro-regular-svg-icons";
+import { faPlus } from "@fortawesome/pro-regular-svg-icons";
 import Link from "next/link";
 import { Suspense } from "react";
 import { OrderFilters } from "@/components/order-filters";
 import { OrderSearch } from "@/components/order-search";
-import { Badge, ZoneStamp } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHeader, PageShell } from "@/components/ui/card";
 import { DataTable, Pagination, type Column } from "@/components/ui/data-table";
 import { EmptyState, Notice } from "@/components/ui/feedback";
-import { MetricCard, MetricGrid } from "@/components/ui/metric-card";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
@@ -18,7 +17,7 @@ import { formatOrderNumber, formatTripNumber, matchesOrderNumberQuery } from "@/
 import { buildPaymentSummary } from "@/lib/payments";
 import { formatItemsSummary } from "@/lib/products";
 import { matchesNormalizedSearchValues } from "@/lib/search";
-import { orderStatusTone } from "@/lib/status-tone";
+import { TONE_TEXT_CLASS, orderStatusProminence, orderStatusTone } from "@/lib/status-tone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type SearchParams = Promise<{ page?: string; q?: string; status?: string }>;
@@ -251,25 +250,16 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
 
   type OrderRow = (typeof orderRows)[number];
 
+
   const columns: Array<Column<OrderRow>> = [
     {
       cell: (order) => (
-        <div className="min-w-0">
-          <div className="flex min-w-0 items-baseline gap-2">
-            <span className="shrink-0 text-meta text-ink-faint" data-numeric>
-              {formatOrderNumber(order.orderNumber)}
-            </span>
-            <span className="truncate font-medium text-ink">{order.customerName}</span>
-            {order.channel !== "internal" ? (
-              <span className="shrink-0 text-meta text-ink-faint">
-                {getChannelLabel(order.channel)}
-              </span>
-            ) : null}
-          </div>
-          <p className="truncate text-meta text-ink-faint" data-numeric>
-            {formatWhatsAppPhone(order.customerPhone)}
-          </p>
-        </div>
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="shrink-0 text-ink-faint" data-numeric>
+            {formatOrderNumber(order.orderNumber)}
+          </span>
+          <span className="truncate font-medium text-ink">{order.customerName}</span>
+        </span>
       ),
       header: "Cliente",
       key: "cliente",
@@ -277,61 +267,60 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       width: "2fr"
     },
     {
+      // Texto plano, no el sello: en Pedidos la zona es dato de referencia.
+      // El sello vive en Armado de viajes, donde agrupar por zona es la tarea.
       cell: (order) => (
-        <div className="flex min-w-0 flex-col items-start gap-1">
-          <ZoneStamp>{getDeliveryAreaLabel(order.deliveryArea)}</ZoneStamp>
-          {order.locality ? (
-            <span className="truncate text-meta text-ink-faint">{order.locality}</span>
-          ) : null}
-        </div>
+        <span className="truncate text-ink-soft">{getDeliveryAreaLabel(order.deliveryArea)}</span>
       ),
       header: "Zona",
       key: "zona",
-      width: "1fr"
+      width: "0.9fr"
     },
     {
       cell: (order) => (
-        <div className="flex min-w-0 flex-col items-start gap-1">
-          <Badge tone={orderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</Badge>
-          {order.trip ? (
-            <Link
-              className="text-meta text-ink-faint underline underline-offset-2 hover:text-ink"
-              href={`/panel/logistics/delivery/${order.trip.id}`}
-            >
-              {formatTripNumber(order.trip.number)}
-            </Link>
-          ) : null}
-        </div>
+        <Badge
+          prominence={orderStatusProminence(order.status)}
+          tone={orderStatusTone(order.status)}
+        >
+          {getOrderStatusLabel(order.status)}
+        </Badge>
       ),
       header: "Estado",
-      interactive: true,
       key: "estado",
-      width: "1fr"
+      width: "0.9fr"
     },
     {
-      cell: (order) => <span className="line-clamp-2 text-ink-soft">{order.itemsSummary}</span>,
+      cell: (order) => <span className="truncate text-ink-soft">{order.itemsSummary}</span>,
       header: "Ítems",
       hideOnMobile: true,
       key: "items",
-      width: "1.6fr"
+      width: "1.8fr"
     },
     {
       align: "right",
       cell: (order) => (
-        <div className="min-w-0">
-          <p className="text-ink" data-numeric>
-            {formatCurrency(order.totalAmount)}
-          </p>
-          {order.paymentBalanceAmount > 0 && order.paidAmount > 0 ? (
-            <p className="text-meta text-warn-fg" data-numeric>
-              Saldo {formatCurrency(order.paymentBalanceAmount)}
-            </p>
-          ) : null}
-        </div>
+        <span className="text-ink" data-numeric>
+          {formatCurrency(order.totalAmount)}
+        </span>
       ),
       header: "Total",
       key: "total",
-      width: "0.9fr"
+      width: "0.8fr"
+    },
+    {
+      align: "right",
+      // El saldo solo aparece cuando hay algo que cobrar. Una columna que casi
+      // siempre esta vacia no cuesta nada; una que siempre dice "-", si.
+      cell: (order) =>
+        order.paymentBalanceAmount > 0 && order.paidAmount > 0 ? (
+          <span className="text-warn-fg" data-numeric>
+            {formatCurrency(order.paymentBalanceAmount)}
+          </span>
+        ) : null,
+      header: "Saldo",
+      hideOnMobile: true,
+      key: "saldo",
+      width: "0.7fr"
     },
     {
       align: "right",
@@ -343,25 +332,15 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       header: "Alta",
       hideOnMobile: true,
       key: "alta",
-      width: "0.6fr"
-    },
-    {
-      align: "right",
-      cell: (order) =>
-        order.isEditable ? (
-          <Link
-            className="text-meta text-ink-faint underline underline-offset-2 hover:text-ink"
-            href={`/panel/orders/${order.id}/edit`}
-          >
-            Editar
-          </Link>
-        ) : null,
-      header: "",
-      hideOnMobile: true,
-      interactive: true,
-      key: "acciones",
-      width: "0.4fr"
+      width: "0.5fr"
     }
+  ];
+
+  const metrics = [
+    { href: "/panel/orders?status=confirmed", label: "Esperando viaje", tone: "warn" as const, value: awaitingTripCount },
+    { href: "/panel/orders?status=in_route", label: "En ruta", tone: "info" as const, value: inRouteOrders ?? 0 },
+    { href: "/panel/orders?status=pending_confirmation", label: "A confirmar", tone: "warn" as const, value: pendingOrders ?? 0 },
+    { href: "/panel/orders", label: "Total", tone: "neutral" as const, value: totalOrders ?? 0 }
   ];
 
   return (
@@ -376,31 +355,24 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
         title="Pedidos"
       />
 
-      {/* El tono de cada metrica es el mismo que el del badge del estado que
-          filtra. Antes no coincidian: "Esperando viaje" salia ambar arriba y
-          celeste en la tabla de abajo, para el mismo estado. */}
-      <MetricGrid>
-        <MetricCard
-          detail="Confirmados sin viaje"
-          href="/panel/orders?status=confirmed"
-          label="Esperando viaje"
-          tone="warn"
-          value={awaitingTripCount}
-        />
-        <MetricCard
-          href="/panel/orders?status=in_route"
-          label="En ruta"
-          tone="info"
-          value={inRouteOrders ?? 0}
-        />
-        <MetricCard
-          href="/panel/orders?status=pending_confirmation"
-          label="A confirmar"
-          tone="warn"
-          value={pendingOrders ?? 0}
-        />
-        <MetricCard href="/panel/orders" label="Total" value={totalOrders ?? 0} />
-      </MetricGrid>
+      {/* Tira en vez de cuatro cards: el mismo dato en un tercio del alto.
+          Cuatro numeros no justifican 100px cuando abajo hay 252 pedidos
+          esperando lugar. El tono de cada uno coincide con el badge del estado
+          que filtra. */}
+      <div className="flex flex-wrap divide-x divide-line overflow-hidden rounded-card border border-line bg-paper">
+        {metrics.map((metric) => (
+          <Link
+            className="flex min-w-36 flex-1 items-baseline gap-2 px-4 py-2.5 transition-colors hover:bg-paper-raised"
+            href={metric.href}
+            key={metric.label}
+          >
+            <span className={`text-title ${TONE_TEXT_CLASS[metric.tone]}`} data-numeric>
+              {metric.value}
+            </span>
+            <span className="truncate text-body text-ink-soft">{metric.label}</span>
+          </Link>
+        ))}
+      </div>
 
       {ordersError ? (
         <Notice tone="danger">
@@ -441,7 +413,6 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                     ? `Ningún pedido coincide con "${normalizedQuery}".`
                     : "Cuando entre el primer pedido del día va a aparecer acá."
               }
-              icon={faInbox}
               title={
                 ordersError
                   ? "No se pudo cargar la lista"

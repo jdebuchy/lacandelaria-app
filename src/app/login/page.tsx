@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/ui/brand";
 import { GoogleLoginButton } from "@/components/google-login-button";
 import { sanitizeRedirectPath } from "@/lib/auth-shared";
 import { appConfig } from "@/lib/config";
@@ -58,21 +59,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <section className="w-full max-w-sm">
-        <div className="rounded-control-[1.75rem] border border-line bg-paper p-7 shadow-2xl shadow-black/40 backdrop-blur-xs sm:p-9">
-          <div className="flex items-baseline gap-2">
-            <span
-              aria-hidden
-              className="h-2.5 w-2.5 rounded-full bg-accent shadow-[0_0_18px_2px_rgba(52,211,153,0.55)]"
-            />
-            <p className="text-meta text-accent">Paltas</p>
-          </div>
+        <div className="rounded-card border border-line bg-paper p-7 shadow-2xl shadow-black/40 backdrop-blur-xs sm:p-9">
+          {/* La marca a tamaño real. Es la primera pantalla y no tiene nada
+              con que competir: el mejor lugar de la app para la identidad. */}
+          <BrandMark className="h-14 w-14" />
 
-          <h1 className="mt-3 text-display font-semibold leading-none tracking-tight text-ink">
-            La Candelaria
-          </h1>
-          <p className="mt-3 text-body leading-6 text-ink-soft">
-            Panel interno de pedidos y reparto.
-          </p>
+          <h1 className="mt-4 text-display text-ink">Paltas La Candelaria</h1>
+          <p className="mt-1 text-body text-ink-soft">Panel interno de pedidos y reparto.</p>
 
           {notice ? (
             <div

@@ -21,6 +21,24 @@ import type {
  */
 export type Tone = "neutral" | "warn" | "info" | "success" | "danger";
 
+/**
+ * Cuanto tiene que gritar un estado.
+ *
+ * Sale de mirar la tabla de pedidos con datos reales: 50 filas diciendo
+ * "Entregado", cada una con su caja de color. Si todo esta resaltado, nada lo
+ * esta, y el ojo termina barriendo 50 iguales para encontrar las tres que
+ * necesitan algo.
+ *
+ *   loud  pide que alguien haga algo. Lleva caja.
+ *   soft  esta pasando algo, no requiere accion. Punto de color y texto.
+ *   flat  es el curso normal de las cosas. Texto y nada mas.
+ *
+ * Vive aca y no en cada pantalla, por la misma razon que los tonos: si esto se
+ * decide pantalla por pantalla, en tres meses el mismo estado se ve de dos
+ * formas distintas segun donde lo mires.
+ */
+export type Prominence = "loud" | "soft" | "flat";
+
 export const TONE_CLASS: Record<Tone, string> = {
   neutral: "border-neutral-line bg-neutral-bg text-neutral-fg",
   warn: "border-warn-line bg-warn-bg text-warn-fg",
@@ -58,6 +76,58 @@ export function orderStatusTone(status: OrderStatus | string): Tone {
       return "danger";
     default:
       return "neutral";
+  }
+}
+
+export function orderStatusProminence(status: OrderStatus | string): Prominence {
+  switch (status) {
+    // Esperan a una persona: son las filas que hay que encontrar.
+    case "pending_confirmation":
+    case "cancelled":
+      return "loud";
+    // Estan en movimiento solas.
+    case "confirmed":
+    case "assigned":
+    case "in_route":
+      return "soft";
+    // El final feliz es el 90% de la tabla. No necesita anunciarse.
+    case "delivered":
+      return "flat";
+    default:
+      return "flat";
+  }
+}
+
+export function paymentStatusProminence(status: PaymentStatus | string): Prominence {
+  switch (status) {
+    case "pending":
+    case "partial":
+      return "loud";
+    default:
+      return "flat";
+  }
+}
+
+export function deliveryStatusProminence(status: DeliveryStatus | string): Prominence {
+  switch (status) {
+    case "failed":
+      return "loud";
+    case "in_route":
+      return "soft";
+    default:
+      return "flat";
+  }
+}
+
+export function deliveryTripStatusProminence(status: DeliveryTripStatus | string): Prominence {
+  switch (status) {
+    case "cancelled":
+      return "loud";
+    case "assigned":
+    case "in_route":
+      return "soft";
+    default:
+      return "flat";
   }
 }
 

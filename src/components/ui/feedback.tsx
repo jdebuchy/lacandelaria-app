@@ -3,7 +3,13 @@ import { faSpinnerThird } from "@fortawesome/pro-regular-svg-icons";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { TONE_CLASS, type Tone } from "@/lib/status-tone";
+import { BrandGlyph } from "./brand";
 import { Icon } from "./icon";
+
+/** Distingue un icono de FontAwesome de cualquier otro nodo de React. */
+function isIconDefinition(value: unknown): value is IconDefinition {
+  return typeof value === "object" && value !== null && "iconName" in value && "prefix" in value;
+}
 
 /**
  * Estados vacios, de carga y de error.
@@ -43,12 +49,23 @@ export function EmptyState({
 }: {
   action?: ReactNode;
   description?: ReactNode;
-  icon?: IconDefinition;
+  /**
+   * Un icono de FontAwesome, o cualquier nodo. Por defecto aparece la palta:
+   * una pantalla vacia es de los pocos momentos donde la marca no le compite
+   * espacio a ningun dato.
+   */
+  icon?: IconDefinition | ReactNode;
   title: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-line-strong bg-paper px-6 py-10 text-center">
-      {icon ? <Icon aria-hidden className="text-2xl text-ink-faint" icon={icon} /> : null}
+      {icon === null ? null : icon === undefined ? (
+        <BrandGlyph className="h-10 w-10" />
+      ) : isIconDefinition(icon) ? (
+        <Icon aria-hidden className="text-2xl text-ink-faint" icon={icon} />
+      ) : (
+        icon
+      )}
       <p className="text-title text-ink">{title}</p>
       {description ? <p className="max-w-md text-body text-ink-soft">{description}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}

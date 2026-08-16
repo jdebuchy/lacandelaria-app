@@ -178,7 +178,7 @@ function ProductCard({ expanded, onToggle, product }: ProductCardProps) {
   const stats = getProductStats(product);
 
   return (
-    <div className="rounded-control-[28px] border border-line bg-paper-muted p-4 transition hover:border-line hover:bg-paper-muted sm:p-5">
+    <div className="rounded-card border border-line bg-paper-muted p-4 transition hover:border-line hover:bg-paper-muted sm:p-5">
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -241,7 +241,7 @@ function ProductCard({ expanded, onToggle, product }: ProductCardProps) {
       </div>
 
       {expanded ? (
-        <div className="mt-5 rounded-control-[24px] border border-line bg-paper">
+        <div className="mt-5 rounded-card border border-line bg-paper">
           <div className="hidden grid-cols-[minmax(0,1.5fr)_140px_minmax(0,1fr)_88px] gap-4 border-b border-line px-4 py-3 text-meta text-ink-faint sm:grid">
             <p>Variante</p>
             <p>Tipo</p>
@@ -323,7 +323,7 @@ function VariantFields({
   onUpdateComponent
 }: VariantFieldsProps) {
   return (
-    <div className="rounded-control-[26px] border border-line bg-paper-muted p-4 sm:p-5">
+    <div className="rounded-card border border-line bg-paper-muted p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-body font-semibold text-ink">{variant.label || `Variante ${index + 1}`}</p>
@@ -829,7 +829,7 @@ export function ProductCatalogManager({
   return (
     <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <div className={isEditorRoute ? "hidden lg:block" : "block"}>
-        <div className="rounded-control-[32px] border border-line bg-paper p-5 shadow-[0_30px_120px_rgba(0,0,0,0.25)] sm:p-6">
+        <div className="rounded-card border border-line bg-paper p-5 shadow-[0_30px_120px_rgba(0,0,0,0.25)] sm:p-6">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -893,7 +893,7 @@ export function ProductCatalogManager({
                 />
               ))
             ) : (
-              <div className="rounded-control-[28px] border border-dashed border-line bg-paper-muted px-4 py-10 text-body text-ink-faint">
+              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-10 text-body text-ink-faint">
                 No encontramos productos con ese filtro.
               </div>
             )}
@@ -911,7 +911,7 @@ export function ProductCatalogManager({
             <form
               id="product-editor"
               onSubmit={handleSubmit}
-              className="flex min-h-screen flex-col rounded-control-[32px] border border-line bg-paper shadow-[0_30px_120px_rgba(0,0,0,0.45)] lg:m-4 lg:min-h-[calc(100vh-2rem)] lg:max-h-[calc(100vh-2rem)]"
+              className="flex min-h-screen flex-col rounded-card border border-line bg-paper shadow-[0_30px_120px_rgba(0,0,0,0.45)] lg:m-4 lg:min-h-[calc(100vh-2rem)] lg:max-h-[calc(100vh-2rem)]"
             >
               <div className="border-b border-line px-5 py-4 sm:px-6 lg:px-7">
                 <div className="flex items-start justify-between gap-4">
@@ -966,7 +966,7 @@ export function ProductCatalogManager({
               <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 lg:px-7">
                 <div className="space-y-6 lg:space-y-8">
                   <div className={mobileEditorScreen === "general" ? "block" : "hidden lg:block"}>
-                    <div className="rounded-control-[28px] border border-line bg-paper-muted p-4 sm:p-5">
+                    <div className="rounded-card border border-line bg-paper-muted p-4 sm:p-5">
                       <div>
                         <h3 className="text-title font-semibold text-ink">Información general</h3>
                         <p className="mt-1 text-body text-ink-soft">
@@ -1030,7 +1030,7 @@ export function ProductCatalogManager({
                   </div>
 
                   <div className={mobileEditorScreen === "variants" || mobileEditorScreen === "variant-form" ? "block" : "hidden lg:block"}>
-                    <div className="rounded-control-[28px] border border-line bg-paper-muted p-4 sm:p-5">
+                    <div className="rounded-card border border-line bg-paper-muted p-4 sm:p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3 className="text-title font-semibold text-ink">Variantes</h3>
@@ -1087,7 +1087,7 @@ export function ProductCatalogManager({
                                 key={variant.id ?? `mobile-variant-${index}`}
                                 type="button"
                                 onClick={() => openVariantEditor(index)}
-                                className="w-full rounded-control-[24px] border border-line bg-paper-muted p-4 text-left transition hover:border-line"
+                                className="w-full rounded-card border border-line bg-paper-muted p-4 text-left transition hover:border-line"
                               >
                                 <div className="flex items-start justify-between gap-3">
                                   <div>

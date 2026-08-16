@@ -102,10 +102,13 @@ export function DataTable<T>({
             style={{ gridTemplateColumns: gridTemplate, minHeight: "var(--spacing-row)" }}
           >
             {href ? <RowLink href={href(row)} label={rowLabel?.(row) ?? "Ver detalle"} /> : null}
+            {/* Sin padding vertical en la celda: el alto lo fija la fila. Si la
+                celda tambien empuja, la altura real termina siendo mayor que la
+                declarada y --spacing-row deja de significar nada. */}
             {columns.map((column) => (
               <div
                 className={cn(
-                  "min-w-0 py-2",
+                  "min-w-0 truncate",
                   column.align === "right" && "text-right",
                   column.interactive && "relative z-10 justify-self-stretch"
                 )}

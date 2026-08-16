@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/ui/brand";
 import Link from "next/link";
 import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
@@ -60,7 +61,10 @@ export default async function RepartoHomePage() {
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
       <header className="mb-6">
-        <h1 className="text-display font-bold tracking-tight text-ink">Mi reparto</h1>
+        <div className="flex items-center gap-2.5">
+          <BrandMark className="h-9 w-9" />
+          <h1 className="text-display text-ink">Mi reparto</h1>
+        </div>
         <p className="mt-1 text-body text-ink-soft">{auth.profile.full_name}</p>
       </header>
 

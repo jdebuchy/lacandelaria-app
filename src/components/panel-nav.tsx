@@ -4,6 +4,7 @@ import { faArrowRightFromBracket, faBars, faHouse, faXmark } from "@fortawesome/
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BrandMark, Wordmark } from "@/components/ui/brand";
 import { IconButton } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -143,10 +144,8 @@ function SidebarContent({
     <div className="flex h-full flex-col bg-paper">
       <div className="flex items-center justify-between gap-2 px-4 py-4">
         <Link className="flex min-w-0 items-center gap-2.5" href="/" onClick={onNavigate}>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-accent text-label font-semibold text-accent-fg">
-            LC
-          </span>
-          <span className="min-w-0 truncate text-body font-semibold text-ink">La Candelaria</span>
+          <BrandMark className="h-8 w-8" />
+          <Wordmark className="min-w-0 text-body" />
         </Link>
         <ThemeToggle />
       </div>

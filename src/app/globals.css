@@ -220,9 +220,15 @@
   --text-meta: 0.75rem;
   --text-meta--line-height: 1.4;
 
-  /* Alturas de fila y de control. El escalon tactil existe para /reparto, que
-     se maneja con el pulgar y en movimiento. */
-  --spacing-row: 44px;
+  /* Alturas de fila y de control.
+
+     36px es una fila de una linea: en una herramienta de operacion, ver mas
+     pedidos de una vez vale mas que el aire. A 44px entraban 13 pedidos por
+     pantalla; a 36 entran mas de 20.
+
+     El escalon tactil existe para /reparto, que se maneja con el pulgar, en
+     movimiento y a veces bajo el sol. Ahi el tamaño no se negocia. */
+  --spacing-row: 36px;
   --spacing-row-touch: 56px;
 }
 

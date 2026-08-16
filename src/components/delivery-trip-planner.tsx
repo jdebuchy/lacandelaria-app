@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DateInput } from "@/components/date-input";
+import { formatDeliveryArea } from "@/lib/address";
 import { TripRouteMap } from "@/components/trip-route-map";
 import type {
   DeliveryPlanningAvailableOrder,
@@ -15,6 +16,7 @@ import { formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
 import { formatOrderNumber, matchesOrderNumberQuery } from "@/lib/orders";
 import { matchesNormalizedSearchValues, normalizeSearchValue } from "@/lib/search";
+import { formatDateFriendly as formatDate } from "@/lib/format";
 
 type DeliveryTripPlannerProps = {
   drivers: DeliveryPlanningDriver[];
@@ -40,15 +42,6 @@ type RoutingStopPayload = Pick<
   | "orderId"
   | "sequenceNumber"
 >;
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
 
 function formatDistance(distanceMeters: number) {
   if (!distanceMeters) {
@@ -535,7 +528,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                   <div className="mt-3 grid gap-2 text-meta text-ink-soft">
                     <p>{order.itemsSummary}</p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-control bg-paper px-2.5 py-1">{order.deliveryArea}</span>
+                      <span className="rounded-control bg-paper px-2.5 py-1">{formatDeliveryArea(order.deliveryArea)}</span>
                       <span className="rounded-control bg-paper px-2.5 py-1">
                         {formatWindow(order.deliveryWindowStart, order.deliveryWindowEnd)}
                       </span>

@@ -1,3 +1,4 @@
+import { formatDateShort, formatDateWithWeekday, relativeDayLabel } from "@/lib/format";
 import type {
   DeliveryFailureReason,
   DeliveryStatus,
@@ -73,14 +74,17 @@ export function getDeliveryFailureReasonLabel(reason: DeliveryFailureReason | st
   }
 }
 
-export function formatTripDate(value: string, options?: Intl.DateTimeFormatOptions) {
-  return new Date(`${value}T12:00:00`).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires",
-    weekday: "short",
-    ...options
-  });
+/**
+ * Encabezado de viaje para el repartidor. Ej: "Hoy, mié 15 ago", "vie 17 ago".
+ *
+ * El que reparte se organiza por dia, no por numero, asi que la referencia va
+ * siempre adelante: "Hoy" cuando aplica, y si no el dia de la semana. Las dos
+ * juntas sobran, porque "Hoy" ya dice mas que "sábado".
+ */
+export function formatTripDate(value: string) {
+  const relativo = relativeDayLabel(value);
+
+  return relativo ? `${relativo}, ${formatDateShort(value)}` : formatDateWithWeekday(value);
 }
 
 export function canEditOrder(orderStatus: OrderStatus, hasActiveTrip: boolean) {

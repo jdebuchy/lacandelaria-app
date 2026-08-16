@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { DeliveryTripPlanner } from "@/components/delivery-trip-planner";
 import { DeliveryTripStartButton } from "@/components/delivery-trip-start-button";
+import { formatDateFriendly as formatDate } from "@/lib/format";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { loadDeliveryTripPlanning } from "@/lib/delivery-planning";
@@ -14,15 +15,6 @@ type Params = {
     tripId: string;
   }>;
 };
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
 
 export default async function DeliveryTripDetailPage(context: Params) {
   const auth = await requirePageRole(PANEL_ALLOWED_ROLES, "/panel/logistics");

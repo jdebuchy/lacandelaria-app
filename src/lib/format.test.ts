@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   formatCurrency,
   formatDate,
+  formatDateFriendly,
   formatDateShort,
   formatDateTime,
+  formatDateTimeFriendly,
   formatDistance,
   formatDuration,
   formatNumber,
@@ -81,6 +83,14 @@ describe("fechas", () => {
     expect(toDateInputValue("2026-08-16T02:00:00.000Z")).toBe("2026-08-15");
   });
 
+  it("no corre un dia las fechas sin hora que vienen de Postgres", () => {
+    // "2026-06-04" leido como medianoche UTC son las 21:00 del 3 en Buenos
+    // Aires. Si esto se rompe, los viajes se muestran un dia antes.
+    expect(formatDateShort("2026-06-04")).toBe("4 jun");
+    expect(formatDate("2026-06-04")).toBe("4 jun 2026");
+    expect(toDateInputValue("2026-06-04")).toBe("2026-06-04");
+  });
+
   it("devuelve guion cuando no hay valor", () => {
     expect(formatDate(null)).toBe("-");
     expect(formatDateTime(undefined)).toBe("-");
@@ -92,6 +102,56 @@ describe("fechas", () => {
 
   it("toDateInputValue devuelve vacio cuando no hay valor", () => {
     expect(toDateInputValue(null)).toBe("");
+  });
+});
+
+describe("formatDateFriendly", () => {
+  // Todo se mide contra este "ahora" fijo para que el test no dependa del reloj.
+  const ahora = new Date("2026-08-15T12:00:00.000Z");
+  const aLasNueve = (fecha: string) => `${fecha}T12:00:00.000Z`;
+
+  it("nombra hoy, ayer y mañana", () => {
+    expect(formatDateFriendly(aLasNueve("2026-08-15"), ahora)).toBe("Hoy");
+    expect(formatDateFriendly(aLasNueve("2026-08-14"), ahora)).toBe("Ayer");
+    expect(formatDateFriendly(aLasNueve("2026-08-16"), ahora)).toBe("Mañana");
+  });
+
+  it("cuenta los dias dentro de la semana", () => {
+    expect(formatDateFriendly(aLasNueve("2026-08-12"), ahora)).toBe("Hace 3 días");
+    expect(formatDateFriendly(aLasNueve("2026-08-18"), ahora)).toBe("En 3 días");
+  });
+
+  it("cuenta hasta seis dias y despues pasa a fecha calendario", () => {
+    expect(formatDateFriendly(aLasNueve("2026-08-09"), ahora)).toBe("Hace 6 días");
+    expect(formatDateFriendly(aLasNueve("2026-08-08"), ahora)).toBe("8 ago");
+    expect(formatDateFriendly(aLasNueve("2026-06-23"), ahora)).toBe("23 jun");
+  });
+
+  it("omite el año cuando es el corriente y lo agrega cuando no", () => {
+    expect(formatDateFriendly(aLasNueve("2026-01-04"), ahora)).toBe("4 ene");
+    expect(formatDateFriendly(aLasNueve("2025-08-04"), ahora)).toBe("4 ago 2025");
+  });
+
+  it("trata las fechas sin hora como el dia que dicen ser", () => {
+    expect(formatDateFriendly("2026-08-15", ahora)).toBe("Hoy");
+    expect(formatDateFriendly("2026-08-16", ahora)).toBe("Mañana");
+    expect(formatDateFriendly("2026-06-04", ahora)).toBe("4 jun");
+  });
+
+  it("compara dias y no horas", () => {
+    // 02:00 UTC del 15 son las 23:00 del 14 en Buenos Aires: sigue siendo ayer,
+    // aunque falten diez horas para el "ahora" de referencia.
+    expect(formatDateFriendly("2026-08-15T02:00:00.000Z", ahora)).toBe("Ayer");
+  });
+
+  it("devuelve guion cuando no hay valor", () => {
+    expect(formatDateFriendly(null, ahora)).toBe("-");
+    expect(formatDateFriendly("no es una fecha", ahora)).toBe("-");
+  });
+
+  it("formatDateTimeFriendly conserva la hora", () => {
+    expect(formatDateTimeFriendly(aLasNueve("2026-08-15"), ahora)).toBe("Hoy, 09:00");
+    expect(formatDateTimeFriendly(aLasNueve("2026-06-23"), ahora)).toBe("23 jun, 09:00");
   });
 });
 

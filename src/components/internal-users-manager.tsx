@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { DateText } from "@/components/ui/date-text";
 import { getRoleLabel } from "@/lib/auth-shared";
 import type { UserRole } from "@/lib/types";
 
@@ -29,15 +30,6 @@ const initialState: FormState = {
 };
 
 const ROLE_OPTIONS: UserRole[] = ["driver", "seller", "collector", "admin"];
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
 
 export function InternalUsersManager({ users }: InternalUsersManagerProps) {
   const [email, setEmail] = useState("");
@@ -191,7 +183,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
                 <div className="break-all">{user.email ?? "-"}</div>
                 <div>{getRoleLabel(user.role)}</div>
                 <div>{user.active ? "Activo" : "Inactivo"}</div>
-                <div>{formatDate(user.created_at)}</div>
+                <div><DateText value={user.created_at} /></div>
               </div>
             ))
           ) : (
@@ -214,7 +206,7 @@ export function InternalUsersManager({ users }: InternalUsersManagerProps) {
                 </div>
                 <div className="mt-4 grid gap-2 text-body text-ink-soft">
                   <p>Estado: {user.active ? "Activo" : "Inactivo"}</p>
-                  <p>Alta: {formatDate(user.created_at)}</p>
+                  <p>Alta: <DateText value={user.created_at} /></p>
                   <p>{user.auth_user_id ? "Linked con Google" : "Sin login vinculado"}</p>
                 </div>
               </article>

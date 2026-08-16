@@ -30,7 +30,11 @@ npm run dev -- --port 3001
 
 **No leas `.env.local`.** Para consultar Supabase: `node --env-file=.env.local script.mjs`.
 
-Scripts sueltos van como `.tmp-*.mjs`, que está gitignoreado. El repo es público y estos scripts suelen quedar con datos reales de clientes.
+Scripts sueltos van como `.tmp-*.mjs`, que está gitignoreado. El repo es público y estos scripts suelen quedar con datos reales de clientes. Van adentro del repo: afuera no resuelven `node_modules`.
+
+**No hay sistema de migraciones.** Los `.sql` de `supabase/` se aplican a mano y nada registra cuáles corrieron. Dejá la fecha de aplicación como comentario en la primera línea del archivo, o el próximo no sabe si ya está aplicado.
+
+**`zod` y `@supabase/ssr` están pinneados sin `^`.** Si una dependencia nueva pide otra versión, preguntá antes de bumpear: puede haber un motivo que no está escrito.
 
 ## Sistema de diseño "Campo"
 
@@ -71,6 +75,28 @@ Claro por defecto, oscuro por clase `.dark`. `/reparto` va siempre claro: se usa
 `src/lib/design-tokens.test.ts` parsea `globals.css` y verifica contraste AA de los 24 pares de token en ambos temas. Si cambiás un color y CI se pone rojo, el color está mal, no el test.
 
 Modales: usá `Modal`, que ya trae foco atrapado, Escape y ARIA. Los overlays a mano que había antes no tenían nada de eso.
+
+## Reglas del dominio
+
+**Los pedidos se crean a precio de lista (`transfer_price`).** El descuento por efectivo se aplica recién al cobrar, en `prepareOrderForFirstPaymentMethod()` (`src/lib/payments.ts`), que reprecia los ítems y el total. No repliques ese cálculo en otro lado ni asumas que el precio del pedido es el final.
+
+**Precios, stock, zonas y fechas salen siempre de Supabase.** Nunca de un modelo, nunca hardcodeados. Es la regla más dura del proyecto y vale para el bot, el formulario público y el panel.
+
+Caja de 4 kg. Comisión de revendedora 15%. Un pedido se crea solo tras confirmación explícita del cliente. Respetá `whatsapp_opt_in` y `whatsapp_opt_out_at` siempre.
+
+## Bot conversacional
+
+Motor agnóstico de canal en `src/lib/bot/`. La lógica de decisión son funciones puras con tests (`gate`, `analyze`, `engine`); `conversations.ts` es lo único que toca Supabase. Los adaptadores de canal (`channels/`) y de LLM (`llm/`) son finos e intercambiables por variable de entorno.
+
+**El IO se mantiene afuera para que el motor sea testeable sin mocks.** Si vas a agregar una regla de conversación, va en `engine.ts` como función pura y recibe el estado ya cargado. No metas una consulta ahí adentro.
+
+**Nada de `Date.now()` en funciones puras.** El instante se inyecta como parámetro `now`, o el test depende del reloj y de la timezone de la máquina.
+
+`evaluateGate()` corre antes de cualquier llamada al modelo y es lo que evita quemar créditos con mensajes que no son pedidos. Es deliberadamente conservador: ante la duda deja pasar, porque ignorar a un cliente real cuesta más que una llamada. Cada llamada efectiva queda en `bot_llm_usage`.
+
+**Antes de cambiar una regla del bot, leé `docs/bot-decisiones.md`.** Varias de las que parecen arbitrarias (la ventana de duplicados de 15s, que no haya filtro por vocabulario, que un saludo no llame al modelo) salieron de medir sobre mensajes reales, y el documento tiene el número que las justifica.
+
+Detalle de proveedores, variables y puesta en marcha: `README.md`. Plan de las fases que faltan: `docs/superpowers/plans/`.
 
 ## Convenciones de código
 

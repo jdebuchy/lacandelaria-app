@@ -8,11 +8,13 @@ import { ButtonLink } from "@/components/ui/button";
 import { PageHeader, PageShell } from "@/components/ui/card";
 import { DataTable, Pagination, type Column } from "@/components/ui/data-table";
 import { EmptyState, Notice } from "@/components/ui/feedback";
+import { formatDeliveryArea } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
 import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
-import { formatCurrency, formatDateShort } from "@/lib/format";
+import { DateText } from "@/components/ui/date-text";
+import { formatCurrency } from "@/lib/format";
 import { formatOrderNumber, formatTripNumber, matchesOrderNumberQuery } from "@/lib/orders";
 import { buildPaymentSummary } from "@/lib/payments";
 import { formatItemsSummary } from "@/lib/products";
@@ -71,21 +73,10 @@ function getChannelLabel(channel: string) {
       return "WhatsApp IA";
     case "instagram_ai":
       return "Instagram IA";
+    case "telegram_ai":
+      return "Telegram IA";
     default:
       return channel;
-  }
-}
-
-function getDeliveryAreaLabel(area: string) {
-  switch (area) {
-    case "capital_federal":
-      return "Cap. Federal";
-    case "standard":
-      return "GBA";
-    case "pending_review":
-      return "Sin zona";
-    default:
-      return area;
   }
 }
 
@@ -270,7 +261,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
       // Texto plano, no el sello: en Pedidos la zona es dato de referencia.
       // El sello vive en Armado de viajes, donde agrupar por zona es la tarea.
       cell: (order) => (
-        <span className="truncate text-ink-soft">{getDeliveryAreaLabel(order.deliveryArea)}</span>
+        <span className="truncate text-ink-soft">{formatDeliveryArea(order.deliveryArea)}</span>
       ),
       header: "Zona",
       key: "zona",
@@ -325,9 +316,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     {
       align: "right",
       cell: (order) => (
-        <span className="text-ink-faint" data-numeric>
-          {formatDateShort(order.created_at)}
-        </span>
+        <DateText className="text-ink-faint" value={order.created_at} />
       ),
       header: "Alta",
       hideOnMobile: true,

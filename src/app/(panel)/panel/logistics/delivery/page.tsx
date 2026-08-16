@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DateText } from "@/components/ui/date-text";
 import { DeliveryTripStartButton } from "@/components/delivery-trip-start-button";
 import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
@@ -75,15 +76,6 @@ function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
   }
 
   return value ?? null;
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
 }
 
 function startOfToday() {
@@ -293,7 +285,7 @@ export default async function LogisticsDeliveryPage({
                 {getDeliveryTripStatusLabel(trip.status)}
               </span>
             </div>
-            <p className="mt-2 text-body text-ink-soft">{formatDate(trip.scheduledDate)}</p>
+            <p className="mt-2 text-body text-ink-soft"><DateText value={trip.scheduledDate} /></p>
           </div>
           <Link
             href={`/panel/logistics/delivery/${trip.id}`}
@@ -494,7 +486,7 @@ export default async function LogisticsDeliveryPage({
                       {sections.previous.map((trip) => (
                         <tr key={trip.id} className="text-ink-soft">
                           <td className="px-4 py-4 font-medium text-ink">{formatTripNumber(trip.tripNumber)}</td>
-                          <td className="px-4 py-4">{formatDate(trip.scheduledDate)}</td>
+                          <td className="px-4 py-4"><DateText value={trip.scheduledDate} /></td>
                           <td className="px-4 py-4">{trip.driverName}</td>
                           <td className="px-4 py-4">{trip.totalStops}</td>
                           <td className="px-4 py-4">

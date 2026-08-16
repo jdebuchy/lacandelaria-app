@@ -3,7 +3,7 @@ import { ManualOrderForm, type CustomerMatch } from "@/components/manual-order-f
 import { EMPTY_STRUCTURED_ADDRESS } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
+import { canEditOrder, formatTripDate, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { loadCatalog } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { OrderItemInput } from "@/lib/types";
@@ -150,7 +150,7 @@ export default async function EditOrderPage(context: Params) {
             <p className="mt-2 text-warn-fg">
               Estado actual: {getOrderStatusLabel(order.status)}.
               {tripRelation
-                ? ` Está asignado al viaje del ${new Date(tripRelation.scheduled_date).toLocaleDateString("es-AR")}.`
+                ? ` Está asignado al viaje del ${formatTripDate(tripRelation.scheduled_date)}.`
                 : ""}
             </p>
           </div>

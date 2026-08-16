@@ -177,3 +177,81 @@ Meta:
 4. Usar `META_VERIFY_TOKEN` como verify token.
 5. Suscribir `messages` y `messaging_postbacks`.
 6. Mantener la app en modo propio/testers hasta validar el flujo antes de App Review.
+
+## Bot conversacional (Telegram)
+
+Motor de conversacion agnostico de canal que vive en la app Next.js, en
+`src/lib/bot/`. Telegram es el primer canal; WhatsApp se portea despues apuntando
+el worker al mismo motor, sin reescribir logica.
+
+La logica de decision son funciones puras con tests (`gate`, `analyze`, `engine`);
+`conversations.ts` es lo unico que toca Supabase, y los adaptadores de canal y de
+LLM son finos e intercambiables.
+
+### Proveedor de LLM
+
+Se elige con `BOT_LLM_PROVIDER`:
+
+- `claude-cli`: invoca el CLI de Claude por stdin. Usa la suscripcion, no la API.
+  **Solo desarrollo local**: el modulo falla al construirse si detecta Vercel.
+- `anthropic-api`: POST a `api.anthropic.com/v1/messages`. Es el de produccion.
+- `openrouter`: el proveedor que ya usaba el worker de WhatsApp.
+
+Los tres devuelven texto y el parseo se valida con Zod en `analyze.ts`, asi que
+cambiar de proveedor no cambia el comportamiento del bot.
+
+### Variables
+
+```env
+BOT_LLM_PROVIDER="claude-cli"
+BOT_LLM_MODEL="claude-opus-5"
+BOT_LLM_MAX_TOKENS="2000"
+ANTHROPIC_API_KEY=""
+CLAUDE_CLI_PATH="claude"
+
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_WEBHOOK_SECRET=""
+TELEGRAM_ALLOWED_CHAT_IDS=""
+TELEGRAM_ADMIN_CHAT_ID=""
+```
+
+`BOT_LLM_MAX_TOKENS` acota thinking mas respuesta juntos en Opus 5, donde el
+thinking esta activo por defecto: por debajo de ~1500 la respuesta se trunca.
+
+`TELEGRAM_ALLOWED_CHAT_IDS` es una lista separada por comas. Con la lista cargada
+el bot solo atiende a esos chats y marca las conversaciones como `is_test`; vacia
+significa produccion y atiende a cualquiera.
+
+### Puesta en marcha
+
+1. Crear el bot con @BotFather y guardar el token.
+2. Obtener tu chat id escribiendole a @userinfobot.
+3. Aplicar `supabase/bot_channels.sql`.
+4. Levantar el tunel y registrar el webhook:
+
+```bash
+npm run dev
+cloudflared tunnel --url http://localhost:3000
+node --env-file=.env.local scripts/telegram-set-webhook.mjs <url-del-tunel>
+```
+
+### Control de gasto
+
+`evaluateGate()` corre antes de cualquier llamada al LLM y corta por allowlist,
+silencio activo, conversacion tomada por un humano, limite de respuestas por hora,
+presupuesto diario, mensajes vacios o repetidos, y falta de vocabulario del negocio.
+
+El filtro por vocabulario es deliberadamente conservador: si la conversacion tiene
+un pedido en curso, cualquier texto pasa igual (una direccion o un "dale" no
+contienen la palabra palta). Ante la duda deja pasar, porque ignorar a un cliente
+real cuesta mas que una llamada al modelo.
+
+Cada llamada efectiva queda registrada en `bot_llm_usage` con proveedor, modelo y
+tokens, que es donde se verifica que un mensaje fuera de tema no gasto nada.
+
+### Estado
+
+Fases 0 a 4 implementadas: el bot conversa, aplica el gate, deriva a humano y
+registra todo. Quedan para las siguientes fases el upsell, la creacion automatica
+del pedido (hoy deriva a una persona con el borrador listo), los mensajes
+proactivos y el porteo de WhatsApp. Ver `docs/superpowers/plans/`.

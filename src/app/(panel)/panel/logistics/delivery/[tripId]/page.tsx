@@ -7,6 +7,7 @@ import {
 } from "@/components/delivery-trip-execution-table";
 import { DeliveryTripStartButton } from "@/components/delivery-trip-start-button";
 import { formatStructuredAddressSummary } from "@/lib/address";
+import { formatDateFriendly as formatDate, formatDateTimeFriendly } from "@/lib/format";
 import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
@@ -96,27 +97,8 @@ function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null;
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
-
 function formatDateTime(value: string | null) {
-  if (!value) {
-    return "Sin registrar";
-  }
-
-  return new Date(value).toLocaleString("es-AR", {
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "2-digit",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
+  return value ? formatDateTimeFriendly(value) : "Sin registrar";
 }
 
 function getEffectiveStopStatus(row: TripOrderRow, order: OrderRow | undefined) {

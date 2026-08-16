@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DateText } from "@/components/ui/date-text";
 import { CustomerDetailTabs, normalizeCustomerDetailTab } from "@/components/customer-detail-tabs";
-import { formatStructuredAddressLine, formatStructuredAddressSummary } from "@/lib/address";
+import { formatDeliveryArea, formatStructuredAddressLine, formatStructuredAddressSummary } from "@/lib/address";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
@@ -19,33 +20,6 @@ import {
 
 type Params = Promise<{ customerId: string }>;
 type SearchParams = Promise<{ tab?: string }>;
-
-function formatDate(value?: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleString("es-AR", {
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
 
 function getSalesChannelLabel(channel: string) {
   switch (channel) {
@@ -146,11 +120,11 @@ export default async function CustomerDetailPage({
                 </div>
                 <div>
                   <dt className="text-ink-faint">Área logística</dt>
-                  <dd className="mt-1 text-ink">{customer.delivery_area || "-"}</dd>
+                  <dd className="mt-1 text-ink">{formatDeliveryArea(customer.delivery_area)}</dd>
                 </div>
                 <div>
                   <dt className="text-ink-faint">Alta</dt>
-                  <dd className="mt-1 text-ink">{formatDate(customer.created_at)}</dd>
+                  <dd className="mt-1 text-ink"><DateText value={customer.created_at} /></dd>
                 </div>
                 <div className="sm:col-span-2">
                   <dt className="text-ink-faint">Notas de entrega</dt>
@@ -174,11 +148,11 @@ export default async function CustomerDetailPage({
                 </div>
                 <div>
                   <dt className="text-ink-faint">Baja</dt>
-                  <dd className="mt-1 text-ink">{formatDateTime(customer.whatsapp_opt_out_at)}</dd>
+                  <dd className="mt-1 text-ink"><DateText value={customer.whatsapp_opt_out_at} withTime /></dd>
                 </div>
                 <div>
                   <dt className="text-ink-faint">Última interacción</dt>
-                  <dd className="mt-1 text-ink">{formatDateTime(customer.last_whatsapp_interaction_at)}</dd>
+                  <dd className="mt-1 text-ink"><DateText value={customer.last_whatsapp_interaction_at} withTime /></dd>
                 </div>
                 <div>
                   <dt className="text-ink-faint">Canal preferido</dt>
@@ -205,7 +179,7 @@ export default async function CustomerDetailPage({
                       <div>
                         <p className="text-title font-semibold text-ink">{formatItemsSummary(order.order_items ?? [])}</p>
                         <p className="mt-1 text-body text-ink-soft">
-                          {getSalesChannelLabel(order.sales_channel)} · {getOrderStatusLabel(order.status)} · {formatDate(order.created_at)}
+                          {getSalesChannelLabel(order.sales_channel)} · {getOrderStatusLabel(order.status)} · <DateText value={order.created_at} />
                         </p>
                         <p className="mt-1 text-body text-ink-faint">
                           {getPaymentStatusLabel(paymentSummary.paymentStatus)} · {getPaymentMethodLabel(order.payment_method_expected)}
@@ -254,7 +228,7 @@ export default async function CustomerDetailPage({
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-medium text-ink">{getWhatsappStatusLabel(conversation.status)}</p>
-                          <p className="mt-1 text-ink-faint">{formatDateTime(conversation.updated_at)}</p>
+                          <p className="mt-1 text-ink-faint"><DateText value={conversation.updated_at} withTime /></p>
                         </div>
                         {conversation.requires_human ? (
                           <span className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-meta text-danger-fg">
@@ -292,7 +266,7 @@ export default async function CustomerDetailPage({
                         <p className="text-meta text-ink-soft">
                           {message.direction === "inbound" ? "Cliente" : "Sistema"} · {getWhatsappMessageTypeLabel(message.message_type)}
                         </p>
-                        <p className="text-meta text-ink-faint">{formatDateTime(message.created_at)}</p>
+                        <p className="text-meta text-ink-faint"><DateText value={message.created_at} withTime /></p>
                       </div>
                       <p className="mt-3 whitespace-pre-line text-ink">{message.body}</p>
                       {message.ai_intent ? (

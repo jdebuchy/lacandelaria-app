@@ -2,7 +2,12 @@ import { spawn } from "node:child_process";
 import { botConfig } from "@/lib/config";
 import type { LlmProvider, LlmRequest, LlmResult } from "./types";
 
-const TIMEOUT_MS = 60_000;
+const TIMEOUT_MS = 45_000;
+
+// El CLI se cuelga cada tanto sin devolver nada. Cuando pasa, el turno se pierde
+// entero: el cliente escribe y no le contesta nadie, que desde afuera se ve como
+// que el bot lo dejo hablando solo. Un reintento cuesta unos segundos y lo tapa.
+const REINTENTOS = 1;
 
 function runClaude(prompt: string, model: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -60,7 +65,20 @@ export function createClaudeCliProvider(): LlmProvider {
     name: "claude-cli",
     async complete(request: LlmRequest): Promise<LlmResult> {
       const prompt = `${request.system}\n\n---\n\n${request.user}`;
-      const raw = await runClaude(prompt, botConfig.llmModel);
+      let raw = "";
+
+      for (let intento = 0; intento <= REINTENTOS; intento += 1) {
+        try {
+          raw = await runClaude(prompt, botConfig.llmModel);
+          break;
+        } catch (error) {
+          if (intento === REINTENTOS) {
+            throw error;
+          }
+
+          console.warn("[bot/llm] el CLI fallo, reintentando una vez", error);
+        }
+      }
 
       let text = raw;
 

@@ -21,6 +21,11 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        # FontAwesome Pro vive en un registro propio. El .npmrc del repo
+        # interpola esta variable, asi que sin ella npm ci corta con E401 y los
+        # tests no llegan a correr.
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
         run: npm ci
 
       - name: Run unit tests

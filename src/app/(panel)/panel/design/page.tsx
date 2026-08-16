@@ -12,13 +12,14 @@ import type { ReactNode } from "react";
 import { Badge, ZoneStamp } from "@/components/ui/badge";
 import { Button, IconButton } from "@/components/ui/button";
 import { Card, CardHeader, CardRow, PageHeader, PageShell } from "@/components/ui/card";
+import { DateText } from "@/components/ui/date-text";
 import { DataTable, Pagination, type Column } from "@/components/ui/data-table";
 import { EmptyState, Notice, Skeleton, Spinner } from "@/components/ui/feedback";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { MetricCard, MetricGrid } from "@/components/ui/metric-card";
 import { requirePageRole } from "@/lib/auth";
-import { formatCurrency, formatDate, formatDateTime, formatTime } from "@/lib/format";
+import { formatCurrency, formatDate, formatDateFriendly, formatDateTime, formatTime } from "@/lib/format";
 import type { Tone } from "@/lib/status-tone";
 
 const ADMIN_ONLY = ["admin"] as const;
@@ -286,6 +287,29 @@ export default async function DesignPage() {
           </CardRow>
           <CardRow>
             <FormatRow name="formatTime, reloj de 24 horas" value={formatTime("2026-08-15T20:30:00Z")} />
+          </CardRow>
+          <CardRow>
+            <FormatRow name="formatDateFriendly, hoy" value={formatDateFriendly(new Date())} />
+          </CardRow>
+          <CardRow>
+            <FormatRow
+              name="formatDateFriendly, esta semana"
+              value={formatDateFriendly(new Date(Date.now() - 3 * 86_400_000))}
+            />
+          </CardRow>
+          <CardRow>
+            <FormatRow
+              name="formatDateFriendly, sin año si es el corriente"
+              value={formatDateFriendly(new Date(Date.now() - 60 * 86_400_000))}
+            />
+          </CardRow>
+          <CardRow>
+            <div className="flex items-baseline justify-between gap-4">
+              <span className="text-meta text-ink-faint">
+                DateText, la fecha exacta esta en el title
+              </span>
+              <DateText className="text-body text-ink" value={new Date(Date.now() - 60 * 86_400_000)} />
+            </div>
           </CardRow>
         </Card>
       </Section>

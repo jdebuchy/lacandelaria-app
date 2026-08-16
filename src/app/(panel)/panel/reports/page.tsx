@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requirePageRole } from "@/lib/auth";
 import { REPORTS_ALLOWED_ROLES, REPORTS_COLLECTION_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
+import { formatDateShort } from "@/lib/format";
 import {
   CHANNEL_LABELS,
   ORDER_STATUS_LABELS,
@@ -123,12 +124,9 @@ function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null;
 }
 
+// Los reportes rotulan periodos, no momentos: aca "Ayer" no sirve como eje.
 function formatShortDate(value: string) {
-  return new Date(`${value}T03:00:00.000Z`).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
+  return formatDateShort(value);
 }
 
 function formatDelta(delta: ReportKpi["delta"]) {

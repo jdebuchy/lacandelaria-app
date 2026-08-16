@@ -22,7 +22,7 @@ const AREA_LABELS: Record<CustomerAreaFilter, string> = {
   gated: "Barrios Privados",
   capital: "Capital",
   province: "Provincia",
-  pending_review: "Pending review"
+  pending_review: "Sin zona"
 };
 
 const CUSTOMER_SELECT_BASE = "id, first_name, last_name, phone, instagram, address_kind, address_line_1, address_line_2, gated_community_name, locality, administrative_area_level_1, postal_code, google_place_id, google_place_label, address_source, delivery_area, delivery_notes, source, created_at";

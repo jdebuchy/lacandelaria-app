@@ -144,6 +144,7 @@ export const CHANNEL_LABELS: Record<SalesChannel, string> = {
   instagram_ai: "Instagram IA",
   public_form: "Formulario",
   reseller: "Revendedor",
+  telegram_ai: "Telegram IA",
   whatsapp_ai: "WhatsApp IA"
 };
 

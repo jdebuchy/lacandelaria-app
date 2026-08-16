@@ -6,6 +6,11 @@ import { COLLECTION_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
 import { getOrderStatusLabel } from "@/lib/delivery-trips";
 import {
+  formatDateTimeFriendly as formatDateTime,
+  toDateInputValue,
+  todayInputValue
+} from "@/lib/format";
+import {
   buildPaymentSummary,
   formatCurrency,
   getPaymentMethodLabel,
@@ -72,34 +77,12 @@ function getSearchValue(
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleString("es-AR", {
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
-
 function currentArgentinaDateKey() {
-  return new Date().toLocaleDateString("en-CA", {
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
+  return todayInputValue();
 }
 
 function paymentDateKey(value: string | null) {
-  if (!value) {
-    return "";
-  }
-
-  return new Date(value).toLocaleDateString("en-CA", {
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
+  return toDateInputValue(value);
 }
 
 export default async function CollectionsPage({ searchParams }: PageProps) {

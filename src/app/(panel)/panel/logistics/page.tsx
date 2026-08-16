@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { DateText } from "@/components/ui/date-text";
 import { DeliveryTripCreateForm } from "@/components/delivery-trip-create-form";
 import { formatStructuredAddressSummary } from "@/lib/address";
+import { formatDateFriendly } from "@/lib/format";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
 import { formatPersonName } from "@/lib/contact";
@@ -52,16 +54,7 @@ function todayDate() {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return "Sin fecha";
-  }
-
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
+  return value ? formatDateFriendly(value) : "Sin fecha";
 }
 
 export default async function LogisticsPage() {
@@ -227,7 +220,7 @@ export default async function LogisticsPage() {
                 >
                   <div>
                     <p className="text-body font-semibold text-ink">{formatTripNumber(trip.trip_number)}</p>
-                    <p className="mt-1 text-body text-ink-soft">{formatDate(trip.scheduled_date)}</p>
+                    <p className="mt-1 text-body text-ink-soft"><DateText empty="Sin fecha" value={trip.scheduled_date} /></p>
                   </div>
                   <p className="text-body text-ink-soft">{tripCounts.get(trip.id) ?? 0} pedidos</p>
                   <span className="justify-self-start rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">

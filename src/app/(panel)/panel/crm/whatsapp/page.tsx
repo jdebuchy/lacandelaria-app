@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DateText } from "@/components/ui/date-text";
 import { WhatsappChatComposer } from "@/components/whatsapp/whatsapp-chat-composer";
 import { WhatsappCrmNav } from "@/components/whatsapp/whatsapp-crm-nav";
 import { requirePageRole } from "@/lib/auth";
@@ -44,20 +45,6 @@ function formatTime(value?: string | null) {
   return new Date(value).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleString("es-AR", {
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
     timeZone: "America/Argentina/Buenos_Aires"
   });
 }
@@ -241,7 +228,7 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
                               outbound ? "text-accent" : "text-ink-faint"
                             }`}>
                               <span>{getWhatsappMessageTypeLabel(message.message_type)}</span>
-                              <span>{formatDateTime(message.created_at)}</span>
+                              <DateText value={message.created_at} withTime />
                             </div>
                             {message.ai_intent ? (
                               <p className={`mt-2 text-meta ${outbound ? "text-accent" : "text-ink-faint"}`}>

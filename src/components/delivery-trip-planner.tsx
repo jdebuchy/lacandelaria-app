@@ -632,6 +632,14 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
             </div>
           ) : null}
 
+          {stops.length ? (
+            // Pegado arriba: con muchas paradas, un mapa al final de la lista
+            // queda fuera de pantalla justo cuando mas se lo mira.
+            <div className="mt-4 lg:sticky lg:top-4 lg:z-10 lg:bg-paper lg:pb-3">
+              <TripRouteMap depot={selectedDepot} route={displayedRoute} stops={stops} />
+            </div>
+          ) : null}
+
           <div className="mt-4 grid gap-3">
             {stops.length ? (
               stops.map((stop, index) => (
@@ -692,14 +700,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               </div>
             )}
           </div>
-
-          {stops.length ? (
-            <div className="mt-5">
-              <TripRouteMap depot={selectedDepot} route={displayedRoute} stops={stops} />
-            </div>
-          ) : null}
         </section>
-
       </div>
     </div>
   );

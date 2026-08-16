@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/ui/brand";
 import Link from "next/link";
 import { requirePageRole } from "@/lib/auth";
 import { DRIVER_ALLOWED_ROLES } from "@/lib/auth-shared";
@@ -60,8 +61,11 @@ export default async function RepartoHomePage() {
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-stone-50">Mi reparto</h1>
-        <p className="mt-1 text-[15px] text-stone-400">{auth.profile.full_name}</p>
+        <div className="flex items-center gap-2.5">
+          <BrandMark className="h-9 w-9" />
+          <h1 className="text-display text-ink">Mi reparto</h1>
+        </div>
+        <p className="mt-1 text-body text-ink-soft">{auth.profile.full_name}</p>
       </header>
 
       {tripRows.length ? (
@@ -71,25 +75,25 @@ export default async function RepartoHomePage() {
 
             return (
               <Link
-                className="block rounded-2xl border border-stone-700 bg-stone-900 p-5 transition active:bg-stone-800"
+                className="block rounded-card border border-line bg-paper p-5 transition active:bg-paper-raised"
                 href={`/reparto/${trip.id}`}
                 key={trip.id}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xl font-bold text-stone-50 first-letter:uppercase">
+                  <p className="text-title font-bold text-ink first-letter:uppercase">
                     {formatTripDate(trip.scheduled_date)}
                   </p>
                   <span
-                    className={`rounded-lg px-2.5 py-1 text-xs font-bold uppercase ${
+                    className={`rounded-control px-2.5 py-1 text-meta font-bold uppercase ${
                       trip.status === "in_route"
-                        ? "bg-sky-400 text-stone-950"
-                        : "bg-stone-700 text-stone-200"
+                        ? "bg-info-bg text-accent-fg"
+                        : "bg-paper-raised text-ink"
                     }`}
                   >
                     {getDeliveryTripStatusLabel(trip.status)}
                   </span>
                 </div>
-                <p className="mt-2 text-[15px] tabular-nums text-stone-400">
+                <p className="mt-2 text-body tabular-nums text-ink-soft">
                   {counts.resolved} de {counts.total} paradas ·{" "}
                   {formatTripNumber(trip.trip_number)}
                 </p>
@@ -98,7 +102,7 @@ export default async function RepartoHomePage() {
           })}
         </div>
       ) : (
-        <p className="rounded-2xl border border-dashed border-stone-700 px-5 py-10 text-center text-[15px] leading-6 text-stone-400">
+        <p className="rounded-card border border-dashed border-line px-5 py-10 text-center text-body leading-6 text-ink-soft">
           No tenés viajes asignados.
         </p>
       )}

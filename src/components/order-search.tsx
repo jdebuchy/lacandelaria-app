@@ -34,17 +34,17 @@ export function OrderSearch({ defaultValue = "" }: { defaultValue?: string }) {
   }
 
   return (
-    <div className="relative w-full sm:w-96">
+    <div className="relative w-full sm:w-80">
       <input
         type="search"
         defaultValue={defaultValue}
         onChange={handleChange}
         aria-label="Buscar pedidos"
-        placeholder="Buscar por número de pedido, nombre o teléfono..."
-        className="w-full rounded-2xl border border-stone-700 bg-stone-900/80 px-4 py-3 pr-24 text-sm text-stone-100 placeholder-stone-500 outline-none transition focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20"
+        placeholder="Buscar por número, nombre o teléfono"
+        className="h-8 w-full rounded-control border border-line-strong bg-paper px-3 pr-20 text-body text-ink outline-hidden transition-colors placeholder:text-ink-faint focus:border-accent"
       />
       {isPending ? (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-500">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-meta text-ink-faint">
           Buscando...
         </span>
       ) : null}

@@ -1,15 +1,23 @@
-import { Suspense } from "react";
+import { faPlus } from "@fortawesome/pro-regular-svg-icons";
 import Link from "next/link";
-import { OrderSearch } from "@/components/order-search";
+import { Suspense } from "react";
 import { OrderFilters } from "@/components/order-filters";
+import { OrderSearch } from "@/components/order-search";
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { PageHeader, PageShell } from "@/components/ui/card";
+import { DataTable, Pagination, type Column } from "@/components/ui/data-table";
+import { EmptyState, Notice } from "@/components/ui/feedback";
 import { requirePageRole } from "@/lib/auth";
 import { PANEL_ALLOWED_ROLES } from "@/lib/auth-shared";
-import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import { canEditOrder, getOrderStatusLabel } from "@/lib/delivery-trips";
+import { formatCurrency, formatDateShort } from "@/lib/format";
 import { formatOrderNumber, formatTripNumber, matchesOrderNumberQuery } from "@/lib/orders";
+import { buildPaymentSummary } from "@/lib/payments";
 import { formatItemsSummary } from "@/lib/products";
-import { buildPaymentSummary, formatCurrency } from "@/lib/payments";
 import { matchesNormalizedSearchValues } from "@/lib/search";
+import { TONE_TEXT_CLASS, orderStatusProminence, orderStatusTone } from "@/lib/status-tone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type SearchParams = Promise<{ page?: string; q?: string; status?: string }>;
@@ -51,14 +59,6 @@ function takeSingleRelation<T>(value: T | T[] | null): T | null {
   return value ?? null;
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
-}
-
 function getChannelLabel(channel: string) {
   switch (channel) {
     case "public_form":
@@ -88,25 +88,6 @@ function getDeliveryAreaLabel(area: string) {
       return "Sin zona";
     default:
       return area;
-  }
-}
-
-function getStatusBadgeClass(status: string) {
-  switch (status) {
-    case "pending_confirmation":
-      return "border-amber-700 bg-amber-950/60 text-amber-300";
-    case "confirmed":
-      return "border-sky-700 bg-sky-950/60 text-sky-300";
-    case "assigned":
-      return "border-violet-700 bg-violet-950/60 text-violet-300";
-    case "in_route":
-      return "border-emerald-700 bg-emerald-950/60 text-emerald-300";
-    case "delivered":
-      return "border-stone-700 bg-stone-950/60 text-stone-400";
-    case "cancelled":
-      return "border-red-800 bg-red-950/60 text-red-400";
-    default:
-      return "border-stone-700 bg-stone-900 text-stone-400";
   }
 }
 
@@ -268,299 +249,189 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     return query ? `/panel/orders?${query}` : "/panel/orders";
   }
 
+
+  type OrderRow = (typeof orderRows)[number];
+
+
+  const columns: Array<Column<OrderRow>> = [
+    {
+      cell: (order) => (
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="shrink-0 text-ink-faint" data-numeric>
+            {formatOrderNumber(order.orderNumber)}
+          </span>
+          <span className="truncate font-medium text-ink">{order.customerName}</span>
+        </span>
+      ),
+      header: "Cliente",
+      key: "cliente",
+      primary: true,
+      width: "2fr"
+    },
+    {
+      // Texto plano, no el sello: en Pedidos la zona es dato de referencia.
+      // El sello vive en Armado de viajes, donde agrupar por zona es la tarea.
+      cell: (order) => (
+        <span className="truncate text-ink-soft">{getDeliveryAreaLabel(order.deliveryArea)}</span>
+      ),
+      header: "Zona",
+      key: "zona",
+      width: "0.9fr"
+    },
+    {
+      cell: (order) => (
+        <Badge
+          prominence={orderStatusProminence(order.status)}
+          tone={orderStatusTone(order.status)}
+        >
+          {getOrderStatusLabel(order.status)}
+        </Badge>
+      ),
+      header: "Estado",
+      key: "estado",
+      width: "0.9fr"
+    },
+    {
+      cell: (order) => <span className="truncate text-ink-soft">{order.itemsSummary}</span>,
+      header: "Ítems",
+      hideOnMobile: true,
+      key: "items",
+      width: "1.8fr"
+    },
+    {
+      align: "right",
+      cell: (order) => (
+        <span className="text-ink" data-numeric>
+          {formatCurrency(order.totalAmount)}
+        </span>
+      ),
+      header: "Total",
+      key: "total",
+      width: "0.8fr"
+    },
+    {
+      align: "right",
+      // El saldo solo aparece cuando hay algo que cobrar. Una columna que casi
+      // siempre esta vacia no cuesta nada; una que siempre dice "-", si.
+      cell: (order) =>
+        order.paymentBalanceAmount > 0 && order.paidAmount > 0 ? (
+          <span className="text-warn-fg" data-numeric>
+            {formatCurrency(order.paymentBalanceAmount)}
+          </span>
+        ) : null,
+      header: "Saldo",
+      hideOnMobile: true,
+      key: "saldo",
+      width: "0.7fr"
+    },
+    {
+      align: "right",
+      cell: (order) => (
+        <span className="text-ink-faint" data-numeric>
+          {formatDateShort(order.created_at)}
+        </span>
+      ),
+      header: "Alta",
+      hideOnMobile: true,
+      key: "alta",
+      width: "0.5fr"
+    }
+  ];
+
+  const metrics = [
+    { href: "/panel/orders?status=confirmed", label: "Esperando viaje", tone: "warn" as const, value: awaitingTripCount },
+    { href: "/panel/orders?status=in_route", label: "En ruta", tone: "info" as const, value: inRouteOrders ?? 0 },
+    { href: "/panel/orders?status=pending_confirmation", label: "A confirmar", tone: "warn" as const, value: pendingOrders ?? 0 },
+    { href: "/panel/orders", label: "Total", tone: "neutral" as const, value: totalOrders ?? 0 }
+  ];
+
   return (
-    <main>
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-              Pedidos
-            </h1>
-          </div>
-          <Link
-            href="/panel/orders/new"
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400"
-          >
+    <PageShell>
+      <PageHeader
+        action={
+          <ButtonLink href="/panel/orders/new" icon={faPlus} variant="primary">
             Nuevo pedido
-          </Link>
-        </div>
+          </ButtonLink>
+        }
+        description={`${visibleOrderRows.length} ${normalizedQuery ? "resultados" : "pedidos"}`}
+        title="Pedidos"
+      />
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      {/* Tira en vez de cuatro cards: el mismo dato en un tercio del alto.
+          Cuatro numeros no justifican 100px cuando abajo hay 252 pedidos
+          esperando lugar. El tono de cada uno coincide con el badge del estado
+          que filtra. */}
+      <div className="flex flex-wrap divide-x divide-line overflow-hidden rounded-card border border-line bg-paper">
+        {metrics.map((metric) => (
           <Link
-            href="/panel/orders?status=confirmed"
-            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
+            className="flex min-w-36 flex-1 items-baseline gap-2 px-4 py-2.5 transition-colors hover:bg-paper-raised"
+            href={metric.href}
+            key={metric.label}
           >
-            <p className="text-sm text-stone-400">Esperando viaje</p>
-            <p className="mt-2 text-2xl font-semibold text-amber-300 sm:text-3xl">
-              {awaitingTripCount}
-            </p>
+            <span className={`text-title ${TONE_TEXT_CLASS[metric.tone]}`} data-numeric>
+              {metric.value}
+            </span>
+            <span className="truncate text-body text-ink-soft">{metric.label}</span>
           </Link>
-          <Link
-            href="/panel/orders?status=in_route"
-            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
-          >
-            <p className="text-sm text-stone-400">En ruta</p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-300 sm:text-3xl">
-              {inRouteOrders ?? 0}
-            </p>
-          </Link>
-          <Link
-            href="/panel/orders?status=pending_confirmation"
-            className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5 transition hover:border-stone-600"
-          >
-            <p className="text-sm text-stone-400">A confirmar</p>
-            <p className="mt-2 text-2xl font-semibold text-sky-300 sm:text-3xl">
-              {pendingOrders ?? 0}
-            </p>
-          </Link>
-          <article className="rounded-2xl border border-stone-800 bg-stone-900/60 p-5">
-            <p className="text-sm text-stone-400">Pedidos</p>
-            <p className="mt-2 text-2xl font-semibold text-stone-100 sm:text-3xl">
-              {totalOrders ?? 0}
-            </p>
-          </article>
-        </div>
+        ))}
+      </div>
 
-        {ordersError ? (
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200">
-            <p className="font-medium">No se pudieron cargar los pedidos.</p>
-            <p className="mt-1 text-rose-200/80">
-              La lista de abajo está vacía por este error, no porque no haya pedidos.
-            </p>
-            <p className="mt-2 font-mono text-xs text-rose-200/70">{ordersError.message}</p>
-          </div>
-        ) : null}
+      {ordersError ? (
+        <Notice tone="danger">
+          No se pudieron cargar los pedidos, así que la lista de abajo está vacía por el error y no
+          porque no haya pedidos. Detalle: {ordersError.message}
+        </Notice>
+      ) : null}
 
-        <section className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-stone-50">Todos los pedidos</h2>
-              <p className="mt-1 text-sm text-stone-500">
-                {visibleOrderRows.length} {normalizedQuery ? "resultado(s)" : "pedido(s)"}
-              </p>
-            </div>
-            <Suspense>
-              <OrderSearch defaultValue={normalizedQuery} />
-            </Suspense>
-          </div>
-
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <Suspense>
             <OrderFilters activeStatus={normalizedStatusFilter} />
           </Suspense>
+          <Suspense>
+            <OrderSearch defaultValue={normalizedQuery} />
+          </Suspense>
+        </div>
 
-          <div className="hidden overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70 lg:block">
-            <div className="grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] border-b border-stone-800 bg-stone-900 px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-400">
-              <div>Cliente</div>
-              <div>Área</div>
-              <div>Estado</div>
-              <div>Ítems</div>
-              <div>Total</div>
-              <div>Alta</div>
-              <div></div>
-            </div>
-            {pagedOrderRows.length ? (
-              pagedOrderRows.map((order) => (
-                <div
-                  key={order.id}
-                  className="relative grid grid-cols-[1.8fr_1fr_1fr_1.5fr_0.9fr_0.8fr_0.8fr] cursor-pointer border-b border-stone-800 px-4 py-4 text-sm text-stone-300 last:border-b-0 hover:bg-stone-900/50"
-                >
-                  <Link
-                    href={`/panel/orders/${order.id}`}
-                    className="absolute inset-0 z-0"
-                    aria-label={`Ver pedido de ${order.customerName}`}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-stone-500">
-                        {formatOrderNumber(order.orderNumber)}
-                      </span>
-                      <p className="font-medium text-stone-100">{order.customerName}</p>
-                      {order.channel !== "internal" && (
-                        <span className="rounded-full border border-stone-700 px-2 py-0.5 text-xs text-stone-400">
-                          {getChannelLabel(order.channel)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-xs text-stone-500">
-                      {formatWhatsAppPhone(order.customerPhone)}
-                    </p>
-                  </div>
-                  <div>
-                    <p>{getDeliveryAreaLabel(order.deliveryArea)}</p>
-                    {order.locality && (
-                      <p className="mt-0.5 truncate text-xs text-stone-500">{order.locality}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
-                      {getOrderStatusLabel(order.status)}
-                    </span>
-                    {order.trip && (
-                      <Link
-                        href={`/panel/logistics/delivery/${order.trip.id}`}
-                        className="relative z-10 mt-1.5 inline-block text-xs text-sky-400 hover:text-sky-300"
-                      >
-                        {formatTripNumber(order.trip.number)}
-                      </Link>
-                    )}
-                  </div>
-                  <div className="line-clamp-2">{order.itemsSummary}</div>
-                  <div>
-                    <p>{formatCurrency(order.totalAmount)}</p>
-                    {order.paidAmount > 0 && (
-                      <>
-                        <p className="mt-1 text-xs text-stone-500">
-                          Cobrado {formatCurrency(order.paidAmount)}
-                        </p>
-                        {order.paymentBalanceAmount > 0 && (
-                          <p className="mt-1 text-xs text-amber-300">
-                            Saldo {formatCurrency(order.paymentBalanceAmount)}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  <div>{formatDate(order.created_at)}</div>
-                  <div className="relative z-10 flex justify-end">
-                    {order.isEditable ? (
-                      <Link
-                        href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
-                      >
-                        Editar
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/panel/orders/${order.id}`}
-                        className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-800 px-3 text-xs font-medium text-stone-400 transition hover:border-stone-600 hover:text-stone-100"
-                      >
-                        Ver
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="px-4 py-8 text-center text-sm text-stone-500">
-                {ordersError
-                  ? "No se pudo cargar la lista."
+        <DataTable
+          columns={columns}
+          empty={
+            <EmptyState
+              action={
+                normalizedQuery || normalizedStatusFilter ? (
+                  <ButtonLink href="/panel/orders" variant="secondary">
+                    Ver todos los pedidos
+                  </ButtonLink>
+                ) : (
+                  <ButtonLink href="/panel/orders/new" icon={faPlus} variant="primary">
+                    Nuevo pedido
+                  </ButtonLink>
+                )
+              }
+              description={
+                ordersError
+                  ? "Revisá el detalle del error de arriba y volvé a cargar la página."
                   : normalizedQuery
-                    ? "No hay pedidos para esa búsqueda."
-                    : "Todavia no hay pedidos cargados."}
-              </div>
-            )}
-          </div>
+                    ? `Ningún pedido coincide con "${normalizedQuery}".`
+                    : "Cuando entre el primer pedido del día va a aparecer acá."
+              }
+              title={
+                ordersError
+                  ? "No se pudo cargar la lista"
+                  : normalizedQuery || normalizedStatusFilter
+                    ? "Sin resultados"
+                    : "Todavía no hay pedidos"
+              }
+            />
+          }
+          getKey={(order) => order.id}
+          href={(order) => `/panel/orders/${order.id}`}
+          rowLabel={(order) => `Ver pedido ${formatOrderNumber(order.orderNumber)} de ${order.customerName}`}
+          rows={pagedOrderRows}
+        />
 
-          <div className="grid gap-3 lg:hidden">
-            {pagedOrderRows.length ? (
-              pagedOrderRows.map((order) => (
-                <article key={order.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-medium text-stone-500">
-                        {formatOrderNumber(order.orderNumber)}
-                      </p>
-                      <p className="text-base font-semibold text-stone-50">{order.customerName}</p>
-                      <p className="mt-1 text-sm text-stone-400">
-                        {formatWhatsAppPhone(order.customerPhone)}
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-stone-300">
-                      {getChannelLabel(order.channel)}
-                    </span>
-                  </div>
-                  <div className="mt-4 grid gap-3 text-sm">
-                    <div className="rounded-2xl bg-stone-950/80 p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
-                      <div className="mt-1">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
-                          {getOrderStatusLabel(order.status)}
-                        </span>
-                      </div>
-                      {order.trip && (
-                        <Link
-                          href={`/panel/logistics/delivery/${order.trip.id}`}
-                          className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300"
-                        >
-                          {formatTripNumber(order.trip.number)}
-                        </Link>
-                      )}
-                    </div>
-                    <div className="rounded-2xl bg-stone-950/80 p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
-                      <p className="mt-1 text-stone-200">{order.itemsSummary}</p>
-                    </div>
-                    <div className="rounded-2xl bg-stone-950/80 p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Total</p>
-                      <p className="mt-1 text-stone-200">{formatCurrency(order.totalAmount)}</p>
-                      {order.paidAmount > 0 && (
-                        <p className="mt-1 text-xs text-stone-500">
-                          Cobrado {formatCurrency(order.paidAmount)} · Saldo{" "}
-                          {formatCurrency(order.paymentBalanceAmount)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      href={`/panel/orders/${order.id}`}
-                      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
-                    >
-                      Ver pedido
-                    </Link>
-                    {order.isEditable ? (
-                      <Link
-                        href={`/panel/orders/${order.id}/edit`}
-                        className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
-                      >
-                        Editar pedido
-                      </Link>
-                    ) : (
-                      <span className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-800 px-4 text-sm text-stone-500">
-                        Pedido bloqueado
-                      </span>
-                    )}
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-4 py-8 text-center text-sm text-stone-500">
-                {ordersError
-                  ? "No se pudo cargar la lista."
-                  : normalizedQuery
-                    ? "No hay pedidos para esa búsqueda."
-                    : "Todavia no hay pedidos cargados."}
-              </div>
-            )}
-          </div>
-
-          {totalPages > 1 ? (
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <p className="text-stone-500">
-                {pageStart + 1}–{pageStart + pagedOrderRows.length} de {visibleOrderRows.length}
-              </p>
-              <div className="flex gap-2">
-                {currentPage > 1 ? (
-                  <Link
-                    href={buildPageHref(currentPage - 1)}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-stone-200 transition hover:border-stone-500"
-                  >
-                    Anteriores
-                  </Link>
-                ) : null}
-                {currentPage < totalPages ? (
-                  <Link
-                    href={buildPageHref(currentPage + 1)}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-stone-200 transition hover:border-stone-500"
-                  >
-                    Siguientes
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-        </section>
-      </section>
-    </main>
+        <Pagination buildHref={buildPageHref} page={currentPage} totalPages={totalPages} />
+      </div>
+    </PageShell>
   );
 }

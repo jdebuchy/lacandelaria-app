@@ -395,11 +395,11 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
 
   return (
     <div className="grid gap-6">
-      <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+      <section className="rounded-card border border-line bg-paper p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-stone-50">Planificador de viaje</p>
-            <p className="mt-2 text-sm text-stone-400">
+            <p className="text-display font-semibold tracking-tight text-ink">Planificador de viaje</p>
+            <p className="mt-2 text-body text-ink-soft">
               Sumá pedidos, ordená las paradas y revisá la ruta antes de guardar.
             </p>
           </div>
@@ -408,7 +408,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               type="button"
               disabled={!canEditTrip || savePending}
               onClick={() => void handleSave()}
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
             >
               {savePending ? "Guardando..." : "Guardar viaje"}
             </button>
@@ -416,22 +416,22 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-7">
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Fecha del viaje</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft">
+            <span className="text-meta text-ink-faint">Fecha del viaje</span>
             <DateInput
               value={scheduledDate}
               onChange={setScheduledDate}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-10 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden focus:border-info-line disabled:opacity-60"
             />
           </label>
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Repartidor</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft">
+            <span className="text-meta text-ink-faint">Repartidor</span>
             <select
               value={driverUserId}
               onChange={(event) => setDriverUserId(event.target.value)}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-10 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden focus:border-info-line disabled:opacity-60"
             >
               <option value="">Sin asignar</option>
               {drivers.map((driver) => (
@@ -441,17 +441,17 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               ))}
             </select>
           </label>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">{getDeliveryTripStatusLabel(trip.status)}</p>
+          <div className="rounded-card border border-line bg-paper-muted p-4">
+            <p className="text-meta text-ink-faint">Estado</p>
+            <p className="mt-2 text-body font-medium text-ink">{getDeliveryTripStatusLabel(trip.status)}</p>
           </div>
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Depósito</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft">
+            <span className="text-meta text-ink-faint">Depósito</span>
             <select
               value={depotId}
               onChange={(event) => handleDepotChange(event.target.value)}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-10 rounded-control border border-line bg-paper-muted px-3 text-ink outline-hidden focus:border-info-line disabled:opacity-60"
             >
               {depotOptions.map((depot) => (
                 <option key={depot.id} value={depot.id}>
@@ -459,47 +459,47 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </option>
               ))}
             </select>
-            <span className="text-xs text-stone-500">{formatLogisticsDepotAddress(selectedDepot)}</span>
+            <span className="text-meta text-ink-faint">{formatLogisticsDepotAddress(selectedDepot)}</span>
           </label>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pedidos</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">{stops.length}</p>
+          <div className="rounded-card border border-line bg-paper-muted p-4">
+            <p className="text-meta text-ink-faint">Pedidos</p>
+            <p className="mt-2 text-body font-medium text-ink">{stops.length}</p>
           </div>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Distancia</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">
+          <div className="rounded-card border border-line bg-paper-muted p-4">
+            <p className="text-meta text-ink-faint">Distancia</p>
+            <p className="mt-2 text-body font-medium text-ink">
               {formatDistance(displayedRoute?.totalDistanceMeters ?? 0)}
             </p>
           </div>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Duración</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">
+          <div className="rounded-card border border-line bg-paper-muted p-4">
+            <p className="text-meta text-ink-faint">Duración</p>
+            <p className="mt-2 text-body font-medium text-ink">
               {formatDuration(displayedRoute?.totalDurationSeconds ?? 0)}
             </p>
           </div>
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300 md:col-span-2 xl:col-span-6">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Notas del viaje</span>
+          <label className="grid gap-2 rounded-card border border-line bg-paper-muted p-4 text-body text-ink-soft md:col-span-2 xl:col-span-6">
+            <span className="text-meta text-ink-faint">Notas del viaje</span>
             <textarea
               rows={2}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               disabled={!canEditTrip}
-              className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="rounded-control border border-line bg-paper-muted px-3 py-3 text-ink outline-hidden focus:border-info-line disabled:opacity-60"
             />
           </label>
         </div>
 
-        {message ? <p className="mt-4 text-sm text-stone-300">{message}</p> : null}
+        {message ? <p className="mt-4 text-body text-ink-soft">{message}</p> : null}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(280px,0.9fr)_minmax(320px,1fr)_minmax(360px,1.15fr)]">
-        <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+        <section className="rounded-card border border-line bg-paper p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-semibold text-stone-50">Pedidos disponibles</p>
-              <p className="mt-1 text-sm text-stone-400">Agregá pedidos al viaje.</p>
+              <p className="text-title font-semibold text-ink">Pedidos disponibles</p>
+              <p className="mt-1 text-body text-ink-soft">Agregá pedidos al viaje.</p>
             </div>
-            <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
+            <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
               {availableOrders.length}
             </span>
           </div>
@@ -508,61 +508,61 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
             value={availableQuery}
             onChange={(event) => setAvailableQuery(event.target.value)}
             placeholder="Buscar por cliente o dirección..."
-            className="mt-4 h-11 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-sky-400"
+            className="mt-4 h-11 w-full rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-info-line"
           />
 
           <div className="mt-4 grid gap-3">
             {filteredAvailableOrders.length ? (
               filteredAvailableOrders.map((order) => (
-                <article key={order.orderId} className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
+                <article key={order.orderId} className="rounded-card border border-line bg-paper-muted p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-stone-100">
-                        <span className="text-stone-500">{formatOrderNumber(order.orderNumber)}</span>{" "}
+                      <p className="text-body font-semibold text-ink">
+                        <span className="text-ink-faint">{formatOrderNumber(order.orderNumber)}</span>{" "}
                         {order.customerName}
                       </p>
-                      <p className="mt-1 text-xs text-stone-500">{order.addressSummary}</p>
+                      <p className="mt-1 text-meta text-ink-faint">{order.addressSummary}</p>
                     </div>
                     <button
                       type="button"
                       disabled={!canEditTrip}
                       onClick={() => addOrderToTrip(order)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-stone-700 text-lg text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-line text-title text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       +
                     </button>
                   </div>
-                  <div className="mt-3 grid gap-2 text-xs text-stone-400">
+                  <div className="mt-3 grid gap-2 text-meta text-ink-soft">
                     <p>{order.itemsSummary}</p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full bg-stone-900 px-2.5 py-1">{order.deliveryArea}</span>
-                      <span className="rounded-full bg-stone-900 px-2.5 py-1">
+                      <span className="rounded-control bg-paper px-2.5 py-1">{order.deliveryArea}</span>
+                      <span className="rounded-control bg-paper px-2.5 py-1">
                         {formatWindow(order.deliveryWindowStart, order.deliveryWindowEnd)}
                       </span>
-                      <span className="rounded-full bg-stone-900 px-2.5 py-1">{formatCurrency(order.totalAmount)}</span>
+                      <span className="rounded-control bg-paper px-2.5 py-1">{formatCurrency(order.totalAmount)}</span>
                     </div>
                   </div>
                 </article>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-stone-800 bg-stone-950/40 px-4 py-6 text-sm text-stone-400">
+              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-body text-ink-soft">
                 No hay pedidos disponibles con ese filtro.
               </div>
             )}
           </div>
         </section>
 
-        <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+        <section className="rounded-card border border-line bg-paper p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-semibold text-stone-50">Paradas del viaje</p>
-              <p className="mt-1 text-sm text-stone-400">Arrastrá para reordenar las paradas del recorrido.</p>
+              <p className="text-title font-semibold text-ink">Paradas del viaje</p>
+              <p className="mt-1 text-body text-ink-soft">Arrastrá para reordenar las paradas del recorrido.</p>
             </div>
             <button
               type="button"
               disabled={!canEditTrip || previewPending || optimizePending || !stops.length}
               onClick={() => void handleOptimize()}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-10 items-center justify-center rounded-control bg-info-bg px-4 text-body font-medium text-accent-fg transition hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-60"
             >
               {optimizePending ? "Optimizando..." : "Optimizar trayecto"}
             </button>
@@ -578,26 +578,26 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                   onDragEnd={() => setDraggedStopId(null)}
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={() => handleManualMove(stop.orderId)}
-                  className={`rounded-3xl border p-4 transition ${
+                  className={`rounded-card border p-4 transition ${
                     draggedStopId === stop.orderId
-                      ? "border-sky-400/40 bg-sky-500/10"
-                      : "border-stone-800 bg-stone-950/70 hover:border-stone-700"
+                      ? "border-info-line bg-info-bg"
+                      : "border-line bg-paper-muted hover:border-line"
                   } ${canEditTrip ? "cursor-move" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-start gap-3">
-                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-700 bg-stone-900 text-sm font-semibold text-stone-100">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-paper text-body font-semibold text-ink">
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-stone-100">
-                          <span className="text-stone-500">{formatOrderNumber(stop.orderNumber)}</span>{" "}
+                        <p className="truncate text-body font-semibold text-ink">
+                          <span className="text-ink-faint">{formatOrderNumber(stop.orderNumber)}</span>{" "}
                           {stop.customerName}
                         </p>
-                        <p className="mt-1 text-xs text-stone-500">{stop.addressSummary}</p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-stone-400">
-                          <span className="rounded-full bg-stone-900 px-2.5 py-1">{stop.itemsSummary}</span>
-                          <span className="rounded-full bg-stone-900 px-2.5 py-1">
+                        <p className="mt-1 text-meta text-ink-faint">{stop.addressSummary}</p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-meta text-ink-soft">
+                          <span className="rounded-control bg-paper px-2.5 py-1">{stop.itemsSummary}</span>
+                          <span className="rounded-control bg-paper px-2.5 py-1">
                             {formatWindow(stop.deliveryWindowStart, stop.deliveryWindowEnd)}
                           </span>
                         </div>
@@ -607,7 +607,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                       type="button"
                       disabled={!canEditTrip || stops.length === 1}
                       onClick={() => removeStopFromTrip(stop)}
-                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-stone-700 text-lg text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line text-title text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       −
                     </button>
@@ -615,7 +615,7 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </article>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-stone-800 bg-stone-950/40 px-4 py-6 text-sm text-stone-400">
+              <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-body text-ink-soft">
                 Todavía no sumaste pedidos al viaje.
               </div>
             )}
@@ -626,34 +626,34 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           <TripRouteMap depot={selectedDepot} route={displayedRoute} stops={stops} />
 
           {proposal ? (
-            <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-              <p className="text-lg font-semibold text-emerald-100">Resumen de optimización</p>
-              <p className="mt-1 text-sm text-emerald-200/80">
+            <div className="rounded-card border border-accent bg-accent-soft p-5">
+              <p className="text-title font-semibold text-accent">Resumen de optimización</p>
+              <p className="mt-1 text-body text-accent">
                 Compará la ruta actual con la propuesta optimizada antes de aplicarla.
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Distancia actual</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
+                <div className="rounded-card border border-accent bg-paper-muted p-4">
+                  <p className="text-meta text-accent">Distancia actual</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDistance(route?.totalDistanceMeters ?? 0)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Distancia optimizada</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
+                <div className="rounded-card border border-accent bg-paper-muted p-4">
+                  <p className="text-meta text-accent">Distancia optimizada</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDistance(proposal.totalDistanceMeters)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Tiempo actual</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
+                <div className="rounded-card border border-accent bg-paper-muted p-4">
+                  <p className="text-meta text-accent">Tiempo actual</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDuration(route?.totalDurationSeconds ?? 0)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Tiempo optimizado</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
+                <div className="rounded-card border border-accent bg-paper-muted p-4">
+                  <p className="text-meta text-accent">Tiempo optimizado</p>
+                  <p className="mt-2 text-body font-medium text-accent">
                     {formatDuration(proposal.totalDurationSeconds)}
                   </p>
                 </div>
@@ -663,14 +663,14 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 <button
                   type="button"
                   onClick={handleApplyOptimization}
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-400 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-300"
+                  className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent"
                 >
                   Aplicar propuesta
                 </button>
                 <button
                   type="button"
                   onClick={() => setProposal(null)}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-300/30 px-4 text-sm text-emerald-100 transition hover:border-emerald-200"
+                  className="inline-flex h-11 items-center justify-center rounded-control border border-accent px-4 text-body text-accent transition hover:border-accent"
                 >
                   Descartar
                 </button>

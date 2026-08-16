@@ -70,11 +70,11 @@ const FAILURE_REASON_OPTIONS: DeliveryFailureReason[] = [
 function toneClasses(tone: DriverStop["flowTone"]) {
   switch (tone) {
     case "amber":
-      return "border-amber-400/20 bg-amber-500/10 text-amber-200";
+      return "border-warn-line bg-warn-bg text-warn-fg";
     case "sky":
-      return "border-sky-400/20 bg-sky-500/10 text-sky-200";
+      return "border-info-line bg-info-bg text-info-fg";
     default:
-      return "border-emerald-400/20 bg-emerald-500/10 text-emerald-200";
+      return "border-accent bg-accent-soft text-accent";
   }
 }
 
@@ -148,7 +148,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
 
   if (!stops.length) {
     return (
-      <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/70 px-6 py-10 text-sm text-stone-400">
+      <div className="rounded-card border border-dashed border-line bg-paper px-6 py-10 text-body text-ink-soft">
         No hay pedidos activos para repartir.
       </div>
     );
@@ -172,69 +172,69 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
         );
 
         return (
-          <article key={stop.id} className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+          <article key={stop.id} className="rounded-card border border-line bg-paper p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-stone-950 px-3 text-sm font-semibold text-stone-200">
+                  <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-paper-muted px-3 text-body font-semibold text-ink">
                     {stop.sequenceNumber}
                   </span>
-                  <span className={`rounded-full border px-3 py-1 text-xs ${toneClasses(stop.flowTone)}`}>
+                  <span className={`rounded-control border px-3 py-1 text-meta ${toneClasses(stop.flowTone)}`}>
                     {stop.flowLabel}
                   </span>
-                  <span className="rounded-full border border-stone-700 bg-stone-950 px-3 py-1 text-xs text-stone-300">
+                  <span className="rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                     {statusLabel(stop.deliveryStatus)}
                   </span>
                   {stop.deliveryFailureReason ? (
-                    <span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-200">
+                    <span className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-meta text-danger-fg">
                       {getDeliveryFailureReasonLabel(stop.deliveryFailureReason)}
                     </span>
                   ) : null}
                 </div>
 
                 <div>
-                  <p className="text-xl font-semibold text-stone-50">{stop.customerName}</p>
-                  <p className="mt-1 text-sm text-stone-400">{stop.customerPhone}</p>
+                  <p className="text-title font-semibold text-ink">{stop.customerName}</p>
+                  <p className="mt-1 text-body text-ink-soft">{stop.customerPhone}</p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <div className="rounded-2xl bg-stone-950/80 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Área</p>
-                    <p className="mt-1 text-sm text-stone-200">{stop.deliveryArea}</p>
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-meta text-ink-faint">Área</p>
+                    <p className="mt-1 text-body text-ink">{stop.deliveryArea}</p>
                   </div>
-                  <div className="rounded-2xl bg-stone-950/80 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Ítems</p>
-                    <p className="mt-1 text-sm text-stone-200">{stop.itemsCount}</p>
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-meta text-ink-faint">Ítems</p>
+                    <p className="mt-1 text-body text-ink">{stop.itemsCount}</p>
                   </div>
-                  <div className="rounded-2xl bg-stone-950/80 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pago</p>
-                    <p className="mt-1 text-sm text-stone-200">
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-meta text-ink-faint">Pago</p>
+                    <p className="mt-1 text-body text-ink">
                       {getExpectedPaymentMethodLabel(stop.paymentMethodExpected)}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-stone-950/80 p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Cobranza</p>
-                    <p className="mt-1 text-sm text-stone-200">
+                  <div className="rounded-card bg-paper-muted p-3">
+                    <p className="text-meta text-ink-faint">Cobranza</p>
+                    <p className="mt-1 text-body text-ink">
                       {formatCurrency(stop.paidAmount)} / {formatCurrency(stop.totalAmount)}
                     </p>
-                    <p className="mt-1 text-xs text-stone-500">Saldo {formatCurrency(stop.paymentBalanceAmount)}</p>
+                    <p className="mt-1 text-meta text-ink-faint">Saldo {formatCurrency(stop.paymentBalanceAmount)}</p>
                   </div>
                 </div>
 
-                <p className="text-sm leading-6 text-stone-300">{stop.flowGuidance}</p>
-                <p className="text-sm text-emerald-300">{stop.itemsSummary}</p>
-                <p className="text-sm text-stone-500">{stop.addressSummary}</p>
+                <p className="text-body leading-6 text-ink-soft">{stop.flowGuidance}</p>
+                <p className="text-body text-accent">{stop.itemsSummary}</p>
+                <p className="text-body text-ink-faint">{stop.addressSummary}</p>
 
                 {stop.resellerName ? (
-                  <p className="text-sm text-sky-300">Punto revendedora: {stop.resellerName}</p>
+                  <p className="text-body text-info-fg">Punto revendedora: {stop.resellerName}</p>
                 ) : null}
 
                 {stop.deliveryDate ? (
-                  <p className="text-sm text-stone-400">Fecha prevista: {stop.deliveryDate}</p>
+                  <p className="text-body text-ink-soft">Fecha prevista: {stop.deliveryDate}</p>
                 ) : null}
 
                 {stop.notes ? (
-                  <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-3 text-sm text-stone-300">
+                  <div className="rounded-card border border-line bg-paper-muted p-3 text-body text-ink-soft">
                     {stop.notes}
                   </div>
                 ) : null}
@@ -246,7 +246,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                     href={whatsappHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20"
+                    className="inline-flex h-11 items-center justify-center rounded-control border border-accent bg-accent-soft px-4 text-body font-medium text-accent transition hover:bg-accent-soft"
                   >
                     Escribir al cliente
                   </Link>
@@ -257,13 +257,13 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                       type="button"
                       onClick={() => handleStatusChange(stop.id, "in_route")}
                       disabled={isUpdating}
-                      className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-11 items-center justify-center rounded-control bg-info-bg px-4 text-body font-medium text-accent-fg transition hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isUpdating ? "Guardando..." : "Salir a entrega"}
                     </button>
                     {canCollectCash ? (
-                      <div className="grid gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3">
-                        <label className="grid gap-1 text-xs text-emerald-100">
+                      <div className="grid gap-2 rounded-card border border-accent bg-accent-soft p-3">
+                        <label className="grid gap-1 text-meta text-accent">
                           Cobro en efectivo
                           <input
                             type="number"
@@ -276,11 +276,11 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                                 [stop.id]: event.target.value
                               }))
                             }
-                            className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-emerald-300"
+                            className="h-10 rounded-control border border-accent bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-accent"
                           />
                         </label>
                         {numericPaymentAmount > stop.cashPaymentBalanceAmount ? (
-                          <p className="text-xs text-amber-100">
+                          <p className="text-meta text-warn-fg">
                             Supera el saldo. El pedido quedara pagado.
                           </p>
                         ) : null}
@@ -297,7 +297,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                             })
                           }
                           disabled={isUpdating || !Number.isFinite(numericPaymentAmount) || numericPaymentAmount <= 0}
-                          className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {isUpdating ? "Guardando..." : "Entregar y cobrar"}
                         </button>
@@ -305,7 +305,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                           type="button"
                           onClick={() => handleStatusChange(stop.id, "delivered", { note })}
                           disabled={isUpdating}
-                          className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-400/20 px-4 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex h-10 items-center justify-center rounded-control border border-accent px-4 text-body font-medium text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Entregar sin cobrar
                         </button>
@@ -315,7 +315,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                         type="button"
                         onClick={() => handleStatusChange(stop.id, "delivered", { note })}
                         disabled={isUpdating}
-                        className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isUpdating ? "Guardando..." : "Marcar entregado"}
                       </button>
@@ -328,7 +328,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                           [stop.id]: event.target.value as DeliveryFailureReason
                         }))
                       }
-                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-rose-300"
+                      className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-danger-line"
                     >
                       {FAILURE_REASON_OPTIONS.map((option) => (
                         <option key={option} value={option}>
@@ -346,7 +346,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                         }))
                       }
                       placeholder="Comentario"
-                      className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-stone-500"
+                      className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden transition placeholder:text-ink-faint focus:border-line-strong"
                     />
                     <button
                       type="button"
@@ -357,18 +357,18 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                         })
                       }
                       disabled={isUpdating}
-                      className="inline-flex h-11 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-11 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-4 text-body font-medium text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isUpdating ? "Guardando..." : "No entregado"}
                     </button>
                   </>
                 ) : null}
 
-                <div className="rounded-2xl border border-stone-800 bg-stone-950/80 p-3 text-xs text-stone-400">
+                <div className="rounded-card border border-line bg-paper-muted p-3 text-meta text-ink-soft">
                   Estado pedido: {stop.orderStatus}
                 </div>
 
-                {feedback[stop.id] ? <p className="text-xs text-stone-400">{feedback[stop.id]}</p> : null}
+                {feedback[stop.id] ? <p className="text-meta text-ink-soft">{feedback[stop.id]}</p> : null}
               </div>
             </div>
           </article>

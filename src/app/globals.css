@@ -1,29 +1,285 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
+/* ---------------------------------------------------------------------------
+   Sistema de diseno "Campo"
+
+   Una sola fuente de verdad para color, tipografia y geometria. Los nombres de
+   token son los mismos que usa 40q-bi-scripts/crm/frontend (ink / paper / line
+   / accent), asi que quien salta entre los dos proyectos escribe igual.
+
+   Cambian los valores, no el vocabulario: papel calido en vez de gris frio, y
+   el verde de la palta como acento en vez del azul.
+
+   Como funciona el tema:
+   - Los tokens semanticos viven como variables CSS en :root y .dark.
+   - @theme inline hace que las utilidades de Tailwind apunten a la variable en
+     el punto de uso en vez de copiar el valor, que es lo que permite que .dark
+     las pise sin duplicar una sola utilidad.
+   - .force-light vuelve a declarar el bloque claro y, por venir despues de
+     .dark con la misma especificidad, gana. Lo usa /reparto, que se mira al sol
+     y no puede quedar oscuro aunque el resto del panel lo este.
+--------------------------------------------------------------------------- */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* --- Tema claro (el default) --------------------------------------------- */
+
+:root,
+.force-light {
+  /* Superficies. La card es blanca y la pagina es apenas calida: separa sin
+     necesidad de sombras. */
+  --paper: #ffffff;
+  --paper-muted: #f8f7f3;
+  --paper-raised: #f1efe8;
+
+  /* Texto. Negro calido con dejo verde, para que pertenezca a la paleta. */
+  --ink: #1a1c18;
+  --ink-soft: #565c52;
+  --ink-faint: #686e61;
+
+  /* Bordes.
+     line       hairline decorativo entre filas de tabla.
+     line-strong  borde de control (input, boton secundario). WCAG 1.4.11 pide
+                  3:1 contra el fondo, porque es lo unico que define al
+                  componente: sin el, un boton secundario sobre la pagina es
+                  texto suelto. */
+  --line: #e5e3db;
+  --line-strong: #8a8e82;
+
+  /* Acento: la cascara de la palta. */
+  --accent: #2e5d3c;
+  --accent-strong: #234a2f;
+  --accent-soft: #e8efe7;
+  --accent-fg: #ffffff;
+
+  /* Pulpa. Se usa en un solo lugar de toda la app: el sello de zona.
+     Es deliberado. Si aparece en un segundo lugar, algo se fue de las manos.
+
+     pulp-fg no es --ink: el sello es una etiqueta impresa, y la tinta es
+     oscura en los dos temas. Heredar --ink dejaba verde claro sobre verde
+     claro en modo oscuro (1.44:1, ilegible). */
+  --pulp: #c6d06b;
+  --pulp-fg: #1a1c18;
+
+  /* Tonos de estado. No hay un color por estado, hay un tono por significado:
+     warn pide una persona, info esta en movimiento, success cerro bien,
+     danger cerro mal. */
+  --tone-neutral-fg: #565c52;
+  --tone-neutral-bg: #f2f1ec;
+  --tone-neutral-line: #e5e3db;
+
+  --tone-warn-fg: #8a5a1e;
+  --tone-warn-bg: #fbf2e4;
+  --tone-warn-line: #ebd9bc;
+
+  --tone-info-fg: #33507e;
+  --tone-info-bg: #eaeff8;
+  --tone-info-line: #c6d4ea;
+
+  --tone-success-fg: #2e5d3c;
+  --tone-success-bg: #e8efe7;
+  --tone-success-line: #c7dac6;
+
+  --tone-danger-fg: #8f3a2c;
+  --tone-danger-bg: #fbede9;
+  --tone-danger-line: #efcfc5;
+
+  --shadow-overlay: 0 24px 60px -12px rgb(26 28 24 / 0.28);
+
+  color-scheme: light;
+}
+
+/* --- Tema oscuro ---------------------------------------------------------- */
+
+.dark {
+  /* Oscuro calido de la misma familia, no negro puro. La card es mas clara que
+     la pagina, que es el modelo de elevacion correcto. */
+  --paper: #1c1e1a;
+  --paper-muted: #141613;
+  --paper-raised: #24261f;
+
+  --ink: #f0efe9;
+  --ink-soft: #a6ab9e;
+  --ink-faint: #888e80;
+
+  --line: #2e312b;
+  --line-strong: #6b7064;
+
+  /* El verde profundo es ilegible sobre oscuro, asi que el acento sube de
+     luminosidad y el texto que va encima se invierte. */
+  --accent: #7fb98c;
+  --accent-strong: #9bcba5;
+  --accent-soft: #1e2b21;
+  --accent-fg: #102315;
+
+  /* La pulpa no cambia entre temas: es una etiqueta impresa, y se lee igual
+     de un lado y del otro, tinta oscura incluida. */
+  --pulp: #c6d06b;
+  --pulp-fg: #1a1c18;
+
+  --tone-neutral-fg: #a6ab9e;
+  --tone-neutral-bg: #24261f;
+  --tone-neutral-line: #35392f;
+
+  --tone-warn-fg: #e6b770;
+  --tone-warn-bg: #3a2c15;
+  --tone-warn-line: #5c4522;
+
+  --tone-info-fg: #9fbbe8;
+  --tone-info-bg: #1b263b;
+  --tone-info-line: #2f425f;
+
+  --tone-success-fg: #8fcb9b;
+  --tone-success-bg: #16281b;
+  --tone-success-line: #27452e;
+
+  --tone-danger-fg: #ea9c8a;
+  --tone-danger-bg: #34201b;
+  --tone-danger-line: #55322a;
+
+  --shadow-overlay: 0 24px 60px -12px rgb(0 0 0 / 0.6);
+
   color-scheme: dark;
 }
 
-* {
-  box-sizing: border-box;
+/* --- Tokens expuestos a Tailwind ------------------------------------------ */
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-muted: var(--paper-muted);
+  --color-paper-raised: var(--paper-raised);
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-pulp: var(--pulp);
+  --color-pulp-fg: var(--pulp-fg);
+
+  --color-neutral-fg: var(--tone-neutral-fg);
+  --color-neutral-bg: var(--tone-neutral-bg);
+  --color-neutral-line: var(--tone-neutral-line);
+
+  --color-warn-fg: var(--tone-warn-fg);
+  --color-warn-bg: var(--tone-warn-bg);
+  --color-warn-line: var(--tone-warn-line);
+
+  --color-info-fg: var(--tone-info-fg);
+  --color-info-bg: var(--tone-info-bg);
+  --color-info-line: var(--tone-info-line);
+
+  --color-success-fg: var(--tone-success-fg);
+  --color-success-bg: var(--tone-success-bg);
+  --color-success-line: var(--tone-success-line);
+
+  --color-danger-fg: var(--tone-danger-fg);
+  --color-danger-bg: var(--tone-danger-bg);
+  --color-danger-line: var(--tone-danger-line);
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-overlay: var(--shadow-overlay);
 }
 
-html {
-  scroll-behavior: smooth;
+@theme {
+  /* Geometria. Dos radios, no once.
+     Casi rectos a proposito: esto es una herramienta de operacion, no una app
+     de consumo. La esquina se mata apenas para que no corte, y nada mas. La
+     unica forma redonda que sobrevive en la app es el avatar del usuario, que
+     es una foto y va circular por convencion. */
+  --radius-control: 2px;
+  --radius-card: 3px;
+
+  /* Escala tipografica. Cinco pasos con nombre, en vez de text-3xl mezclado
+     con text-[15px] y text-[17px]. */
+  --text-display: 1.75rem;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 600;
+
+  --text-title: 1.125rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 600;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 500;
+
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.4;
+
+  /* Alturas de fila y de control.
+
+     36px es una fila de una linea: en una herramienta de operacion, ver mas
+     pedidos de una vez vale mas que el aire. A 44px entraban 13 pedidos por
+     pantalla; a 36 entran mas de 20.
+
+     El escalon tactil existe para /reparto, que se maneja con el pulgar, en
+     movimiento y a veces bajo el sol. Ahi el tamaño no se negocia. */
+  --spacing-row: 36px;
+  --spacing-row-touch: 56px;
 }
 
-body {
-  margin: 0;
-  font-family:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(16, 185, 129, 0.1), transparent 35%),
-    linear-gradient(180deg, #0c0a09 0%, #111827 100%);
-}
+/* --- Base ----------------------------------------------------------------- */
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--paper-muted);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Las columnas de plata tienen que alinear. Archivo trae figuras tabulares;
+     esto las prende donde importa sin pedirlo componente por componente. */
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Un solo anillo de foco para toda la app, visible en ambos temas. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

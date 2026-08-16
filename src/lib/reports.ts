@@ -628,7 +628,7 @@ export function buildReportsData({
 
   return {
     aging: buildAgingMetrics(sellableOrdersNow),
-    channelMix: segmentsFromMap(channelMap, CHANNEL_LABELS, ["bg-sky-300", "bg-emerald-300", "bg-amber-300"]),
+    channelMix: segmentsFromMap(channelMap, CHANNEL_LABELS, ["bg-info-bg", "bg-accent", "bg-warn-bg"]),
     customerRows: rankRows(customerMap, revenueNow),
     deliveryRows: rankRows(deliveriesByDriver, Math.max(1, deliveredNow.length)),
     kpis: [
@@ -715,7 +715,7 @@ export function buildReportsData({
         value: number(deliveredNow.filter((delivery) => delivery.status === "failed").length)
       }
     ],
-    methodMix: segmentsFromMap(methodMap, PAYMENT_METHOD_LABELS, ["bg-stone-300", "bg-emerald-300", "bg-sky-300"]),
+    methodMix: segmentsFromMap(methodMap, PAYMENT_METHOD_LABELS, ["bg-paper-raised", "bg-accent", "bg-info-bg"]),
     operationMetrics: [
       "pending_confirmation",
       "confirmed",
@@ -735,7 +735,7 @@ export function buildReportsData({
     paymentStatusMix: segmentsFromMap(
       paymentStatusMap,
       { paid: "Pagado", partial: "Parcial", pending: "Pendiente" },
-      ["bg-emerald-300", "bg-amber-300", "bg-rose-300"]
+      ["bg-accent", "bg-warn-bg", "bg-danger-bg"]
     ),
     productRows: rankRows(productMap, Math.max(1, unitsNow), 6, currency),
     range,

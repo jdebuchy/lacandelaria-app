@@ -31,18 +31,18 @@ function MenuIcon({ open }: { open: boolean }) {
   return (
     <span className="relative block h-4 w-5" aria-hidden="true">
       <span
-        className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition ${
+        className={`absolute left-0 top-0 h-0.5 w-5 rounded-control bg-current transition ${
           open ? "translate-y-[7px] rotate-45" : ""
         }`}
       />
       <span
-        className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-current transition ${
+        className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-control bg-current transition ${
           open ? "opacity-0" : ""
         }`}
       />
       <span
-        className={`absolute left-0 top-[14px] h-0.5 w-5 rounded-full bg-current transition ${
-          open ? "-translate-y-[7px] -rotate-45" : ""
+        className={`absolute left-0 top-[14px] h-0.5 w-5 rounded-control bg-current transition ${
+          open ? "translate-y-[-7px] -rotate-45" : ""
         }`}
       />
     </span>
@@ -72,10 +72,10 @@ export function SiteNav() {
 
   return (
     <header className="relative z-30">
-      <div className="flex items-center justify-between gap-3 rounded-3xl border border-stone-800 bg-stone-950/85 px-4 py-3 backdrop-blur sm:hidden">
+      <div className="flex items-center justify-between gap-3 rounded-card border border-line bg-paper-muted px-4 py-3 backdrop-blur-sm sm:hidden">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Navegacion</p>
-          <p className="mt-1 text-sm font-medium text-stone-100">
+          <p className="text-meta text-ink-faint">Navegacion</p>
+          <p className="mt-1 text-body font-medium text-ink">
             {links.find((link) => link.href === pathname)?.label ?? "Menu"}
           </p>
         </div>
@@ -86,13 +86,13 @@ export function SiteNav() {
           aria-controls="site-mobile-nav"
           aria-label={isOpen ? "Cerrar menu" : "Abrir menu"}
           onClick={() => setIsOpen((current) => !current)}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-700 bg-stone-900 text-stone-100 transition hover:border-emerald-400/40 hover:text-emerald-200"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-card border border-line bg-paper text-ink transition hover:border-accent hover:text-accent"
         >
           <MenuIcon open={isOpen} />
         </button>
       </div>
 
-      <nav className="hidden flex-wrap items-center gap-3 text-sm text-stone-300 sm:flex">
+      <nav className="hidden flex-wrap items-center gap-3 text-body text-ink-soft sm:flex">
         {links.map((link) => {
           const isActive = pathname === link.href;
 
@@ -100,10 +100,10 @@ export function SiteNav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-full border px-4 py-2 transition ${
+              className={`rounded-control border px-4 py-2 transition ${
                 isActive
-                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
-                  : "border-stone-800 bg-stone-900/70 hover:border-emerald-400/40 hover:text-stone-50"
+                  ? "border-accent bg-accent-soft text-accent"
+                  : "border-line bg-paper hover:border-accent hover:text-ink"
               }`}
             >
               {link.label}
@@ -118,12 +118,12 @@ export function SiteNav() {
             type="button"
             aria-label="Cerrar menu"
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs"
           />
 
           <nav
             id="site-mobile-nav"
-            className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-50 rounded-[2rem] border border-stone-800 bg-stone-950/95 p-3 shadow-2xl shadow-black/40"
+            className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-50 rounded-control-4xl border border-line bg-paper-muted p-3 shadow-2xl shadow-black/40"
           >
             <div className="grid gap-2">
               {links.map((link) => {
@@ -133,28 +133,28 @@ export function SiteNav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`rounded-[1.5rem] border px-4 py-4 transition ${
+                    className={`rounded-card border px-4 py-4 transition ${
                       isActive
-                        ? "border-emerald-400/40 bg-emerald-500/10"
-                        : "border-stone-800 bg-stone-900/80"
+                        ? "border-accent bg-accent-soft"
+                        : "border-line bg-paper"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p
-                          className={`text-sm font-medium ${
-                            isActive ? "text-emerald-200" : "text-stone-100"
+                          className={`text-body font-medium ${
+                            isActive ? "text-accent" : "text-ink"
                           }`}
                         >
                           {link.label}
                         </p>
-                        <p className="mt-1 text-sm text-stone-400">{link.description}</p>
+                        <p className="mt-1 text-body text-ink-soft">{link.description}</p>
                       </div>
                       <span
-                        className={`mt-0.5 rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.18em] ${
+                        className={`mt-0.5 rounded-control px-2 py-1 text-meta ${
                           isActive
-                            ? "bg-emerald-400/15 text-emerald-200"
-                            : "bg-stone-800 text-stone-400"
+                            ? "bg-accent-soft text-accent"
+                            : "bg-paper-raised text-ink-soft"
                         }`}
                       >
                         {isActive ? "Actual" : "Ir"}

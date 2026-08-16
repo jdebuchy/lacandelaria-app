@@ -123,7 +123,7 @@ export default async function WhatsappInboxPage({ searchParams }: { searchParams
             <div className="min-h-0 flex-1 overflow-y-auto">
               {conversations.length ? (
                 conversations.map((conversation) => {
-                  const latestMessage = conversation.whatsapp_messages?.[0];
+                  const latestMessage = conversation.conversation_messages?.[0];
                   const isActive = selectedConversation?.id === conversation.id;
 
                   return (

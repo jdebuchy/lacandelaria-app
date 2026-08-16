@@ -91,7 +91,7 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient();
   const { data: conversation, error: conversationError } = await supabase
-    .from("whatsapp_conversations")
+    .from("conversations")
     .select("id, customer_id, draft_order")
     .eq("id", parsed.data.conversationId)
     .maybeSingle();
@@ -267,7 +267,7 @@ export async function POST(request: Request) {
   }
 
   await supabase
-    .from("whatsapp_conversations")
+    .from("conversations")
     .update({
       customer_id: customerId,
       status: "order_created",

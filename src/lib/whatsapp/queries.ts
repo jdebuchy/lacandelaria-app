@@ -24,7 +24,7 @@ export type WhatsappConversationRow = {
     phone?: string | null;
     whatsapp_phone?: string | null;
   }> | null;
-  whatsapp_messages?: Array<{
+  conversation_messages?: Array<{
     body: string;
     created_at: string;
     direction: string;
@@ -100,7 +100,7 @@ function isMissingWhatsappTable(error: { code?: string; message?: string } | nul
 export async function listWhatsappConversations(limit = 50) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_conversations")
+    .from("conversations")
     .select(
       `
         id,
@@ -121,7 +121,7 @@ export async function listWhatsappConversations(limit = 50) {
           phone,
           whatsapp_phone
         ),
-        whatsapp_messages (
+        conversation_messages (
           body,
           created_at,
           direction,
@@ -146,7 +146,7 @@ export async function listWhatsappConversations(limit = 50) {
 export async function listWhatsappQueue(limit = 100) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_message_queue")
+    .from("message_queue")
     .select(
       `
         id,
@@ -185,7 +185,7 @@ export async function listWhatsappQueue(limit = 100) {
 export async function listWhatsappAutomationSettings() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_automation_settings")
+    .from("automation_settings")
     .select("id, message_type, active, days_after_delivered, daily_limit, random_delay_min_seconds, random_delay_max_seconds, template_body, updated_at")
     .order("days_after_delivered", { ascending: true });
 
@@ -203,7 +203,7 @@ export async function listWhatsappAutomationSettings() {
 export async function listWhatsappCommercialSettings() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_commercial_settings")
+    .from("commercial_settings")
     .select("id, key, value, requires_human, updated_at")
     .order("key", { ascending: true });
 
@@ -221,7 +221,7 @@ export async function listWhatsappCommercialSettings() {
 export async function listWhatsappConversationsByCustomer(customerId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_conversations")
+    .from("conversations")
     .select("id, customer_id, phone, status, current_intent, ai_confidence, draft_order, requires_human, last_inbound_at, last_outbound_at, created_at, updated_at")
     .eq("customer_id", customerId)
     .order("updated_at", { ascending: false });
@@ -240,7 +240,7 @@ export async function listWhatsappConversationsByCustomer(customerId: string) {
 export async function listWhatsappMessagesByCustomer(customerId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_messages")
+    .from("conversation_messages")
     .select("id, conversation_id, customer_id, order_id, direction, message_type, body, ai_intent, ai_confidence, raw_payload, created_at")
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false })
@@ -260,7 +260,7 @@ export async function listWhatsappMessagesByCustomer(customerId: string) {
 export async function listWhatsappMessagesByConversation(conversationId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from("whatsapp_messages")
+    .from("conversation_messages")
     .select("id, conversation_id, customer_id, order_id, direction, message_type, body, ai_intent, ai_confidence, raw_payload, created_at")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true })

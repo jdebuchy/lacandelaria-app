@@ -21,13 +21,13 @@ export default async function UsersPage() {
     <main>
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="space-y-3">
-          <span className="inline-flex rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-sm text-sky-200">
+          <span className="inline-flex rounded-control border border-info-line bg-info-bg px-3 py-1 text-body text-info-fg">
             Usuarios internos
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+          <h1 className="text-display font-semibold tracking-tight text-ink">
             Alta de usuarios y repartidores
           </h1>
-          <p className="max-w-3xl text-base leading-7 text-stone-300">
+          <p className="max-w-3xl text-body leading-7 text-ink-soft">
             Desde aquí puedes crear perfiles internos para reparto, ventas, cobranza o administración.
             Los mails ficticios sirven para asignación interna; solo los mails reales podrán iniciar sesión
             con Google.

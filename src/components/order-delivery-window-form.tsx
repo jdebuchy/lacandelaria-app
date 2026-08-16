@@ -57,21 +57,21 @@ export function OrderDeliveryWindowForm({
           type="time"
           value={start}
           onChange={(event) => setStart(event.target.value)}
-          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400"
+          className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden focus:border-info-line"
         />
-        <span className="text-stone-500">a</span>
+        <span className="text-ink-faint">a</span>
         <input
           aria-label="Entregar hasta"
           type="time"
           value={end}
           onChange={(event) => setEnd(event.target.value)}
-          className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400"
+          className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink outline-hidden focus:border-info-line"
         />
         {isDirty ? (
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-3 text-sm text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-control border border-line px-3 text-body text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Guardando..." : "Guardar"}
           </button>
@@ -79,7 +79,7 @@ export function OrderDeliveryWindowForm({
       </div>
 
       {message ? (
-        <p className={`text-xs ${failed ? "text-rose-300" : "text-emerald-300"}`}>{message}</p>
+        <p className={`text-meta ${failed ? "text-danger-fg" : "text-accent"}`}>{message}</p>
       ) : null}
     </form>
   );

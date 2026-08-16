@@ -115,16 +115,16 @@ export function OrderItemsEditor({
 
   return (
     <div className="grid min-w-0 gap-4 md:col-span-2">
-      <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-col gap-3 rounded-card border border-line bg-paper px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-base font-semibold text-stone-100">Productos del pedido</p>
-          <p className="text-xs text-stone-500">Eliges producto y presentación, y el sistema precarga la variante por defecto.</p>
+          <p className="text-body font-semibold text-ink">Productos del pedido</p>
+          <p className="text-meta text-ink-faint">Eliges producto y presentación, y el sistema precarga la variante por defecto.</p>
         </div>
         <button
           type="button"
           onClick={addItem}
           disabled={!activeFamilies.length || !hasAvailableProducts}
-          className="self-start whitespace-nowrap rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
+          className="self-start whitespace-nowrap rounded-control border border-info-line bg-info-bg px-4 py-2 text-body text-info-fg transition hover:border-info-line hover:bg-info-bg disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
         >
           Agregar línea
         </button>
@@ -148,9 +148,9 @@ export function OrderItemsEditor({
           return (
             <div
               key={`${item.productId}-${index}`}
-              className="grid min-w-0 gap-3 rounded-2xl border border-stone-800 bg-stone-950/80 p-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(5rem,0.7fr)_minmax(0,0.9fr)_auto]"
+              className="grid min-w-0 gap-3 rounded-card border border-line bg-paper-muted p-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(5rem,0.7fr)_minmax(0,0.9fr)_auto]"
             >
-              <label className="grid min-w-0 gap-2 text-sm text-stone-300">
+              <label className="grid min-w-0 gap-2 text-body text-ink-soft">
                 Producto
                 <select
                   value={family?.id ?? ""}
@@ -171,7 +171,7 @@ export function OrderItemsEditor({
                       productId: nextVariantId
                     });
                   }}
-                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                 >
                   {activeFamilies.map((entry) => (
                     <option key={entry.id} value={entry.id}>
@@ -181,7 +181,7 @@ export function OrderItemsEditor({
                 </select>
               </label>
 
-              <label className="grid min-w-0 gap-2 text-sm text-stone-300">
+              <label className="grid min-w-0 gap-2 text-body text-ink-soft">
                 Presentación
                 <select
                   value={item.productId}
@@ -191,7 +191,7 @@ export function OrderItemsEditor({
                       productId: event.target.value
                     })
                   }
-                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                 >
                   {familyVariants.map((entry) => (
                     <option
@@ -205,7 +205,7 @@ export function OrderItemsEditor({
                 </select>
               </label>
 
-              <label className="grid min-w-0 gap-2 text-sm text-stone-300">
+              <label className="grid min-w-0 gap-2 text-body text-ink-soft">
                 Cantidad
                 <input
                   type="number"
@@ -219,15 +219,15 @@ export function OrderItemsEditor({
                       quantity: Math.max(1, Number(event.target.value) || 1)
                     })
                   }
-                  className="h-12 w-full rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 w-full rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                 />
               </label>
 
-              <div className="grid min-w-0 gap-2 text-sm text-stone-300">
+              <div className="grid min-w-0 gap-2 text-body text-ink-soft">
                 <p>Subtotal</p>
-                <div className="min-w-0 rounded-xl border border-stone-800 bg-stone-900/80 px-4 py-3 text-base text-stone-100">
+                <div className="min-w-0 rounded-control border border-line bg-paper px-4 py-3 text-body text-ink">
                   <p>{formatCurrency(unitPrice * item.quantity)}</p>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-meta text-ink-faint">
                     {variant ? `${variant.label} · ${formatCurrency(unitPrice)}` : "-"}
                   </p>
                 </div>
@@ -241,8 +241,8 @@ export function OrderItemsEditor({
                     disabled={items.length === 1}
                     className={
                       removeAction === "subtle"
-                        ? "h-12 px-2 text-sm text-stone-500 transition hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-40"
-                        : "h-12 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        ? "h-12 px-2 text-body text-ink-faint transition hover:text-danger-fg disabled:cursor-not-allowed disabled:opacity-40"
+                        : "h-12 rounded-control border border-danger-line bg-danger-bg px-4 text-body text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-50"
                     }
                   >
                     Quitar
@@ -254,18 +254,18 @@ export function OrderItemsEditor({
         })}
       </div>
 
-      <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm">
-        <p className="text-emerald-200">{summary.primaryLabel}</p>
-        <p className="mt-2 text-2xl font-semibold text-stone-50">
+      <div className="rounded-card border border-accent bg-accent-soft p-4 text-body">
+        <p className="text-accent">{summary.primaryLabel}</p>
+        <p className="mt-2 text-title font-semibold text-ink">
           {formatCurrency(summary.primaryAmount)}
         </p>
         {summary.secondaryText ? (
-          <p className="mt-1 text-stone-300">{summary.secondaryText}</p>
+          <p className="mt-1 text-ink-soft">{summary.secondaryText}</p>
         ) : null}
       </div>
 
       {paymentMethod === "unknown" ? (
-        <p className="text-xs leading-5 text-stone-500">
+        <p className="text-meta leading-5 text-ink-faint">
           La forma de pago se define al cobrar. Si el cliente paga en efectivo, el sistema aplica el
           descuento automáticamente.
         </p>

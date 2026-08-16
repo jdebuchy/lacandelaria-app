@@ -107,82 +107,82 @@ export default async function CustomerDetailPage({
       <section className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4">
           <div>
-            <Link href="/panel/customers" className="text-sm text-stone-500 transition hover:text-stone-300">
+            <Link href="/panel/customers" className="text-body text-ink-faint transition hover:text-ink-soft">
               ← Volver a clientes
             </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+            <h1 className="mt-3 text-display font-semibold tracking-tight text-ink">
               {customerName}
             </h1>
-            <p className="mt-2 text-stone-400">{formatWhatsAppPhone(customer.whatsapp_phone || customer.phone)}</p>
+            <p className="mt-2 text-ink-soft">{formatWhatsAppPhone(customer.whatsapp_phone || customer.phone)}</p>
           </div>
           <CustomerDetailTabs activeTab={activeTab} customerId={customer.id} />
         </div>
 
         {activeTab === "profile" ? (
           <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <article className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-              <h2 className="text-xl font-semibold text-stone-50">Perfil</h2>
-              <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+            <article className="rounded-card border border-line bg-paper p-6">
+              <h2 className="text-title font-semibold text-ink">Perfil</h2>
+              <dl className="mt-5 grid gap-4 text-body sm:grid-cols-2">
                 <div>
-                  <dt className="text-stone-500">Nombre</dt>
-                  <dd className="mt-1 text-stone-100">{customerName}</dd>
+                  <dt className="text-ink-faint">Nombre</dt>
+                  <dd className="mt-1 text-ink">{customerName}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Instagram</dt>
-                  <dd className="mt-1 text-stone-100">{customer.instagram || "-"}</dd>
+                  <dt className="text-ink-faint">Instagram</dt>
+                  <dd className="mt-1 text-ink">{customer.instagram || "-"}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Teléfono</dt>
-                  <dd className="mt-1 text-stone-100">{formatWhatsAppPhone(customer.phone)}</dd>
+                  <dt className="text-ink-faint">Teléfono</dt>
+                  <dd className="mt-1 text-ink">{formatWhatsAppPhone(customer.phone)}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Origen</dt>
-                  <dd className="mt-1 text-stone-100">{customer.source}</dd>
+                  <dt className="text-ink-faint">Origen</dt>
+                  <dd className="mt-1 text-ink">{customer.source}</dd>
                 </div>
                 <div className="sm:col-span-2">
-                  <dt className="text-stone-500">Dirección</dt>
-                  <dd className="mt-1 text-stone-100">{addressSummary}</dd>
-                  {addressLine ? <dd className="mt-1 text-stone-500">{addressLine}</dd> : null}
+                  <dt className="text-ink-faint">Dirección</dt>
+                  <dd className="mt-1 text-ink">{addressSummary}</dd>
+                  {addressLine ? <dd className="mt-1 text-ink-faint">{addressLine}</dd> : null}
                 </div>
                 <div>
-                  <dt className="text-stone-500">Área logística</dt>
-                  <dd className="mt-1 text-stone-100">{customer.delivery_area || "-"}</dd>
+                  <dt className="text-ink-faint">Área logística</dt>
+                  <dd className="mt-1 text-ink">{customer.delivery_area || "-"}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Alta</dt>
-                  <dd className="mt-1 text-stone-100">{formatDate(customer.created_at)}</dd>
+                  <dt className="text-ink-faint">Alta</dt>
+                  <dd className="mt-1 text-ink">{formatDate(customer.created_at)}</dd>
                 </div>
                 <div className="sm:col-span-2">
-                  <dt className="text-stone-500">Notas de entrega</dt>
-                  <dd className="mt-1 text-stone-100">{customer.delivery_notes || "-"}</dd>
+                  <dt className="text-ink-faint">Notas de entrega</dt>
+                  <dd className="mt-1 text-ink">{customer.delivery_notes || "-"}</dd>
                 </div>
               </dl>
             </article>
 
-            <article className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-              <h2 className="text-xl font-semibold text-stone-50">WhatsApp</h2>
-              <dl className="mt-5 grid gap-4 text-sm">
+            <article className="rounded-card border border-line bg-paper p-6">
+              <h2 className="text-title font-semibold text-ink">WhatsApp</h2>
+              <dl className="mt-5 grid gap-4 text-body">
                 <div>
-                  <dt className="text-stone-500">Teléfono WhatsApp</dt>
-                  <dd className="mt-1 text-stone-100">{formatWhatsAppPhone(customer.whatsapp_phone || customer.phone)}</dd>
+                  <dt className="text-ink-faint">Teléfono WhatsApp</dt>
+                  <dd className="mt-1 text-ink">{formatWhatsAppPhone(customer.whatsapp_phone || customer.phone)}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Opt-in</dt>
-                  <dd className={customer.whatsapp_opt_in === false ? "mt-1 text-rose-300" : "mt-1 text-emerald-300"}>
+                  <dt className="text-ink-faint">Opt-in</dt>
+                  <dd className={customer.whatsapp_opt_in === false ? "mt-1 text-danger-fg" : "mt-1 text-accent"}>
                     {customer.whatsapp_opt_in === false ? "No habilitado" : "Habilitado"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Baja</dt>
-                  <dd className="mt-1 text-stone-100">{formatDateTime(customer.whatsapp_opt_out_at)}</dd>
+                  <dt className="text-ink-faint">Baja</dt>
+                  <dd className="mt-1 text-ink">{formatDateTime(customer.whatsapp_opt_out_at)}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Última interacción</dt>
-                  <dd className="mt-1 text-stone-100">{formatDateTime(customer.last_whatsapp_interaction_at)}</dd>
+                  <dt className="text-ink-faint">Última interacción</dt>
+                  <dd className="mt-1 text-ink">{formatDateTime(customer.last_whatsapp_interaction_at)}</dd>
                 </div>
                 <div>
-                  <dt className="text-stone-500">Canal preferido</dt>
-                  <dd className="mt-1 text-stone-100">{customer.preferred_contact_channel || "-"}</dd>
+                  <dt className="text-ink-faint">Canal preferido</dt>
+                  <dd className="mt-1 text-ink">{customer.preferred_contact_channel || "-"}</dd>
                 </div>
               </dl>
             </article>
@@ -190,7 +190,7 @@ export default async function CustomerDetailPage({
         ) : null}
 
         {activeTab === "orders" ? (
-          <section className="overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70">
+          <section className="overflow-hidden rounded-card border border-line bg-paper">
             {orders.length ? (
               orders.map((order) => {
                 const paidAmount = (order.payments ?? [])
@@ -200,31 +200,31 @@ export default async function CustomerDetailPage({
                 const isEditable = canEditOrder(order.status, false);
 
                 return (
-                  <article key={order.id} className="border-b border-stone-800 p-5 last:border-b-0">
+                  <article key={order.id} className="border-b border-line p-5 last:border-b-0">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-lg font-semibold text-stone-50">{formatItemsSummary(order.order_items ?? [])}</p>
-                        <p className="mt-1 text-sm text-stone-400">
+                        <p className="text-title font-semibold text-ink">{formatItemsSummary(order.order_items ?? [])}</p>
+                        <p className="mt-1 text-body text-ink-soft">
                           {getSalesChannelLabel(order.sales_channel)} · {getOrderStatusLabel(order.status)} · {formatDate(order.created_at)}
                         </p>
-                        <p className="mt-1 text-sm text-stone-500">
+                        <p className="mt-1 text-body text-ink-faint">
                           {getPaymentStatusLabel(paymentSummary.paymentStatus)} · {getPaymentMethodLabel(order.payment_method_expected)}
                         </p>
                       </div>
-                      <div className="text-sm sm:text-right">
-                        <p className="text-lg font-semibold text-stone-50">{formatCurrency(paymentSummary.totalAmount)}</p>
-                        <p className="mt-1 text-stone-500">Saldo {formatCurrency(paymentSummary.balanceAmount)}</p>
+                      <div className="text-body sm:text-right">
+                        <p className="text-title font-semibold text-ink">{formatCurrency(paymentSummary.totalAmount)}</p>
+                        <p className="mt-1 text-ink-faint">Saldo {formatCurrency(paymentSummary.balanceAmount)}</p>
                         <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                           <Link
                             href={`/panel/orders/${order.id}`}
-                            className="inline-flex rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                            className="inline-flex rounded-control border border-line px-3 py-1 text-meta text-ink transition hover:border-line-strong hover:text-ink"
                           >
                             Ver pedido
                           </Link>
                           {isEditable ? (
                             <Link
                               href={`/panel/orders/${order.id}/edit`}
-                              className="inline-flex rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                              className="inline-flex rounded-control border border-line px-3 py-1 text-meta text-ink transition hover:border-line-strong hover:text-ink"
                             >
                               Editar
                             </Link>
@@ -236,7 +236,7 @@ export default async function CustomerDetailPage({
                 );
               })
             ) : (
-              <div className="px-5 py-10 text-center text-sm text-stone-500">
+              <div className="px-5 py-10 text-center text-body text-ink-faint">
                 Este cliente todavía no tiene pedidos.
               </div>
             )}
@@ -245,65 +245,65 @@ export default async function CustomerDetailPage({
 
         {activeTab === "whatsapp" ? (
           <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-              <h2 className="text-xl font-semibold text-stone-50">Conversaciones</h2>
+            <section className="rounded-card border border-line bg-paper p-6">
+              <h2 className="text-title font-semibold text-ink">Conversaciones</h2>
               <div className="mt-5 grid gap-3">
                 {conversations.length ? (
                   conversations.map((conversation) => (
-                    <article key={conversation.id} className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm">
+                    <article key={conversation.id} className="rounded-card border border-line bg-paper-muted p-4 text-body">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-medium text-stone-100">{getWhatsappStatusLabel(conversation.status)}</p>
-                          <p className="mt-1 text-stone-500">{formatDateTime(conversation.updated_at)}</p>
+                          <p className="font-medium text-ink">{getWhatsappStatusLabel(conversation.status)}</p>
+                          <p className="mt-1 text-ink-faint">{formatDateTime(conversation.updated_at)}</p>
                         </div>
                         {conversation.requires_human ? (
-                          <span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-200">
+                          <span className="rounded-control border border-danger-line bg-danger-bg px-3 py-1 text-meta text-danger-fg">
                             Humano
                           </span>
                         ) : null}
                       </div>
-                      <p className="mt-3 text-stone-400">
+                      <p className="mt-3 text-ink-soft">
                         {getWhatsappIntentLabel(conversation.current_intent)} · {formatConfidence(conversation.ai_confidence)}
                       </p>
                     </article>
                   ))
                 ) : (
-                  <p className="rounded-2xl border border-dashed border-stone-800 bg-stone-950/70 px-4 py-8 text-center text-sm text-stone-500">
+                  <p className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-center text-body text-ink-faint">
                     No hay conversaciones asociadas.
                   </p>
                 )}
               </div>
             </section>
 
-            <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-6">
-              <h2 className="text-xl font-semibold text-stone-50">Mensajes</h2>
+            <section className="rounded-card border border-line bg-paper p-6">
+              <h2 className="text-title font-semibold text-ink">Mensajes</h2>
               <div className="mt-5 grid gap-3">
                 {messages.length ? (
                   messages.map((message) => (
                     <article
                       key={message.id}
-                      className={`rounded-2xl border p-4 text-sm ${
+                      className={`rounded-card border p-4 text-body ${
                         message.direction === "inbound"
-                          ? "border-sky-400/20 bg-sky-500/10"
-                          : "border-emerald-400/20 bg-emerald-500/10"
+                          ? "border-info-line bg-info-bg"
+                          : "border-accent bg-accent-soft"
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-xs uppercase tracking-[0.18em] text-stone-400">
+                        <p className="text-meta text-ink-soft">
                           {message.direction === "inbound" ? "Cliente" : "Sistema"} · {getWhatsappMessageTypeLabel(message.message_type)}
                         </p>
-                        <p className="text-xs text-stone-500">{formatDateTime(message.created_at)}</p>
+                        <p className="text-meta text-ink-faint">{formatDateTime(message.created_at)}</p>
                       </div>
-                      <p className="mt-3 whitespace-pre-line text-stone-100">{message.body}</p>
+                      <p className="mt-3 whitespace-pre-line text-ink">{message.body}</p>
                       {message.ai_intent ? (
-                        <p className="mt-3 text-xs text-stone-400">
+                        <p className="mt-3 text-meta text-ink-soft">
                           IA: {getWhatsappIntentLabel(message.ai_intent)} · {formatConfidence(message.ai_confidence)}
                         </p>
                       ) : null}
                     </article>
                   ))
                 ) : (
-                  <p className="rounded-2xl border border-dashed border-stone-800 bg-stone-950/70 px-4 py-8 text-center text-sm text-stone-500">
+                  <p className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-8 text-center text-body text-ink-faint">
                     No hay mensajes asociados.
                   </p>
                 )}

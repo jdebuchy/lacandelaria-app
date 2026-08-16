@@ -147,7 +147,7 @@ export function DateInput({
       />
       <button
         aria-label="Abrir calendario"
-        className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-stone-400 transition hover:bg-stone-800 hover:text-stone-100 disabled:pointer-events-none disabled:opacity-50"
+        className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-control text-ink-soft transition hover:bg-paper-raised hover:text-ink disabled:pointer-events-none disabled:opacity-50"
         disabled={disabled}
         onClick={openCalendar}
         type="button"

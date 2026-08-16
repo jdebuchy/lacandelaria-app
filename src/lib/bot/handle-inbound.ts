@@ -10,10 +10,12 @@ import {
 import {
   EMPTY_ADDRESS_DRAFT,
   buildAddressQuestion,
+  countRepetition,
   interpretAnswer,
   mergeAddress,
   nextAddressGap,
   pickSuggestion,
+  resolveChoice,
   type AddressDraft
 } from "./address";
 import { deriveCapabilities } from "./capabilities";
@@ -67,15 +69,8 @@ function keepTyping(adapter: ChannelAdapter, threadId: string) {
 // Resuelve la direccion contra Google solo cuando hace falta: si el cliente
 // escribio algo que Places identifica sin dudas, se acepta callado. Cada consulta
 // se factura, y preguntar de mas en un chat cansa.
-async function resolverDireccion(draft: AddressDraft, texto: string): Promise<AddressDraft> {
-  const sugerencias = await getPlaceAutocompleteSuggestions(texto).catch(() => []);
-  const elegida = pickSuggestion(texto, sugerencias);
-
-  if (elegida.tipo !== "clara") {
-    return { ...draft, texto, intentos: draft.intentos + 1 };
-  }
-
-  const detalle = await getPlaceDetails(elegida.sugerencia.placeId).catch(() => null);
+async function aplicarLugar(draft: AddressDraft, texto: string, placeId: string): Promise<AddressDraft> {
+  const detalle = await getPlaceDetails(placeId).catch(() => null);
 
   if (!detalle) {
     return { ...draft, texto, intentos: draft.intentos + 1 };
@@ -84,10 +79,30 @@ async function resolverDireccion(draft: AddressDraft, texto: string): Promise<Ad
   return {
     ...draft,
     texto,
+    opciones: null,
     googlePlaceId: detalle.googlePlaceId,
     etiqueta: detalle.displayLabel,
     addressKind: detalle.suggestedAddressKind,
     gatedCommunityName: detalle.gatedCommunityName || draft.gatedCommunityName
+  };
+}
+
+async function resolverDireccion(draft: AddressDraft, texto: string): Promise<AddressDraft> {
+  const sugerencias = await getPlaceAutocompleteSuggestions(texto).catch(() => []);
+  const elegida = pickSuggestion(texto, sugerencias);
+
+  if (elegida.tipo === "clara") {
+    return aplicarLugar(draft, texto, elegida.sugerencia.placeId);
+  }
+
+  // Guardar las opciones para poder mostrarlas y resolver la eleccion despues.
+  // Antes se le pedia al cliente que repitiera la direccion, y repetir lo mismo
+  // da lo mismo: el bucle estaba garantizado.
+  return {
+    ...draft,
+    texto,
+    intentos: draft.intentos + 1,
+    opciones: elegida.tipo === "ambigua" ? elegida.opciones : null
   };
 }
 
@@ -245,7 +260,8 @@ export async function handleInboundMessage(inbound: InboundMessage) {
         commercialContext,
         conversationStatus: conversation.status,
         messageBody: truncateForLlm(inbound.text, GATE_DEFAULTS.maxTextLength),
-        recentMessages
+        recentMessages,
+        confirmado: resumirConfirmado(conversation.draftOrder)
       }),
       maxTokens: botConfig.llmMaxTokens,
       jsonSchema: ANALYSIS_JSON_SCHEMA as unknown as Record<string, unknown>
@@ -277,6 +293,34 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   const conRespuesta: AddressDraft = draftPrevio.ultimaPregunta
     ? { ...draftPrevio, ...interpretAnswer(draftPrevio.ultimaPregunta, inbound.text) }
     : draftPrevio;
+
+  // Si se le ofrecieron opciones, este mensaje puede ser la eleccion.
+  const elegida =
+    draftPrevio.ultimaPregunta === "confirmar_calle" && draftPrevio.opciones?.length
+      ? resolveChoice(inbound.text, draftPrevio.opciones)
+      : null;
+
+  if (elegida) {
+    const resuelta = await aplicarLugar(conRespuesta, elegida.fullText, elegida.placeId);
+    const hueco = nextAddressGap(resuelta);
+    const pregunta = hueco ? buildAddressQuestion(hueco, resuelta) : "dale, anotado.";
+
+    await updateConversationStatus(
+      supabase,
+      conversationId,
+      {
+        status: "collecting_order_data",
+        draft_order: {
+          ...(conversation.draftOrder ?? {}),
+          direccion: { ...resuelta, ultimaPregunta: hueco }
+        }
+      },
+      now
+    );
+    await adapter.send(inbound.threadId, pregunta);
+    await recordOutbound(supabase, conversationId, inbound.channel, pregunta, "transactional_reply", now);
+    return;
+  }
 
   const conDireccion = mergeAddress(conRespuesta, dicha);
 
@@ -310,7 +354,11 @@ export async function handleInboundMessage(inbound: InboundMessage) {
         ai_confidence: analysis.confidence,
         draft_order: {
           ...(conversation.draftOrder ?? {}),
-          direccion: { ...direccion, ultimaPregunta: huecoDireccion }
+          direccion: {
+            ...direccion,
+            ultimaPregunta: huecoDireccion,
+            repeticiones: countRepetition(draftPrevio, huecoDireccion)
+          }
         }
       },
       now
@@ -438,4 +486,25 @@ export async function handleInboundMessage(inbound: InboundMessage) {
     action.messageType,
     now
   );
+}
+
+// Resume para el modelo lo que ya esta confirmado del pedido. Va en castellano
+// y sin ids internos: es contexto para redactar, no datos para procesar.
+function resumirConfirmado(draftOrder: Record<string, unknown> | null) {
+  const direccion = draftOrder?.direccion as AddressDraft | undefined;
+
+  if (!direccion?.googlePlaceId) {
+    return null;
+  }
+
+  return {
+    direccion_confirmada: direccion.etiqueta ?? direccion.texto,
+    tipo_vivienda: direccion.esDepartamento === null
+      ? undefined
+      : direccion.esDepartamento
+        ? "departamento"
+        : "casa",
+    piso_depto: direccion.addressLine2 ?? undefined,
+    barrio_cerrado: direccion.gatedCommunityName ?? undefined
+  };
 }

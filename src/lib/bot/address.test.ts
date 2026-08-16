@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { PlaceSuggestion } from "@/lib/google-places";
 import {
   EMPTY_ADDRESS_DRAFT,
+  MAX_REPETICIONES_PREGUNTA,
+  countRepetition,
   buildAddressQuestion,
   isAddressComplete,
   looksLikeStreetAddress,
   mergeAddress,
   nextAddressGap,
   pickSuggestion,
+  resolveChoice,
   type AddressDraft
 } from "./address";
 
@@ -29,37 +32,24 @@ describe("pickSuggestion", () => {
     expect(pickSuggestion("cabildo 2200", [s])).toEqual({ tipo: "clara", sugerencia: s });
   });
 
-  // Places casi siempre devuelve varias, asi que el criterio no puede ser la
-  // cantidad: se resuelve por el numero de calle que escribio el cliente.
-  it("elige la unica que tiene el numero que escribio el cliente", () => {
+  // Antes esto contaba numeros y palabras para adivinar cual era la correcta.
+  // Cada calle que no encajaba pedia otra regla, y no habia forma de saber si
+  // la proxima excepcion la rompia. Ahora, si hay varias, se muestran y elige
+  // el cliente, que es el unico que sabe cual es su casa.
+  it("con varias opciones no adivina: pregunta", () => {
     const pick = pickSuggestion("cabildo 2200", [
       sugerencia("Av. Cabildo 2200, CABA"),
-      sugerencia("Av. Cabildo 3500, CABA"),
-      sugerencia("Cabildo, Beccar")
-    ]);
-    expect(pick).toMatchObject({ tipo: "clara" });
-    expect(pick).toMatchObject({ sugerencia: { fullText: "Av. Cabildo 2200, CABA" } });
-  });
-
-  it("si el numero aparece en varias y la consulta es corta, pregunta", () => {
-    const pick = pickSuggestion("santa fe 1500", [
-      sugerencia("Av. Santa Fe 1500, CABA"),
-      sugerencia("Santa Fe 1500, Martinez")
+      sugerencia("Av. Cabildo 2200, Beccar")
     ]);
     expect(pick.tipo).toBe("ambigua");
   });
 
-  // Con calle, altura y localidad ya alcanza: exigir una unica coincidencia
-  // hacia que "Av Libertador 2809, Capital Federal" quedara ambigua para
-  // siempre, porque hay calles Libertador en media provincia.
-  it("con localidad incluida toma la mas relevante", () => {
+  it("tampoco adivina cuando la consulta trae la localidad", () => {
     const pick = pickSuggestion("Av Libertador 2809, Capital Federal", [
       sugerencia("Av. del Libertador 2809, CABA"),
-      sugerencia("Libertador 2809, San Isidro"),
-      sugerencia("Libertador 2809, Vicente Lopez")
+      sugerencia("Libertador 2809, San Isidro")
     ]);
-    expect(pick).toMatchObject({ tipo: "clara" });
-    expect(pick).toMatchObject({ sugerencia: { fullText: "Av. del Libertador 2809, CABA" } });
+    expect(pick.tipo).toBe("ambigua");
   });
 
   it("sin numero en la consulta, pregunta", () => {
@@ -211,7 +201,87 @@ describe("buildAddressQuestion", () => {
     expect(texto).toContain("Av. Cabildo 2200, CABA");
   });
 
-  it("sin etiqueta pide que la escriba de nuevo en vez de repetir un vacio", () => {
-    expect(buildAddressQuestion("confirmar_calle", draft())).toContain("de nuevo");
+  // Pedirle que repita lo mismo garantiza el bucle: repetir da lo mismo. Si hay
+  // opciones se muestran, y si no, se le pide un dato que no habia dado.
+  it("con opciones las lista para que elija", () => {
+    const conOpciones = draft({
+      opciones: [sugerencia("Castex 3342, CABA"), sugerencia("Castex 3342, San Isidro")]
+    });
+    const texto = buildAddressQuestion("confirmar_calle", conOpciones);
+    expect(texto).toContain("Castex 3342, CABA");
+    expect(texto).toContain("Castex 3342, San Isidro");
+    expect(texto).toContain("1.");
+  });
+
+  it("sin opciones pide la localidad, que es el dato que falta", () => {
+    expect(buildAddressQuestion("confirmar_calle", draft())).toContain("localidad");
+  });
+});
+
+// Sin esto, ofrecerle opciones al cliente no sirve de nada: elige y el bot no
+// entiende la eleccion.
+describe("resolveChoice", () => {
+  const opciones = [
+    sugerencia("Castex 3342, CABA"),
+    sugerencia("Castex 3342, San Isidro"),
+    sugerencia("Castex 3342, Moron")
+  ];
+
+  it("entiende el numero de la lista", () => {
+    expect(resolveChoice("2", opciones)?.fullText).toBe("Castex 3342, San Isidro");
+    expect(resolveChoice("1", opciones)?.fullText).toBe("Castex 3342, CABA");
+  });
+
+  it("entiende la localidad escrita", () => {
+    expect(resolveChoice("la de san isidro", opciones)?.fullText).toBe("Castex 3342, San Isidro");
+  });
+
+  it("no elige si la respuesta no distingue", () => {
+    expect(resolveChoice("castex", opciones)).toBeNull();
+    expect(resolveChoice("si", opciones)).toBeNull();
+    expect(resolveChoice("", opciones)).toBeNull();
+  });
+
+  it("un numero fuera de rango no elige nada", () => {
+    expect(resolveChoice("7", opciones)).toBeNull();
+  });
+});
+
+// El bucle no era de una calle en particular: aparecia cada vez que el cliente
+// contestaba algo que el bot no sabia encajar. Con "Castex 3342" mostraba las
+// tres opciones de Google una y otra vez, sin importar que respondiera.
+describe("corte de repeticiones", () => {
+  it("deja de preguntar lo mismo despues de dos veces", () => {
+    const insistiendo = draft({
+      texto: "Castex 3342",
+      intentos: 1,
+      ultimaPregunta: "confirmar_calle",
+      repeticiones: MAX_REPETICIONES_PREGUNTA
+    });
+    expect(nextAddressGap(insistiendo)).toBeNull();
+  });
+
+  it("vale para cualquier pregunta, no solo para la direccion", () => {
+    const trabado = draft({
+      texto: "x",
+      googlePlaceId: "p1",
+      addressKind: "standard",
+      ultimaPregunta: "tipo_vivienda",
+      repeticiones: MAX_REPETICIONES_PREGUNTA
+    });
+    expect(nextAddressGap(trabado)).toBeNull();
+  });
+
+  it("con una sola repeticion todavia pregunta", () => {
+    const primeraVez = draft({ texto: "x", intentos: 1, ultimaPregunta: "confirmar_calle", repeticiones: 1 });
+    expect(nextAddressGap(primeraVez)).toBe("confirmar_calle");
+  });
+
+  // El contador se reinicia al cambiar de tema: son dos veces por pregunta,
+  // no dos veces en toda la conversacion.
+  it("cambiar de pregunta reinicia el contador", () => {
+    const draftPrevio = draft({ ultimaPregunta: "confirmar_calle", repeticiones: 2 });
+    expect(countRepetition(draftPrevio, "tipo_vivienda")).toBe(0);
+    expect(countRepetition(draftPrevio, "confirmar_calle")).toBe(3);
   });
 });

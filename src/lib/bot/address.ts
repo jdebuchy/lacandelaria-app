@@ -11,6 +11,11 @@ export type AddressDraft = {
   esDepartamento: boolean | null;
   addressLine2: string | null;
   intentos: number;
+  // Las opciones que se le ofrecieron al cliente, para poder resolver su
+  // eleccion en el mensaje siguiente.
+  opciones: PlaceSuggestion[] | null;
+  // Cuantas veces seguidas se repitio la misma pregunta sin obtener respuesta.
+  repeticiones: number;
   // Que se le pregunto en el mensaje anterior, para poder interpretar la
   // respuesta: un "departamento" suelto solo significa algo si sabemos que
   // veniamos de preguntar si era casa o departamento.
@@ -28,6 +33,8 @@ export const EMPTY_ADDRESS_DRAFT: AddressDraft = {
   esDepartamento: null,
   addressLine2: null,
   intentos: 0,
+  opciones: null,
+  repeticiones: 0,
   ultimaPregunta: null
 };
 
@@ -36,19 +43,31 @@ export const EMPTY_ADDRESS_DRAFT: AddressDraft = {
 // al que le piden tres veces la misma cosa abandona la compra.
 export const MAX_INTENTOS_DIRECCION = 2;
 
+// Ninguna pregunta se hace mas de dos veces. Da igual cual sea y da igual por
+// que el cliente no la contesta: si insistimos, el bucle es infinito y la venta
+// se cae. A la tercera se sigue con lo que haya y, si falta algo critico, lo
+// completa una persona.
+export const MAX_REPETICIONES_PREGUNTA = 2;
+
+// Cuenta cuantas veces seguidas se hizo la misma pregunta. Vive en el draft
+// porque el bot no tiene memoria entre mensajes mas alla de eso.
+export function countRepetition(draft: AddressDraft, gap: AddressGap): number {
+  return draft.ultimaPregunta === gap ? draft.repeticiones + 1 : 0;
+}
+
 export type SuggestionPick =
   | { tipo: "clara"; sugerencia: PlaceSuggestion }
   | { tipo: "ambigua"; opciones: PlaceSuggestion[] }
   | { tipo: "ninguna" };
 
-function numerosDe(texto: string) {
-  return (texto.match(/\d+/g) ?? []).filter((n) => n.length >= 2);
-}
-
-// Places casi siempre devuelve varias sugerencias, asi que "una sola" no sirve
-// como criterio. Se considera clara cuando el numero de calle que escribio el
-// cliente aparece en una sola de las opciones: ahi no hay nada que preguntar.
-export function pickSuggestion(query: string, suggestions: PlaceSuggestion[]): SuggestionPick {
+// Sin heuristicas. Antes esto contaba numeros y palabras para adivinar si una
+// direccion era "clara", y cada calle que no encajaba pedia otra regla: no
+// escala y no hay forma de saber si la proxima excepcion la rompe.
+//
+// El criterio es el de un formulario con autocompletado, que es lo que la gente
+// ya sabe usar: una sola opcion se toma, varias se muestran para que elija.
+// Quien sabe cual es su direccion es el cliente, no nosotros.
+export function pickSuggestion(_query: string, suggestions: PlaceSuggestion[]): SuggestionPick {
   if (!suggestions.length) {
     return { tipo: "ninguna" };
   }
@@ -57,30 +76,32 @@ export function pickSuggestion(query: string, suggestions: PlaceSuggestion[]): S
     return { tipo: "clara", sugerencia: suggestions[0] };
   }
 
-  const numeros = numerosDe(query);
+  return { tipo: "ambigua", opciones: suggestions.slice(0, 3) };
+}
 
-  if (!numeros.length) {
-    return { tipo: "ambigua", opciones: suggestions.slice(0, 3) };
+// Resuelve la eleccion del cliente entre las opciones que se le ofrecieron.
+// Acepta el numero ("2"), el nombre parcial ("la de san isidro") o el texto
+// completo: en un chat la gente contesta de las tres formas.
+export function resolveChoice(texto: string, opciones: PlaceSuggestion[]): PlaceSuggestion | null {
+  const limpio = texto.trim().toLowerCase();
+
+  if (!limpio || !opciones.length) {
+    return null;
   }
 
-  const conNumero = suggestions.filter((s) => numeros.some((n) => s.fullText.includes(n)));
+  const soloNumero = limpio.match(/^(\d)\b/);
 
-  if (conNumero.length === 1) {
-    return { tipo: "clara", sugerencia: conNumero[0] };
+  if (soloNumero) {
+    const indice = Number(soloNumero[1]) - 1;
+    return opciones[indice] ?? null;
   }
 
-  // Places devuelve las sugerencias ordenadas por relevancia. Cuando el cliente
-  // dio calle, altura y localidad, la primera con esa altura es la correcta:
-  // exigir que fuera la unica hacia que "Av Libertador 2809, Capital Federal"
-  // se considerara ambigua para siempre, porque hay calles Libertador en media
-  // provincia y todas tienen un 2809.
-  const palabras = query.trim().split(/\s+/).filter(Boolean);
+  const coincidencias = opciones.filter((o) => {
+    const texto = o.fullText.toLowerCase();
+    return limpio.split(/\s+/).some((palabra) => palabra.length >= 4 && texto.includes(palabra));
+  });
 
-  if (conNumero.length > 1 && palabras.length >= 4) {
-    return { tipo: "clara", sugerencia: conNumero[0] };
-  }
-
-  return { tipo: "ambigua", opciones: conNumero.slice(0, 3) };
+  return coincidencias.length === 1 ? coincidencias[0] : null;
 }
 
 // Una direccion util tiene calle y altura. Sin esto, un "4B" o un "departamento"
@@ -125,6 +146,24 @@ export function mergeAddress(draft: AddressDraft, extraido: string | null | unde
 // Devuelve el primer dato que falta, no todos: el equipo pide de a uno y en chat
 // la gente contesta solo la mitad de lo que se le pregunta junto.
 export function nextAddressGap(draft: AddressDraft): AddressGap | null {
+  const pendiente = siguienteFaltante(draft);
+
+  if (!pendiente) {
+    return null;
+  }
+
+  // El corte vale para cualquier pregunta, no solo para la direccion. Sin esto,
+  // basta con que el cliente conteste algo que no encaje para que el bot repita
+  // la misma pregunta indefinidamente: pasa con la calle, con el piso y con el
+  // tipo de vivienda por igual.
+  if (draft.ultimaPregunta === pendiente && draft.repeticiones >= MAX_REPETICIONES_PREGUNTA) {
+    return null;
+  }
+
+  return pendiente;
+}
+
+function siguienteFaltante(draft: AddressDraft): AddressGap | null {
   if (!draft.texto) {
     return "calle";
   }
@@ -155,9 +194,13 @@ export function buildAddressQuestion(gap: AddressGap, draft: AddressDraft): stri
     case "calle":
       return "me pasas la direccion de entrega?";
     case "confirmar_calle":
+      if (draft.opciones?.length) {
+        return buildAmbiguousQuestion(draft.opciones);
+      }
+
       return draft.etiqueta
         ? `te la dejo en ${draft.etiqueta}?`
-        : "me la pasas de nuevo con la calle y el numero?";
+        : "no la encontre. me la pasas con la calle, la altura y la localidad?";
     case "tipo_vivienda":
       return "es casa o departamento?";
     case "piso_depto":

@@ -26,6 +26,7 @@ const GUIONES = {
     "queria pedir paltas",
     "2 cajas",
     "Av Libertador 2809, Capital Federal",
+    "1",
     "departamento",
     "4B",
     "efectivo"

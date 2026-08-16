@@ -104,6 +104,8 @@ En "extracted" va todo dato concreto que aparezca en la conversacion, aunque el 
 
 Si un dato no aparece, omiti el campo. No inventes ninguno.
 
+El bloque "ya_confirmado" trae lo que el cliente ya dio y quedo guardado. Nunca vuelvas a pedir algo que este ahi: para el cliente es como si no lo estuvieras escuchando. Si la direccion figura confirmada, dala por buena y segui con lo que falte.
+
 El campo intent debe ser exactamente uno de estos valores: ${BOT_INTENTS.join(", ")}.`;
 
 // El tono sale de commercial_settings (key tone_guide), destilado de las
@@ -152,12 +154,17 @@ export type AnalysisPromptInput = {
   conversationStatus: string;
   messageBody: string;
   recentMessages: Array<{ direction: string; body: string }>;
+  // Lo que ya se confirmo del pedido. Sin esto el modelo no sabe que la
+  // direccion ya esta tomada y la vuelve a pedir al final, cuando el cliente
+  // ya la dio y hasta eligio entre las opciones de Google.
+  confirmado?: Record<string, unknown> | null;
 };
 
 export function buildAnalysisPrompt(input: AnalysisPromptInput) {
   return JSON.stringify({
     commercial_context: input.commercialContext,
     conversation: { status: input.conversationStatus },
+    ya_confirmado: input.confirmado ?? {},
     message: input.messageBody,
     recent_messages: input.recentMessages
   });

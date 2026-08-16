@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { formatDeliveryArea } from "@/lib/address";
 import { buildWhatsAppHref } from "@/lib/contact";
 import {
   getDeliveryFailureReasonLabel,
@@ -200,7 +201,7 @@ export function DriverRouteBoard({ stops, allowActions = true }: DriverRouteBoar
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-card bg-paper-muted p-3">
                     <p className="text-meta text-ink-faint">Área</p>
-                    <p className="mt-1 text-body text-ink">{stop.deliveryArea}</p>
+                    <p className="mt-1 text-body text-ink">{formatDeliveryArea(stop.deliveryArea)}</p>
                   </div>
                   <div className="rounded-card bg-paper-muted p-3">
                     <p className="text-meta text-ink-faint">Ítems</p>

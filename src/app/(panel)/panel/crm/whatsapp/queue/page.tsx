@@ -1,3 +1,4 @@
+import { DateText } from "@/components/ui/date-text";
 import { WhatsappCrmNav } from "@/components/whatsapp/whatsapp-crm-nav";
 import { ManualWhatsappMessageButton } from "@/components/whatsapp/manual-whatsapp-message-button";
 import { requirePageRole } from "@/lib/auth";
@@ -12,20 +13,6 @@ function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
   }
 
   return value ?? null;
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleString("es-AR", {
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires"
-  });
 }
 
 export default async function WhatsappQueuePage() {
@@ -85,8 +72,8 @@ export default async function WhatsappQueuePage() {
                   <div>{customerName}</div>
                   <div>{formatWhatsAppPhone(row.phone)}</div>
                   <div>{getWhatsappQueueStatusLabel(row.status)}</div>
-                  <div>{formatDateTime(row.scheduled_for)}</div>
-                  <div>{formatDateTime(row.sent_at)}</div>
+                  <div><DateText value={row.scheduled_for} withTime /></div>
+                  <div><DateText value={row.sent_at} withTime /></div>
                   <div className="text-danger-fg">{row.last_error ?? "-"}</div>
                 </article>
               );

@@ -100,6 +100,20 @@ export function deriveDeliveryArea(input: StructuredAddress) {
   return "standard";
 }
 
+const DELIVERY_AREA_LABELS: Record<string, string> = {
+  standard: "GBA",
+  capital_federal: "Cap. Federal",
+  pending_review: "Sin zona"
+};
+
+export function formatDeliveryArea(area?: string | null) {
+  if (!area) {
+    return "Sin zona";
+  }
+
+  return DELIVERY_AREA_LABELS[area] ?? area;
+}
+
 export function toStructuredAddressColumns(input: StructuredAddress) {
   const address = normalizeStructuredAddress(input);
 

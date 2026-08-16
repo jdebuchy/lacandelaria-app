@@ -6,10 +6,12 @@ import { AddressInput } from "@/components/address-input";
 import { AutofillDecoy } from "@/components/autofill-decoy";
 import {
   StructuredAddress,
+  formatDeliveryArea,
   formatStructuredAddressLine,
   formatStructuredAddressSummary
 } from "@/lib/address";
 import { formatPersonName, formatWhatsAppPhone } from "@/lib/contact";
+import { DateText } from "@/components/ui/date-text";
 import { PhoneInput } from "@/components/phone-input";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -374,7 +376,7 @@ export function CustomerRecords({
                 </div>
                 {customer.delivery_area ? (
                   <p className="mt-3 text-body text-ink-soft">
-                    Área logística: {customer.delivery_area}
+                    Área logística: {formatDeliveryArea(customer.delivery_area)}
                   </p>
                 ) : null}
                 <p className="mt-2 text-body text-ink-faint">
@@ -464,16 +466,11 @@ export function CustomerRecords({
                       gatedCommunityName: customer.gated_community_name ?? "",
                       locality: customer.locality ?? ""
                     })}</div>
-                    <div className="mt-1 text-meta text-ink-faint">{customer.delivery_area || "-"}</div>
+                    <div className="mt-1 text-meta text-ink-faint">{formatDeliveryArea(customer.delivery_area)}</div>
                   </div>
                   <div>{SOURCE_LABELS[customer.source] ?? customer.source}</div>
                   <div>
-                    {new Date(customer.created_at).toLocaleDateString("es-AR", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      timeZone: "America/Argentina/Buenos_Aires"
-                    })}
+                    <DateText value={customer.created_at} />
                   </div>
                   <div>
                     <div className="flex flex-wrap gap-2">

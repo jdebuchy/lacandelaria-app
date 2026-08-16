@@ -14,6 +14,10 @@ import {
   getDeliveryTripStatusLabel,
   getOrderStatusLabel
 } from "@/lib/delivery-trips";
+import {
+  formatDateFriendly as formatDate,
+  formatDateTimeFriendly as formatDateTime
+} from "@/lib/format";
 import { formatOrderNumber, formatTripNumber } from "@/lib/orders";
 import { formatItemsSummary } from "@/lib/products";
 import {
@@ -102,34 +106,6 @@ function takeSingleRelation<T>(value: T | T[] | null | undefined): T | null {
   }
 
   return value ?? null;
-}
-
-function formatDate(value?: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires",
-    year: "numeric"
-  });
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleString("es-AR", {
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-    timeZone: "America/Argentina/Buenos_Aires",
-    year: "numeric"
-  });
 }
 
 function formatActivityDateTime(value: string) {

@@ -11,10 +11,14 @@ import type {
   DeliveryPlanningTrip
 } from "@/lib/delivery-planning";
 import type { DeliveryRoutePreview } from "@/lib/delivery-routing";
-import { formatLogisticsDepotAddress } from "@/lib/logistics-depots";
 import { getDeliveryTripStatusLabel } from "@/lib/delivery-trips";
 import { formatOrderNumber, matchesOrderNumberQuery } from "@/lib/orders";
 import { matchesNormalizedSearchValues, normalizeSearchValue } from "@/lib/search";
+import {
+  describeRouteImprovement,
+  formatDistanceMeters,
+  formatDurationSeconds
+} from "@/lib/trip-capacity";
 
 type DeliveryTripPlannerProps = {
   drivers: DeliveryPlanningDriver[];
@@ -48,32 +52,6 @@ function formatDate(value: string) {
     year: "numeric",
     timeZone: "America/Argentina/Buenos_Aires"
   });
-}
-
-function formatDistance(distanceMeters: number) {
-  if (!distanceMeters) {
-    return "Sin distancia";
-  }
-
-  return distanceMeters >= 1000
-    ? `${(distanceMeters / 1000).toFixed(1).replace(".", ",")} km`
-    : `${Math.round(distanceMeters)} m`;
-}
-
-function formatDuration(seconds: number) {
-  if (!seconds) {
-    return "Sin duración";
-  }
-
-  const roundedMinutes = Math.round(seconds / 60);
-  const hours = Math.floor(roundedMinutes / 60);
-  const minutes = roundedMinutes % 60;
-
-  if (!hours) {
-    return `${minutes} min`;
-  }
-
-  return `${hours} h ${minutes.toString().padStart(2, "0")} min`;
 }
 
 function formatCurrency(value: number) {
@@ -125,6 +103,10 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
   const [availableOrders, setAvailableOrders] = useState(trip.availableOrders);
   const [availableQuery, setAvailableQuery] = useState("");
   const [draggedStopId, setDraggedStopId] = useState<string | null>(null);
+  // Pedido que viene arrastrado desde el panel izquierdo. Es distinto de
+  // draggedStopId: uno reordena dentro del viaje, el otro lo suma.
+  const [draggedOrderId, setDraggedOrderId] = useState<string | null>(null);
+  const [isDropTarget, setIsDropTarget] = useState(false);
   const [route, setRoute] = useState<DeliveryRoutePreview | null>(initialRoute);
   const [proposal, setProposal] = useState<DeliveryRoutePreview | null>(null);
   const [message, setMessage] = useState("");
@@ -133,6 +115,15 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
   const [optimizePending, setOptimizePending] = useState(false);
   const canEditTrip = trip.status === "assigned";
   const displayedRoute = proposal ?? route;
+  const optimization = describeRouteImprovement(
+    route
+      ? { distanceMeters: route.totalDistanceMeters, durationSeconds: route.totalDurationSeconds }
+      : null,
+    {
+      distanceMeters: proposal?.totalDistanceMeters ?? 0,
+      durationSeconds: proposal?.totalDurationSeconds ?? 0
+    }
+  );
   const orderedStopIds = stops.map((stop) => stop.orderId);
   const depotOptions = useMemo(
     () =>
@@ -227,6 +218,21 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
     setProposal(null);
     setDraggedStopId(null);
     void fetchRoutePreview(nextStops);
+  }
+
+  function handleDropOnTrip() {
+    setIsDropTarget(false);
+
+    if (!draggedOrderId) {
+      return;
+    }
+
+    const order = availableOrders.find((item) => item.orderId === draggedOrderId);
+    setDraggedOrderId(null);
+
+    if (order) {
+      addOrderToTrip(order);
+    }
   }
 
   function addOrderToTrip(order: DeliveryPlanningAvailableOrder) {
@@ -398,40 +404,52 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
       <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-stone-50">Planificador de viaje</p>
-            <p className="mt-2 text-sm text-stone-400">
-              Sumá pedidos, ordená las paradas y revisá la ruta antes de guardar.
-            </p>
+            <p className="text-2xl font-semibold tracking-tight text-stone-50">Armado del viaje</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone-400">
+              <span className="font-medium text-stone-200">
+                {stops.length} {stops.length === 1 ? "parada" : "paradas"}
+              </span>
+              <span aria-hidden>·</span>
+              <span>{formatDistanceMeters(displayedRoute?.totalDistanceMeters ?? 0)}</span>
+              <span aria-hidden>·</span>
+              <span>{formatDurationSeconds(displayedRoute?.totalDurationSeconds ?? 0)}</span>
+              <span aria-hidden>·</span>
+              <span>{getDeliveryTripStatusLabel(trip.status)}</span>
+              {previewPending ? (
+                <span className="text-stone-500">· recalculando…</span>
+              ) : null}
+            </div>
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               disabled={!canEditTrip || savePending}
               onClick={() => void handleSave()}
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-5 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {savePending ? "Guardando..." : "Guardar viaje"}
             </button>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-7">
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Fecha del viaje</span>
+        <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3 border-t border-stone-800 pt-4">
+          <label className="grid gap-1.5 text-xs text-stone-500">
+            Fecha
             <DateInput
               value={scheduledDate}
               onChange={setScheduledDate}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-9 w-[9.5rem] rounded-lg border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
             />
           </label>
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Repartidor</span>
+
+          <label className="grid gap-1.5 text-xs text-stone-500">
+            Repartidor
             <select
               value={driverUserId}
               onChange={(event) => setDriverUserId(event.target.value)}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-9 rounded-lg border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
             >
               <option value="">Sin asignar</option>
               {drivers.map((driver) => (
@@ -441,17 +459,14 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
               ))}
             </select>
           </label>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Estado</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">{getDeliveryTripStatusLabel(trip.status)}</p>
-          </div>
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Depósito</span>
+
+          <label className="grid gap-1.5 text-xs text-stone-500">
+            Sale de
             <select
               value={depotId}
               onChange={(event) => handleDepotChange(event.target.value)}
               disabled={!canEditTrip}
-              className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              className="h-9 rounded-lg border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
             >
               {depotOptions.map((depot) => (
                 <option key={depot.id} value={depot.id}>
@@ -459,45 +474,29 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </option>
               ))}
             </select>
-            <span className="text-xs text-stone-500">{formatLogisticsDepotAddress(selectedDepot)}</span>
           </label>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Pedidos</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">{stops.length}</p>
-          </div>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Distancia</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">
-              {formatDistance(displayedRoute?.totalDistanceMeters ?? 0)}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Duración</p>
-            <p className="mt-2 text-sm font-medium text-stone-100">
-              {formatDuration(displayedRoute?.totalDurationSeconds ?? 0)}
-            </p>
-          </div>
-          <label className="grid gap-2 rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-sm text-stone-300 md:col-span-2 xl:col-span-6">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Notas del viaje</span>
-            <textarea
-              rows={2}
+
+          <label className="grid flex-1 gap-1.5 text-xs text-stone-500 min-w-[12rem]">
+            Notas del viaje
+            <input
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               disabled={!canEditTrip}
-              className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-stone-100 outline-none focus:border-sky-400 disabled:opacity-60"
+              placeholder="Opcional"
+              className="h-9 rounded-lg border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 outline-none placeholder-stone-600 focus:border-sky-400 disabled:opacity-60"
             />
           </label>
         </div>
 
-        {message ? <p className="mt-4 text-sm text-stone-300">{message}</p> : null}
+        {message ? <p className="mt-3 text-sm text-stone-300">{message}</p> : null}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(280px,0.9fr)_minmax(320px,1fr)_minmax(360px,1.15fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(300px,0.85fr)_minmax(380px,1fr)]">
         <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-lg font-semibold text-stone-50">Pedidos disponibles</p>
-              <p className="mt-1 text-sm text-stone-400">Agregá pedidos al viaje.</p>
+              <p className="mt-1 text-sm text-stone-400">Arrastralos a la derecha para sumarlos.</p>
             </div>
             <span className="rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
               {availableOrders.length}
@@ -514,7 +513,22 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           <div className="mt-4 grid gap-3">
             {filteredAvailableOrders.length ? (
               filteredAvailableOrders.map((order) => (
-                <article key={order.orderId} className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
+                <article
+                  key={order.orderId}
+                  draggable={canEditTrip}
+                  onDragStart={() => setDraggedOrderId(order.orderId)}
+                  onDragEnd={() => {
+                    setDraggedOrderId(null);
+                    setIsDropTarget(false);
+                  }}
+                  className={`rounded-2xl border bg-stone-950/70 p-4 transition ${
+                    canEditTrip ? "cursor-grab active:cursor-grabbing" : ""
+                  } ${
+                    draggedOrderId === order.orderId
+                      ? "border-sky-400/60 opacity-50"
+                      : "border-stone-800"
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-stone-100">
@@ -527,7 +541,8 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                       type="button"
                       disabled={!canEditTrip}
                       onClick={() => addOrderToTrip(order)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-stone-700 text-lg text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      aria-label={`Agregar ${order.customerName} al viaje`}
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-stone-700 text-lg text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       +
                     </button>
@@ -552,21 +567,84 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
           </div>
         </section>
 
-        <section className="rounded-3xl border border-stone-800 bg-stone-900/70 p-5">
+        <section
+          onDragOver={(event) => {
+            if (draggedOrderId) {
+              event.preventDefault();
+              setIsDropTarget(true);
+            }
+          }}
+          onDragLeave={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+              setIsDropTarget(false);
+            }
+          }}
+          onDrop={handleDropOnTrip}
+          className={`rounded-3xl border bg-stone-900/70 p-5 transition ${
+            isDropTarget
+              ? "border-emerald-400/60 ring-2 ring-emerald-400/30"
+              : "border-stone-800"
+          }`}
+        >
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-lg font-semibold text-stone-50">Paradas del viaje</p>
-              <p className="mt-1 text-sm text-stone-400">Arrastrá para reordenar las paradas del recorrido.</p>
+              <p className="mt-1 text-sm text-stone-400">Arrastrá para cambiar el orden del recorrido.</p>
             </div>
             <button
               type="button"
-              disabled={!canEditTrip || previewPending || optimizePending || !stops.length}
+              disabled={!canEditTrip || optimizePending || stops.length < 2}
               onClick={() => void handleOptimize()}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+              title={stops.length < 2 ? "Agregá al menos dos paradas para poder optimizar" : undefined}
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-stone-800 disabled:text-stone-500"
             >
-              {optimizePending ? "Optimizando..." : "Optimizar trayecto"}
+              {optimizePending ? "Optimizando..." : "Optimizar orden"}
             </button>
           </div>
+
+          {proposal ? (
+            <div
+              className={`mt-4 rounded-2xl border p-4 ${
+                optimization.improves
+                  ? "border-emerald-400/30 bg-emerald-500/10"
+                  : "border-stone-700 bg-stone-950/60"
+              }`}
+            >
+              <p
+                className={`text-sm font-medium ${
+                  optimization.improves ? "text-emerald-100" : "text-stone-200"
+                }`}
+              >
+                {optimization.headline}
+              </p>
+              <p className="mt-1 text-xs text-stone-400">
+                {formatDistanceMeters(route?.totalDistanceMeters ?? 0)} ·{" "}
+                {formatDurationSeconds(route?.totalDurationSeconds ?? 0)}
+                {" → "}
+                {formatDistanceMeters(proposal.totalDistanceMeters)} ·{" "}
+                {formatDurationSeconds(proposal.totalDurationSeconds)}
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {optimization.improves ? (
+                  <button
+                    type="button"
+                    onClick={handleApplyOptimization}
+                    className="inline-flex h-9 items-center justify-center rounded-lg bg-emerald-400 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-300"
+                  >
+                    Aplicar este orden
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setProposal(null)}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-stone-700 px-4 text-sm text-stone-200 transition hover:border-stone-500"
+                >
+                  {optimization.improves ? "Descartar" : "Entendido"}
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-4 grid gap-3">
             {stops.length ? (
@@ -615,66 +693,23 @@ export function DeliveryTripPlanner({ drivers, initialRoute, trip }: DeliveryTri
                 </article>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-stone-800 bg-stone-950/40 px-4 py-6 text-sm text-stone-400">
-                Todavía no sumaste pedidos al viaje.
+              <div
+                className={`rounded-2xl border border-dashed px-4 py-10 text-center text-sm transition ${
+                  isDropTarget
+                    ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-100"
+                    : "border-stone-800 bg-stone-950/40 text-stone-400"
+                }`}
+              >
+                {isDropTarget
+                  ? "Soltá para sumarlo al viaje"
+                  : "Arrastrá un pedido desde la izquierda, o usá el botón +"}
               </div>
             )}
           </div>
-        </section>
 
-        <section className="grid gap-6">
-          <TripRouteMap depot={selectedDepot} route={displayedRoute} stops={stops} />
-
-          {proposal ? (
-            <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-              <p className="text-lg font-semibold text-emerald-100">Resumen de optimización</p>
-              <p className="mt-1 text-sm text-emerald-200/80">
-                Compará la ruta actual con la propuesta optimizada antes de aplicarla.
-              </p>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Distancia actual</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
-                    {formatDistance(route?.totalDistanceMeters ?? 0)}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Distancia optimizada</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
-                    {formatDistance(proposal.totalDistanceMeters)}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Tiempo actual</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
-                    {formatDuration(route?.totalDurationSeconds ?? 0)}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-stone-950/40 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/70">Tiempo optimizado</p>
-                  <p className="mt-2 text-base font-medium text-emerald-50">
-                    {formatDuration(proposal.totalDurationSeconds)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleApplyOptimization}
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-400 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-300"
-                >
-                  Aplicar propuesta
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setProposal(null)}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-300/30 px-4 text-sm text-emerald-100 transition hover:border-emerald-200"
-                >
-                  Descartar
-                </button>
-              </div>
+          {stops.length ? (
+            <div className="mt-5">
+              <TripRouteMap depot={selectedDepot} route={displayedRoute} stops={stops} />
             </div>
           ) : null}
         </section>

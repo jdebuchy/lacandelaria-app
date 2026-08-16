@@ -1,4 +1,4 @@
--- Aplicada en produccion: (pendiente)
+-- Aplicada en produccion: 2026-08-15
 --
 -- Renombra las tablas de WhatsApp a nombres agnosticos de canal y agrega la
 -- identidad de canal, para que Telegram y WhatsApp compartan un solo motor.

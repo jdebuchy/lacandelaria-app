@@ -108,8 +108,16 @@ Los ejemplos que alimenten ese tono van **anonimizados** y **nunca a un archivo 
 
 Lo correcto es que baja confianza pida una aclaración ("perdon, no te segui, me lo repetis?") y que solo derive si se repite. Requiere una acción nueva en el motor y un contador de aclaraciones seguidas.
 
-**La extracción de datos sobrescribe sin criterio, y el modelo inventa direcciones.** Encontrado con `scripts/bot-simular.mjs` en la primera corrida del guion `pedido`. El cliente dijo "Av Libertador 2809, Capital Federal", después "departamento", después "4B"; lo que quedó guardado fue `"Castex 3342 4B"`, una calle que nunca se mencionó.
+**Solo se guarda la dirección; falta el resto del pedido.** Cantidad y forma de pago se pierden entre mensajes, así que el bot los vuelve a preguntar. La recolección estructurada existe solo para la dirección; extenderla al resto es parte de la Fase 5.
 
-Pasa porque el orquestador toma `extracted.delivery_address` de **cada** mensaje y pisa lo que había. Ante un "4B" suelto el modelo compone una dirección plausible en vez de omitir el campo, y cada pisada suma un intento fallido de validación, hasta que se agotan y el bot pregunta en círculos.
+---
 
-Es el bug más caro de los abiertos: un pedido con dirección inventada llega al repartidor y se pierde la entrega. El arreglo tiene tres partes: no pisar una dirección ya validada por Google, exigir que el texto nuevo contenga calle y número antes de aceptarlo, y no volver a pedirle al modelo un dato que ya está en el draft.
+## Una corrección: el modelo no inventaba direcciones
+
+Durante las pruebas quedó registrado acá que el modelo alucinaba domicilios: en una conversación apareció guardado `"Castex 3342"`, una calle que aparentemente nadie había mencionado. **Era falso.**
+
+Esa calle la había escrito el usuario desde el teléfono. El poller de Telegram seguía corriendo e inyectaba mensajes reales en la **misma conversación** que estaba usando el simulador, así que había dos clientes escribiendo a la vez sobre un mismo hilo. Los resultados parecían aleatorios y no lo eran.
+
+Queda anotado porque el error de diagnóstico costó más que el bug: se acusó al modelo de algo que no hizo y casi se rediseña la extracción por eso. **Antes de culpar al modelo, verificar que no haya dos fuentes escribiendo en la misma conversación.**
+
+El simulador ahora usa su propio thread (`BOT_SIMULACION_THREAD`, por defecto `999000001`), separado del chat real. Los bugs que sí eran reales aparecieron recién cuando las corridas se volvieron reproducibles: la consulta a Google iba sin la localidad, y las respuestas a las preguntas del bot no se interpretaban.

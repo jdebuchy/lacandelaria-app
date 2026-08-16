@@ -10,6 +10,8 @@ import {
 import {
   EMPTY_ADDRESS_DRAFT,
   buildAddressQuestion,
+  interpretAnswer,
+  mergeAddress,
   nextAddressGap,
   pickSuggestion,
   type AddressDraft
@@ -146,11 +148,17 @@ async function notifyAdmin(text: string) {
 }
 
 export async function handleInboundMessage(inbound: InboundMessage) {
-  const adapter = ADAPTERS[inbound.channel];
+  const real = ADAPTERS[inbound.channel];
 
-  if (!adapter) {
+  if (!real) {
     throw new Error(`Canal sin adaptador: ${inbound.channel}`);
   }
+
+  // En simulacion se reemplaza solo el envio: el resto del flujo corre igual y
+  // todo queda registrado, asi la prueba mide lo mismo que una conversacion real.
+  const adapter: ChannelAdapter = inbound.simulated
+    ? { ...real, send: async () => {}, sendTyping: async () => {} }
+    : real;
 
   const supabase = createAdminClient();
   const now = new Date().toISOString();
@@ -163,7 +171,10 @@ export async function handleInboundMessage(inbound: InboundMessage) {
     threadId: inbound.threadId,
     text: inbound.text,
     conversation: existing,
-    allowedThreadIds: inbound.channel === "telegram" ? botConfig.telegramAllowedChatIds : [],
+    // La simulacion usa su propio thread, que no esta en la allowlist. Llega
+    // hasta aca solo con el secreto del webhook, asi que no abre ninguna puerta.
+    allowedThreadIds:
+      inbound.channel === "telegram" && !inbound.simulated ? botConfig.telegramAllowedChatIds : [],
     ...GATE_DEFAULTS
   });
 
@@ -254,14 +265,35 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   // extrajo algo: si hay un dato pendiente, la pregunta por ese dato le gana a
   // la respuesta generica del modelo, que tiende a pedir todo junto.
   const draftPrevio = (conversation.draftOrder?.direccion as AddressDraft | undefined) ?? EMPTY_ADDRESS_DRAFT;
-  const direccionDicha = typeof analysis.extracted.delivery_address === "string"
-    ? analysis.extracted.delivery_address.trim()
-    : "";
+  const dicha = typeof analysis.extracted.delivery_address === "string"
+    ? analysis.extracted.delivery_address
+    : null;
 
-  let direccion = draftPrevio;
+  // mergeAddress decide si el texto nuevo merece reemplazar al anterior. Sin ese
+  // filtro, un "4B" suelto entraba como direccion y el modelo lo completaba con
+  // una calle inventada.
+  // Primero se interpreta la respuesta a lo que se pregunto en el mensaje
+  // anterior: un "departamento" suelto solo tiene sentido con esa referencia.
+  const conRespuesta: AddressDraft = draftPrevio.ultimaPregunta
+    ? { ...draftPrevio, ...interpretAnswer(draftPrevio.ultimaPregunta, inbound.text) }
+    : draftPrevio;
 
-  if (direccionDicha && direccionDicha !== draftPrevio.texto) {
-    direccion = await resolverDireccion(draftPrevio, direccionDicha);
+  const conDireccion = mergeAddress(conRespuesta, dicha);
+
+  let direccion = conDireccion;
+
+  if (conDireccion.texto && conDireccion.texto !== draftPrevio.texto) {
+    // La zona va en un campo aparte, pero Google la necesita en la misma
+    // consulta: "Libertador 2809" solo es ambiguo de verdad, hay una calle
+    // Libertador en media provincia. Con la localidad, deja de serlo.
+    const zona = typeof analysis.extracted.delivery_zone === "string"
+      ? analysis.extracted.delivery_zone.trim()
+      : "";
+    const consulta = zona && !conDireccion.texto.toLowerCase().includes(zona.toLowerCase())
+      ? `${conDireccion.texto}, ${zona}`
+      : conDireccion.texto;
+
+    direccion = await resolverDireccion(conDireccion, consulta);
   }
 
   const huecoDireccion = direccion.texto ? nextAddressGap(direccion) : null;
@@ -276,7 +308,10 @@ export async function handleInboundMessage(inbound: InboundMessage) {
         status: "collecting_order_data",
         current_intent: analysis.intent,
         ai_confidence: analysis.confidence,
-        draft_order: { ...(conversation.draftOrder ?? {}), direccion }
+        draft_order: {
+          ...(conversation.draftOrder ?? {}),
+          direccion: { ...direccion, ultimaPregunta: huecoDireccion }
+        }
       },
       now
     );
@@ -285,11 +320,19 @@ export async function handleInboundMessage(inbound: InboundMessage) {
     return;
   }
 
-  if (direccion !== draftPrevio) {
+  // Sin hueco pendiente hay que soltar la ultima pregunta: si no, el proximo
+  // mensaje se sigue leyendo como respuesta a ella y un "efectivo" termina
+  // guardado como numero de departamento.
+  if (direccion !== draftPrevio || draftPrevio.ultimaPregunta) {
     await updateConversationStatus(
       supabase,
       conversationId,
-      { draft_order: { ...(conversation.draftOrder ?? {}), direccion } },
+      {
+        draft_order: {
+          ...(conversation.draftOrder ?? {}),
+          direccion: { ...direccion, ultimaPregunta: null }
+        }
+      },
       now
     );
   }

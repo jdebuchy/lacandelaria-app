@@ -4,6 +4,8 @@ import {
   EMPTY_ADDRESS_DRAFT,
   buildAddressQuestion,
   isAddressComplete,
+  looksLikeStreetAddress,
+  mergeAddress,
   nextAddressGap,
   pickSuggestion,
   type AddressDraft
@@ -39,12 +41,25 @@ describe("pickSuggestion", () => {
     expect(pick).toMatchObject({ sugerencia: { fullText: "Av. Cabildo 2200, CABA" } });
   });
 
-  it("si el numero aparece en varias, pregunta", () => {
+  it("si el numero aparece en varias y la consulta es corta, pregunta", () => {
     const pick = pickSuggestion("santa fe 1500", [
       sugerencia("Av. Santa Fe 1500, CABA"),
       sugerencia("Santa Fe 1500, Martinez")
     ]);
     expect(pick.tipo).toBe("ambigua");
+  });
+
+  // Con calle, altura y localidad ya alcanza: exigir una unica coincidencia
+  // hacia que "Av Libertador 2809, Capital Federal" quedara ambigua para
+  // siempre, porque hay calles Libertador en media provincia.
+  it("con localidad incluida toma la mas relevante", () => {
+    const pick = pickSuggestion("Av Libertador 2809, Capital Federal", [
+      sugerencia("Av. del Libertador 2809, CABA"),
+      sugerencia("Libertador 2809, San Isidro"),
+      sugerencia("Libertador 2809, Vicente Lopez")
+    ]);
+    expect(pick).toMatchObject({ tipo: "clara" });
+    expect(pick).toMatchObject({ sugerencia: { fullText: "Av. del Libertador 2809, CABA" } });
   });
 
   it("sin numero en la consulta, pregunta", () => {
@@ -67,6 +82,54 @@ describe("pickSuggestion", () => {
   it("ignora numeros muy cortos al comparar", () => {
     const pick = pickSuggestion("calle 9", [sugerencia("Calle 9 de Julio"), sugerencia("Calle 9, La Plata")]);
     expect(pick.tipo).toBe("ambigua");
+  });
+});
+
+// El bug mas caro que aparecio probando: el cliente dijo "Av Libertador 2809",
+// despues "departamento", despues "4B", y lo que quedo guardado fue
+// "Castex 3342 4B", una calle que nunca menciono. El modelo completaba una
+// direccion plausible ante cualquier fragmento, y cada mensaje pisaba el anterior.
+describe("mergeAddress", () => {
+  it("toma la primera direccion que parece direccion", () => {
+    const r = mergeAddress(draft(), "Av Libertador 2809, Capital Federal");
+    expect(r.texto).toBe("Av Libertador 2809, Capital Federal");
+  });
+
+  it("ignora fragmentos que no son una direccion", () => {
+    for (const fragmento of ["4B", "departamento", "casa", "PB", "si", ""]) {
+      expect(mergeAddress(draft(), fragmento).texto).toBeNull();
+    }
+  });
+
+  it("no pisa una direccion que Google ya confirmo", () => {
+    const validada = draft({ texto: "Av Libertador 2809", googlePlaceId: "place-1" });
+    expect(mergeAddress(validada, "Castex 3342 4B").texto).toBe("Av Libertador 2809");
+  });
+
+  // Sin validar todavia, una direccion nueva si puede corregir a la anterior:
+  // el cliente puede haberse equivocado y estar rectificando.
+  it("sin validar, una direccion nueva reemplaza a la anterior", () => {
+    const previa = draft({ texto: "Cabildo 1000" });
+    expect(mergeAddress(previa, "Av Libertador 2809").texto).toBe("Av Libertador 2809");
+  });
+
+  it("el mismo texto no cambia nada", () => {
+    const previa = draft({ texto: "Cabildo 1000", intentos: 1 });
+    expect(mergeAddress(previa, "Cabildo 1000")).toBe(previa);
+  });
+});
+
+describe("looksLikeStreetAddress", () => {
+  it("pide calle y altura juntas", () => {
+    expect(looksLikeStreetAddress("Av Libertador 2809")).toBe(true);
+    expect(looksLikeStreetAddress("Cabildo 2200, CABA")).toBe(true);
+    expect(looksLikeStreetAddress("Libertador")).toBe(false);
+    expect(looksLikeStreetAddress("2809")).toBe(false);
+  });
+
+  it("un piso o un timbre no alcanzan", () => {
+    expect(looksLikeStreetAddress("4B")).toBe(false);
+    expect(looksLikeStreetAddress("piso 3")).toBe(false);
   });
 });
 

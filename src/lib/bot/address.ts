@@ -11,7 +11,13 @@ export type AddressDraft = {
   esDepartamento: boolean | null;
   addressLine2: string | null;
   intentos: number;
+  // Que se le pregunto en el mensaje anterior, para poder interpretar la
+  // respuesta: un "departamento" suelto solo significa algo si sabemos que
+  // veniamos de preguntar si era casa o departamento.
+  ultimaPregunta: AddressGap | null;
 };
+
+export type AddressGap = "calle" | "confirmar_calle" | "tipo_vivienda" | "piso_depto" | "nombre_barrio";
 
 export const EMPTY_ADDRESS_DRAFT: AddressDraft = {
   texto: null,
@@ -21,7 +27,8 @@ export const EMPTY_ADDRESS_DRAFT: AddressDraft = {
   gatedCommunityName: null,
   esDepartamento: null,
   addressLine2: null,
-  intentos: 0
+  intentos: 0,
+  ultimaPregunta: null
 };
 
 // Despues de dos intentos fallidos se acepta lo que escribio el cliente y se
@@ -52,20 +59,68 @@ export function pickSuggestion(query: string, suggestions: PlaceSuggestion[]): S
 
   const numeros = numerosDe(query);
 
-  if (numeros.length) {
-    const conNumero = suggestions.filter((s) =>
-      numeros.some((n) => s.fullText.includes(n))
-    );
-
-    if (conNumero.length === 1) {
-      return { tipo: "clara", sugerencia: conNumero[0] };
-    }
+  if (!numeros.length) {
+    return { tipo: "ambigua", opciones: suggestions.slice(0, 3) };
   }
 
-  return { tipo: "ambigua", opciones: suggestions.slice(0, 3) };
+  const conNumero = suggestions.filter((s) => numeros.some((n) => s.fullText.includes(n)));
+
+  if (conNumero.length === 1) {
+    return { tipo: "clara", sugerencia: conNumero[0] };
+  }
+
+  // Places devuelve las sugerencias ordenadas por relevancia. Cuando el cliente
+  // dio calle, altura y localidad, la primera con esa altura es la correcta:
+  // exigir que fuera la unica hacia que "Av Libertador 2809, Capital Federal"
+  // se considerara ambigua para siempre, porque hay calles Libertador en media
+  // provincia y todas tienen un 2809.
+  const palabras = query.trim().split(/\s+/).filter(Boolean);
+
+  if (conNumero.length > 1 && palabras.length >= 4) {
+    return { tipo: "clara", sugerencia: conNumero[0] };
+  }
+
+  return { tipo: "ambigua", opciones: conNumero.slice(0, 3) };
 }
 
-export type AddressGap = "calle" | "confirmar_calle" | "tipo_vivienda" | "piso_depto" | "nombre_barrio";
+// Una direccion util tiene calle y altura. Sin esto, un "4B" o un "departamento"
+// sueltos entran como direccion: el modelo los completa inventando una calle
+// plausible, y el pedido termina con un domicilio que el cliente nunca dijo.
+export function looksLikeStreetAddress(texto: string) {
+  const limpio = texto.trim();
+
+  if (limpio.length < 6) {
+    return false;
+  }
+
+  const tieneAltura = /\d{2,}/.test(limpio);
+  const tienePalabras = /[a-záéíóúñ]{3,}/i.test(limpio);
+
+  return tieneAltura && tienePalabras;
+}
+
+// Decide con que quedarse cuando el modelo devuelve una direccion nueva.
+// Una vez que Google confirmo una, no se pisa: los mensajes siguientes del
+// cliente ("4B", "es un depto") aportan detalles, no una direccion distinta.
+export function mergeAddress(draft: AddressDraft, extraido: string | null | undefined): AddressDraft {
+  const texto = (extraido ?? "").trim();
+
+  if (!texto || texto === draft.texto) {
+    return draft;
+  }
+
+  if (draft.googlePlaceId) {
+    return draft;
+  }
+
+  if (!looksLikeStreetAddress(texto)) {
+    return draft;
+  }
+
+  return { ...draft, texto };
+}
+
+
 
 // Devuelve el primer dato que falta, no todos: el equipo pide de a uno y en chat
 // la gente contesta solo la mitad de lo que se le pregunta junto.
@@ -119,4 +174,38 @@ export function buildAmbiguousQuestion(opciones: PlaceSuggestion[]) {
 
 export function isAddressComplete(draft: AddressDraft) {
   return nextAddressGap(draft) === null;
+}
+
+// Interpreta la respuesta a la pregunta que se acaba de hacer. Sin esto el bot
+// pregunta "es casa o departamento?", el cliente contesta, y como nadie guarda
+// esa respuesta la vuelve a preguntar en el mensaje siguiente, para siempre.
+export function interpretAnswer(gap: AddressGap, texto: string): Partial<AddressDraft> {
+  const limpio = texto.trim();
+  const normalizado = limpio
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+
+  switch (gap) {
+    case "tipo_vivienda": {
+      if (/\b(depto|dpto|departamento|depa|piso|edificio|torre)\b/.test(normalizado)) {
+        return { esDepartamento: true };
+      }
+
+      if (/\b(casa|ph|duplex|chalet|quinta)\b/.test(normalizado)) {
+        return { esDepartamento: false };
+      }
+
+      return {};
+    }
+
+    case "piso_depto":
+      return limpio ? { addressLine2: limpio } : {};
+
+    case "nombre_barrio":
+      return limpio ? { gatedCommunityName: limpio } : {};
+
+    default:
+      return {};
+  }
 }

@@ -25,6 +25,11 @@ export type InboundMessage = {
   externalMessageId: string | null;
   senderName: string | null;
   raw: unknown;
+  // Simulacion: procesa el mensaje y registra todo, pero no lo manda al canal.
+  // Un bot no puede escribir haciendose pasar por el cliente, asi que sin esto
+  // el chat de pruebas queda con respuestas sueltas, sin la pregunta que las
+  // provoco, y encima mezcladas con las conversaciones de prueba a mano.
+  simulated?: boolean;
 };
 
 export type OutboundMessage = {

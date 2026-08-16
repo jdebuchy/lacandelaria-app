@@ -4,9 +4,12 @@
 // estado distinto y no se puede comparar el antes y el despues de un cambio.
 // Esto arranca siempre de cero y muestra que contesto en cada paso.
 //
-// Los mensajes salen igual por Telegram, asi que se ven en el telefono tambien.
+// No manda nada a Telegram: un bot no puede escribir haciendose pasar por el
+// cliente, asi que en el chat apareceria media conversacion (solo las respuestas)
+// mezclada con las pruebas a mano. Con --enviar salen igual, si se quiere ver
+// como se leen en el telefono.
 //
-// Uso: node --env-file=.env.local scripts/bot-simular.mjs [guion]
+// Uso: node --env-file=.env.local scripts/bot-simular.mjs [guion] [--enviar]
 //      guiones: pedido (default) | precios | zona | confuso | reclamo
 
 import { createClient } from "@supabase/supabase-js";
@@ -33,7 +36,11 @@ const GUIONES = {
   reclamo: ["las paltas vinieron golpeadas", "queria hacer un reclamo"]
 };
 
-const guion = process.argv[2] ?? "pedido";
+// Por defecto no manda nada a Telegram: el bot no puede escribir haciendose
+// pasar por el cliente, asi que en el chat solo apareceria media conversacion.
+// Con --enviar salen los mensajes de Cande al telefono.
+const enviarAlCanal = process.argv.includes("--enviar");
+const guion = (process.argv[2] ?? "pedido").replace(/^--.*/, "") || "pedido";
 const mensajes = GUIONES[guion];
 
 if (!mensajes) {
@@ -41,12 +48,16 @@ if (!mensajes) {
   process.exit(1);
 }
 
-const thread = (process.env.TELEGRAM_ALLOWED_CHAT_IDS ?? "").split(",")[0]?.trim();
+// Thread propio, separado del chat real. Compartirlo con el telefono hacia que
+// el poller inyectara mensajes de verdad en medio de la simulacion: dos clientes
+// escribiendo a la vez sobre la misma conversacion, con resultados que parecian
+// aleatorios y no lo eran.
+const thread = process.env.BOT_SIMULACION_THREAD ?? "999000001";
 const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
 const destino = process.env.BOT_LOCAL_URL ?? "http://127.0.0.1:3000";
 
-if (!thread || !secret) {
-  console.error("Faltan TELEGRAM_ALLOWED_CHAT_IDS o TELEGRAM_WEBHOOK_SECRET.");
+if (!secret) {
+  console.error("Falta TELEGRAM_WEBHOOK_SECRET.");
   process.exit(1);
 }
 
@@ -76,7 +87,11 @@ for (const texto of mensajes) {
   const inicio = Date.now();
   await fetch(`${destino}/api/bot/telegram`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-telegram-bot-api-secret-token": secret },
+    headers: {
+      "Content-Type": "application/json",
+      "x-telegram-bot-api-secret-token": secret,
+      ...(enviarAlCanal ? {} : { "x-bot-simulate": "1" })
+    },
     body: JSON.stringify({
       update_id: ++mid,
       message: {

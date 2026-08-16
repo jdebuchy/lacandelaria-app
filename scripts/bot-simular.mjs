@@ -31,6 +31,21 @@ const GUIONES = {
     "4B",
     "efectivo"
   ],
+  // Pedido completo hasta el numero de pedido: cantidad, direccion, pago,
+  // nombre, telefono, upsell y confirmacion. Es el guion que mide si el bot
+  // cierra o si deriva a una persona en el ultimo paso.
+  cierre: [
+    "hola, queria 2 cajas de paltas",
+    "Av Libertador 2809, Capital Federal",
+    "1",
+    "departamento",
+    "4B",
+    "efectivo",
+    "Pepe Gonzalez",
+    "11 5555 4444",
+    "no gracias",
+    "si, confirmo"
+  ],
   precios: ["cuanto sale la caja?", "y la chica?", "tenes frutos secos?"],
   zona: ["hacen envios a Bariloche?", "y a San Isidro?", "cuando pasan por Belgrano?"],
   confuso: ["hola", "che", "mmm", "nada, gracias"],

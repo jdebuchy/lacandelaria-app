@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { sanitizeRedirectPath } from "@/lib/auth-shared";
 import { appConfig } from "@/lib/config";
+import { shouldBlockTunneledRequest } from "@/lib/tunnel-guard";
 
 type CookieToSet = {
   name: string;
@@ -37,6 +38,12 @@ function buildLoginUrl(request: NextRequest, reason?: string) {
 }
 
 export async function middleware(request: NextRequest) {
+  // Primero de todo: por el tunel de desarrollo solo entra el webhook del bot.
+  // Un 404 seco, sin cuerpo, para no confirmar que la ruta existe.
+  if (shouldBlockTunneledRequest(request.headers, request.nextUrl.pathname, process.env.NODE_ENV)) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   if (!isProtectedPath(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -95,12 +102,10 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+// El matcher pasa a ser todo el sitio porque el candado del tunel tiene que ver
+// tambien las rutas publicas: son las que quedaban expuestas. La primera linea
+// de middleware() devuelve enseguida para las que no requieren sesion, asi que
+// el costo de las rutas nuevas es un if.
 export const config = {
-  matcher: [
-    "/panel/:path*",
-    "/driver/:path*",
-    "/reparto/:path*",
-    "/api/panel/:path*",
-    "/api/driver/:path*"
-  ]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
 };

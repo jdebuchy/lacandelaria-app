@@ -10,6 +10,13 @@ export type AddressDraft = {
   gatedCommunityName: string | null;
   esDepartamento: boolean | null;
   addressLine2: string | null;
+  // Los componentes que devuelve Google. Se guardan porque el pedido los
+  // necesita: sin localidad ni provincia, deriveDeliveryArea marca la direccion
+  // como pending_review y el pedido cae en revision manual.
+  addressLine1: string | null;
+  locality: string | null;
+  provincia: string | null;
+  codigoPostal: string | null;
   intentos: number;
   // Las opciones que se le ofrecieron al cliente, para poder resolver su
   // eleccion en el mensaje siguiente.
@@ -32,6 +39,10 @@ export const EMPTY_ADDRESS_DRAFT: AddressDraft = {
   gatedCommunityName: null,
   esDepartamento: null,
   addressLine2: null,
+  addressLine1: null,
+  locality: null,
+  provincia: null,
+  codigoPostal: null,
   intentos: 0,
   opciones: null,
   repeticiones: 0,
@@ -131,6 +142,15 @@ export function mergeAddress(draft: AddressDraft, extraido: string | null | unde
   }
 
   if (draft.googlePlaceId) {
+    return draft;
+  }
+
+  // Con opciones en pantalla el cliente esta eligiendo, no dictando una direccion
+  // nueva. Sin esto, el modelo devuelve el mismo domicilio con otra puntuacion
+  // ("Av." por "Avenida"), el texto cambia, se vuelve a consultar a Google y las
+  // opciones que el cliente estaba mirando desaparecen. Cada vuelta sumaba un
+  // intento hasta agotar los que hay.
+  if (draft.opciones?.length) {
     return draft;
   }
 

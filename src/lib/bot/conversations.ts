@@ -226,6 +226,18 @@ export async function loadCommercialContext(supabase: Client) {
   return (data?.value as Record<string, unknown>) ?? {};
 }
 
+// Las reglas de upsell viven en la misma tabla de settings que el tono y el
+// catalogo: son una decision comercial, se cambian sin tocar codigo ni migrar.
+export async function loadUpsellRules(supabase: Client) {
+  const { data } = await supabase
+    .from("commercial_settings")
+    .select("value")
+    .eq("key", "upsell_rules")
+    .maybeSingle();
+
+  return (data?.value as Record<string, unknown> | null) ?? null;
+}
+
 export async function loadToneGuide(supabase: Client) {
   const { data } = await supabase
     .from("commercial_settings")

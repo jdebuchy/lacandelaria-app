@@ -96,6 +96,28 @@ describe("mergeAddress", () => {
     expect(mergeAddress(validada, "Castex 3342 4B").texto).toBe("Av Libertador 2809");
   });
 
+  // El modelo devuelve el mismo domicilio con otra puntuacion ("Av." por
+  // "Avenida"), el texto cambia, se vuelve a consultar a Google y las opciones
+  // que el cliente estaba mirando desaparecen. Cada vuelta gastaba un intento.
+  it("no cambia la direccion mientras el cliente elige entre las opciones", () => {
+    const eligiendo = draft({
+      texto: "Av. del Libertador 2809, Capital Federal",
+      opciones: [
+        {
+          placeId: "p1",
+          mainText: "Av. del Libertador 2809",
+          secondaryText: "Capital Federal",
+          fullText: "Av. del Libertador 2809, Capital Federal",
+          types: ["street_address"]
+        }
+      ]
+    });
+
+    expect(mergeAddress(eligiendo, "Avenida del Libertador 2809, Capital Federal").texto).toBe(
+      "Av. del Libertador 2809, Capital Federal"
+    );
+  });
+
   // Sin validar todavia, una direccion nueva si puede corregir a la anterior:
   // el cliente puede haberse equivocado y estar rectificando.
   it("sin validar, una direccion nueva reemplaza a la anterior", () => {

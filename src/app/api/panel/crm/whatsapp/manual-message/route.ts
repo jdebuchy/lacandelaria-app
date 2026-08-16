@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     ? new Date(parsed.data.scheduledFor).toISOString()
     : new Date().toISOString();
 
-  const { error: insertError } = await supabase.from("whatsapp_message_queue").insert({
+  const { error: insertError } = await supabase.from("message_queue").insert({
     body: parsed.data.body.trim(),
     customer_id: parsed.data.customerId,
     message_type: parsed.data.messageType,

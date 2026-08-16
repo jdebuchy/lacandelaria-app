@@ -121,3 +121,43 @@ Esa calle la había escrito el usuario desde el teléfono. El poller de Telegram
 Queda anotado porque el error de diagnóstico costó más que el bug: se acusó al modelo de algo que no hizo y casi se rediseña la extracción por eso. **Antes de culpar al modelo, verificar que no haya dos fuentes escribiendo en la misma conversación.**
 
 El simulador ahora usa su propio thread (`BOT_SIMULACION_THREAD`, por defecto `999000001`), separado del chat real. Los bugs que sí eran reales aparecieron recién cuando las corridas se volvieron reproducibles: la consulta a Google iba sin la localidad, y las respuestas a las preguntas del bot no se interpretaban.
+
+---
+
+## Fase 5: cerrar el pedido
+
+Hasta acá el bot tomaba el pedido entero y, cuando el cliente confirmaba, derivaba a una persona. La conversación llegaba al final bien y se cortaba en el último paso. Esto es lo que se decidió para cerrarla.
+
+**El pedido se crea en `src/lib/bot/create-order.ts` y no llamando al endpoint interno.** El endpoint de WhatsApp exige un teléfono de 11 a 14 dígitos y Telegram no da teléfono; además fija `sales_channel: whatsapp_ai`. El módulo nuevo reusa exactamente las mismas piezas (`loadCatalog`, `buildOrderItems`, `calculateItemsCount`, `calculateOrderTotal`, `toStructuredAddressColumns`, `recordOrderActivity`) y copia su idempotencia, así que no hay dos formas de crear un pedido, hay una escrita dos veces contra las mismas funciones.
+
+**El pedido se crea a precio de lista, como todos los canales.** `payment_method_expected: "unknown"` y los ítems valuados con `buildOrderItems(..., "unknown")`. El descuento por efectivo lo aplica el primer cobro (`prepareOrderForFirstPaymentMethod`), igual que en el formulario público y en WhatsApp. Cotizar distinto acá haría que dos pedidos idénticos tengan totales distintos según por dónde entraron. Lo que el cliente dijo sobre el pago va a `notes` ("dijo que paga en efectivo") para que el repartidor lo sepa.
+
+**En el chat, en cambio, se cotiza según la forma de pago que eligió el cliente.** Si dijo efectivo, el resumen dice el precio en efectivo: es lo que va a pagar. El total del pedido en el panel es el de lista y el panel se encarga de la diferencia.
+
+**El producto nunca sale del texto libre del modelo.** Hay dos cajas de paltas activas, la de 4kg a 30 mil y la chica a 25 mil. `resolveVariant` matchea contra el catálogo real: primero el label más específico ("caja de 4kg chica" gana sobre "caja de 4kg", que está contenido en él), después la palabra que distingue una variante de las otras ("la chica"), y si el cliente nombró solo la familia, la variante que el catálogo marca por defecto. El precio sale siempre del catálogo.
+
+**El upsell se ofrece antes de crear el pedido, no después.** Así el producto sugerido entra como un ítem más en el mismo insert: los totales quedan bien y no hay que mutar un pedido ya creado. Es además el momento natural de la venta, que era el pedido original: sugerir al cerrar.
+
+Las reglas viven en `commercial_settings` con la key `upsell_rules`, la misma tabla donde ya están el tono y el catálogo. No hizo falta ninguna migración y se cambian sin deploy. Si la key no está, `UPSELL_DEFAULT` en `src/lib/bot/upsell.ts` sugiere frutos secos. Se ofrece una sola vez por conversación.
+
+**El teléfono se pide pero no bloquea.** `customers.phone` es nullable y el reparto lo necesita, así que se pregunta como cualquier otro dato. Si el cliente no lo contesta, el corte de repeticiones lo saltea y el pedido se crea igual. Cantidad y dirección sí bloquean: un pedido sin ellas no se puede repartir, así que ahí deriva a una persona.
+
+---
+
+## Tres bugs que aparecieron al cablear todo esto
+
+**La forma de pago no se guardaba nunca.** Se calculaba en cada mensaje pero solo se persistía en las ramas que además tocaban la dirección. Si el cliente decía "efectivo" cuando la dirección ya estaba cerrada, el dato se perdía. Ahora hay una sola escritura del draft y corre siempre.
+
+**Borrar la última pregunta de dirección hacía volver la pregunta para siempre.** Cuando el bot pasaba a preguntar algo que no era la dirección, limpiaba `direccion.ultimaPregunta`. Parecía prolijo y era el bug: ese campo es lo que lleva la cuenta de repeticiones, y sin él el corte deja de aplicar. El síntoma era "es casa o departamento?" cinco veces seguidas, después de que el cliente ya había contestado.
+
+Lo que decide cómo interpretar un mensaje es ahora `ultimaPregunta` a nivel del pedido, no la de la dirección. La de la dirección quedó solo como contador.
+
+**Las opciones de Google se perdían solas.** El modelo devolvía el mismo domicilio con otra puntuación ("Av." por "Avenida"), el texto cambiaba, se volvía a consultar a Google y las tres opciones que el cliente estaba mirando desaparecían. Cada vuelta gastaba un intento hasta agotarlos. Ahora, con opciones en pantalla, un texto nuevo no reemplaza a la dirección: el cliente está eligiendo, no dictando.
+
+---
+
+## El CLI de Claude se cuelga y el turno se pierde entero
+
+En una corrida de prueba, una llamada tardó 1008 segundos y el turno terminó sin respuesta. El cliente escribe y no le contesta nadie, que desde afuera se ve como que el bot lo dejó hablando solo. Peor: el mensaje siguiente se lee como respuesta a una pregunta que nunca se hizo, y la conversación entera se desfasa.
+
+El timeout bajó a 45 segundos y ahora hay un reintento. Es una limitación del proveedor `claude-cli`, que existe para prototipar con la suscripción; en producción va `anthropic-api`.

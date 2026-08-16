@@ -9,16 +9,30 @@ import {
 } from "./analyze";
 import {
   EMPTY_ADDRESS_DRAFT,
-  buildAddressQuestion,
   countRepetition,
   interpretAnswer,
   mergeAddress,
-  nextAddressGap,
   pickSuggestion,
   resolveChoice,
   type AddressDraft
 } from "./address";
 import { deriveCapabilities } from "./capabilities";
+import { createBotOrder, loadBotCatalog } from "./create-order";
+import { resolveVariant } from "./order-items";
+import {
+  EMPTY_ORDER_DRAFT,
+  buildOrderQuestion,
+  gapFromKey,
+  gapKey,
+  interpretOrderAnswer,
+  mergeOrderDraft,
+  nextOrderGap,
+  pareceConsulta,
+  resumirConfirmado,
+  type OrderDraft
+} from "./order-draft";
+import { avisoDePedidoCreado, describirDireccion, resumenPedido, type PedidoItem } from "./summary";
+import { parseUpsellRules, selectUpsell } from "./upsell";
 import { telegramAdapter } from "./channels/telegram";
 import type { ChannelAdapter } from "./channels/types";
 import {
@@ -29,6 +43,7 @@ import {
   loadConversationState,
   loadRecentMessages,
   loadToneGuide,
+  loadUpsellRules,
   markCustomerOptOut,
   markNeedsHuman,
   recordInbound,
@@ -40,7 +55,7 @@ import {
 import { ENGINE_DEFAULTS, decideNextAction } from "./engine";
 import { GATE_DEFAULTS, evaluateGate, truncateForLlm } from "./gate";
 import { getLlmProvider } from "./llm";
-import type { InboundMessage } from "./types";
+import type { BotAnalysis, ConversationState, InboundMessage } from "./types";
 
 const MUTE_HOURS_AFTER_STRIKES = 12;
 
@@ -83,7 +98,13 @@ async function aplicarLugar(draft: AddressDraft, texto: string, placeId: string)
     googlePlaceId: detalle.googlePlaceId,
     etiqueta: detalle.displayLabel,
     addressKind: detalle.suggestedAddressKind,
-    gatedCommunityName: detalle.gatedCommunityName || draft.gatedCommunityName
+    gatedCommunityName: detalle.gatedCommunityName || draft.gatedCommunityName,
+    // Los componentes van al pedido tal cual los normalizo Google. Guardarlos
+    // aca es lo que evita que el pedido nazca en pending_review.
+    addressLine1: detalle.addressLine1 || draft.addressLine1,
+    locality: detalle.locality || draft.locality,
+    provincia: detalle.administrativeAreaLevel1 || draft.provincia,
+    codigoPostal: detalle.postalCode || draft.codigoPostal
   };
 }
 
@@ -117,7 +138,10 @@ const MOTIVOS: Record<string, string> = {
   model_requested: "un caso que prefiere no resolver solo",
   rate_limited: "demasiados mensajes seguidos",
   confirm_without_draft: "una confirmacion sin pedido armado",
-  order_ready: "un pedido listo para cargar"
+  order_ready: "un pedido listo para cargar",
+  order_failed: "un pedido confirmado que no se pudo cargar",
+  falta_cantidad: "un pedido sin cantidad, despues de preguntarla dos veces",
+  falta_direccion: "un pedido sin direccion, despues de preguntarla dos veces"
 };
 
 // Lo unico que ve el cliente al derivar. Sin motivos ni jerga interna: saber que
@@ -160,6 +184,165 @@ async function notifyAdmin(text: string) {
   } catch {
     // Un aviso perdido no puede tumbar el manejo del mensaje del cliente.
   }
+}
+
+type AvanceDePedido = {
+  supabase: ReturnType<typeof createAdminClient>;
+  adapter: ChannelAdapter;
+  inbound: InboundMessage;
+  conversationId: string;
+  conversation: ConversationState;
+  analysis: BotAnalysis;
+  pedido: OrderDraft;
+  draftPrevio: AddressDraft;
+  isTest: boolean;
+  now: string;
+};
+
+// Lleva el pedido de un dato al siguiente y lo cierra. Devuelve true cuando ya
+// contesto: ahi el motor no corre, porque la pregunta concreta que falta le gana
+// a cualquier respuesta que redacte el modelo.
+async function avanzarPedido(entrada: AvanceDePedido): Promise<boolean> {
+  const { supabase, adapter, inbound, conversationId, conversation, analysis, draftPrevio, now } =
+    entrada;
+
+  const [{ variantes, variantePorDefecto }, reglasCrudas] = await Promise.all([
+    loadBotCatalog(supabase),
+    loadUpsellRules(supabase)
+  ]);
+
+  const resolucion = resolveVariant(entrada.pedido.producto, variantes, variantePorDefecto);
+  const principal =
+    resolucion.tipo === "unica"
+      ? resolucion.variante
+      : variantes.find((variante) => variante.id === variantePorDefecto) ?? null;
+
+  // Sin catalogo no hay pedido posible. Contesta el modelo y despues deriva: es
+  // preferible a preguntar cantidades de algo que no se puede cargar.
+  if (!principal) {
+    return false;
+  }
+
+  const upsell = selectUpsell(parseUpsellRules(reglasCrudas), entrada.pedido, variantes, [principal.id]);
+  const gap = nextOrderGap(entrada.pedido, Boolean(upsell));
+
+  const items: PedidoItem[] = [];
+
+  if (entrada.pedido.cantidad) {
+    items.push({ variante: principal, cantidad: entrada.pedido.cantidad });
+  }
+
+  if (entrada.pedido.upsellAceptado && entrada.pedido.upsellVariantId) {
+    const extra = variantes.find((variante) => variante.id === entrada.pedido.upsellVariantId);
+
+    if (extra) {
+      items.push({ variante: extra, cantidad: 1 });
+    }
+  }
+
+  if (!gap) {
+    const resultado = await createBotOrder(
+      supabase,
+      {
+        conversationId,
+        customerId: conversation.customerId,
+        channel: inbound.channel,
+        threadId: inbound.threadId,
+        senderName: inbound.senderName,
+        draft: entrada.pedido,
+        items,
+        isTest: entrada.isTest
+      },
+      now
+    );
+
+    if (resultado.tipo === "error") {
+      // El cliente ya confirmo: perder el pedido aca seria lo peor que puede
+      // pasar en toda la conversacion. Lo levanta una persona.
+      await markNeedsHuman(supabase, conversationId, "order_failed", now);
+      await avisarAlCliente(supabase, adapter, inbound, conversationId, now);
+      await notifyAdmin(
+        `Cande no pudo cargar un pedido confirmado${inbound.senderName ? ` de ${inbound.senderName}` : ""}: ${resultado.motivo}`
+      );
+
+      return true;
+    }
+
+    const aviso = avisoDePedidoCreado(resultado.orderNumber, entrada.pedido.nombre);
+
+    await adapter.send(inbound.threadId, aviso);
+    await recordOutbound(supabase, conversationId, inbound.channel, aviso, "transactional_reply", now);
+
+    if (resultado.tipo === "creado") {
+      await notifyAdmin(
+        `Pedido #${resultado.orderNumber ?? "?"} cargado por Cande: ${describirDireccion(entrada.pedido)}.`
+      );
+    }
+
+    return true;
+  }
+
+  if (gap.tipo === "bloqueado") {
+    await markNeedsHuman(supabase, conversationId, `falta_${gap.falta}`, now);
+    await avisarAlCliente(supabase, adapter, inbound, conversationId, now);
+    await notifyAdmin(avisoDeHandoff(`falta_${gap.falta}`, inbound.senderName, inbound.text));
+
+    return true;
+  }
+
+  let pedido = entrada.pedido;
+  let texto: string;
+
+  if (gap.tipo === "upsell" && upsell) {
+    texto = upsell.mensaje;
+    pedido = { ...pedido, upsellOfrecido: true, upsellVariantId: upsell.variante.id };
+  } else if (gap.tipo === "confirmacion") {
+    texto = resumenPedido(items, pedido);
+  } else {
+    texto = buildOrderQuestion(gap, pedido);
+  }
+
+  if (!texto) {
+    return false;
+  }
+
+  const clave = gapKey(gap);
+
+  await updateConversationStatus(
+    supabase,
+    conversationId,
+    {
+      status: "collecting_order_data",
+      current_intent: analysis.intent,
+      ai_confidence: analysis.confidence,
+      draft_order: {
+        ...(conversation.draftOrder ?? {}),
+        ...pedido,
+        ultimaPregunta: clave,
+        // El contador vive por pregunta: sin esto, dos preguntas distintas
+        // comparten el corte y el bot se rinde antes de tiempo.
+        repeticiones: entrada.pedido.ultimaPregunta === clave ? entrada.pedido.repeticiones + 1 : 0,
+        // Cuando la pregunta del momento no es de direccion, la ultima pregunta
+        // de direccion queda como estaba. Borrarla parecia prolijo y era el bug
+        // que hacia volver "es casa o departamento?" para siempre: sin ella se
+        // pierde la cuenta de repeticiones y el corte deja de aplicar.
+        direccion:
+          gap.tipo === "direccion"
+            ? {
+                ...pedido.direccion,
+                ultimaPregunta: gap.gap,
+                repeticiones: countRepetition(draftPrevio, gap.gap)
+              }
+            : pedido.direccion
+      }
+    },
+    now
+  );
+
+  await adapter.send(inbound.threadId, texto);
+  await recordOutbound(supabase, conversationId, inbound.channel, texto, "transactional_reply", now);
+
+  return true;
 }
 
 export async function handleInboundMessage(inbound: InboundMessage) {
@@ -248,6 +431,14 @@ export async function handleInboundMessage(inbound: InboundMessage) {
     loadToneGuide(supabase)
   ]);
 
+  // Lo que ya se sabe del pedido. Va al prompt para que el modelo no vuelva a
+  // pedir lo que el cliente ya dijo.
+  const pedidoPrevio: OrderDraft = {
+    ...EMPTY_ORDER_DRAFT,
+    ...((conversation.draftOrder ?? {}) as Partial<OrderDraft>),
+    direccion: (conversation.draftOrder?.direccion as AddressDraft | undefined) ?? EMPTY_ADDRESS_DRAFT
+  };
+
   const provider = getLlmProvider();
   const dejarDeEscribir = keepTyping(adapter, inbound.threadId);
 
@@ -261,7 +452,7 @@ export async function handleInboundMessage(inbound: InboundMessage) {
         conversationStatus: conversation.status,
         messageBody: truncateForLlm(inbound.text, GATE_DEFAULTS.maxTextLength),
         recentMessages,
-        confirmado: resumirConfirmado(conversation.draftOrder)
+        confirmado: resumirConfirmado(pedidoPrevio)
       }),
       maxTokens: botConfig.llmMaxTokens,
       jsonSchema: ANALYSIS_JSON_SCHEMA as unknown as Record<string, unknown>
@@ -277,107 +468,123 @@ export async function handleInboundMessage(inbound: InboundMessage) {
 
   const analysis = parseAnalysis(result.text);
 
-  // Recoleccion de direccion. Corre antes del motor y solo cuando el modelo
-  // extrajo algo: si hay un dato pendiente, la pregunta por ese dato le gana a
-  // la respuesta generica del modelo, que tiende a pedir todo junto.
-  const draftPrevio = (conversation.draftOrder?.direccion as AddressDraft | undefined) ?? EMPTY_ADDRESS_DRAFT;
+  // Recoleccion del pedido. Corre antes del motor: si hay un dato pendiente, la
+  // pregunta por ese dato le gana a la respuesta generica del modelo, que tiende
+  // a pedir todo junto y a volver a pedir lo que el cliente ya dijo.
+  const draftPrevio = pedidoPrevio.direccion;
+
+  // Dos fuentes por mensaje: lo que el modelo extrajo, y la respuesta a lo ultimo
+  // que se pregunto. La segunda hace falta porque un "efectivo" suelto solo
+  // significa algo si veniamos de preguntar como paga.
+  const gapPrevio = gapFromKey(pedidoPrevio.ultimaPregunta);
+  const conExtraido = mergeOrderDraft(pedidoPrevio, analysis.extracted);
+  let pedido: OrderDraft =
+    gapPrevio && gapPrevio.tipo !== "direccion"
+      ? { ...conExtraido, ...interpretOrderAnswer(gapPrevio, inbound.text) }
+      : conExtraido;
+
   const dicha = typeof analysis.extracted.delivery_address === "string"
     ? analysis.extracted.delivery_address
     : null;
 
-  // mergeAddress decide si el texto nuevo merece reemplazar al anterior. Sin ese
-  // filtro, un "4B" suelto entraba como direccion y el modelo lo completaba con
-  // una calle inventada.
-  // Primero se interpreta la respuesta a lo que se pregunto en el mensaje
-  // anterior: un "departamento" suelto solo tiene sentido con esa referencia.
-  const conRespuesta: AddressDraft = draftPrevio.ultimaPregunta
-    ? { ...draftPrevio, ...interpretAnswer(draftPrevio.ultimaPregunta, inbound.text) }
+  // La respuesta a la pregunta de direccion se interpreta con su propio modulo:
+  // un "departamento" suelto solo tiene sentido con esa referencia. Manda la
+  // ultima pregunta del pedido, no la de la direccion: esa ultima sobrevive para
+  // llevar la cuenta de repeticiones aunque la pregunta del momento sea otra, y
+  // usarla aca hacia que un "4B" contestando el telefono entrara como piso.
+  const gapDireccion = gapPrevio?.tipo === "direccion" ? gapPrevio.gap : null;
+
+  const conRespuesta: AddressDraft = gapDireccion
+    ? { ...draftPrevio, ...interpretAnswer(gapDireccion, inbound.text) }
     : draftPrevio;
 
-  // Si se le ofrecieron opciones, este mensaje puede ser la eleccion.
+  // Si se le ofrecieron opciones de Google, este mensaje puede ser la eleccion.
   const elegida =
-    draftPrevio.ultimaPregunta === "confirmar_calle" && draftPrevio.opciones?.length
+    gapDireccion === "confirmar_calle" && draftPrevio.opciones?.length
       ? resolveChoice(inbound.text, draftPrevio.opciones)
       : null;
 
+  let direccion: AddressDraft;
+
   if (elegida) {
-    const resuelta = await aplicarLugar(conRespuesta, elegida.fullText, elegida.placeId);
-    const hueco = nextAddressGap(resuelta);
-    const pregunta = hueco ? buildAddressQuestion(hueco, resuelta) : "dale, anotado.";
+    direccion = await aplicarLugar(conRespuesta, elegida.fullText, elegida.placeId);
+  } else {
+    // mergeAddress decide si el texto nuevo merece reemplazar al anterior. Sin ese
+    // filtro, un "4B" suelto entraba como direccion y el modelo lo completaba con
+    // una calle inventada.
+    const conDireccion = mergeAddress(conRespuesta, dicha);
 
-    await updateConversationStatus(
+    direccion = conDireccion;
+
+    if (conDireccion.texto && conDireccion.texto !== draftPrevio.texto) {
+      // La zona va en un campo aparte, pero Google la necesita en la misma
+      // consulta: "Libertador 2809" solo es ambiguo de verdad, hay una calle
+      // Libertador en media provincia. Con la localidad, deja de serlo.
+      const zona = typeof analysis.extracted.delivery_zone === "string"
+        ? analysis.extracted.delivery_zone.trim()
+        : "";
+      const consulta = zona && !conDireccion.texto.toLowerCase().includes(zona.toLowerCase())
+        ? `${conDireccion.texto}, ${zona}`
+        : conDireccion.texto;
+
+      direccion = await resolverDireccion(conDireccion, consulta);
+    }
+  }
+
+  pedido = { ...pedido, direccion };
+
+  // Un pedido ya creado cierra el hilo: sin esto, cualquier mensaje posterior
+  // vuelve a entrar al flujo y el cliente recibe otra vez "te lo anote".
+  const pedidoYaCreado = typeof conversation.draftOrder?.createdOrderId === "string";
+
+  // Una pregunta en medio del pedido se contesta. Sin esto, un "cuanto sale la
+  // chica?" recibia como respuesta la siguiente pregunta del formulario, que es
+  // exactamente lo que hace que un bot se note.
+  const consultaEnMedio =
+    pareceConsulta(inbound.text) &&
+    (analysis.intent === "ask_price" ||
+      analysis.intent === "ask_delivery" ||
+      analysis.intent === "ask_products");
+
+  // El flujo solo toma el control cuando esto es un pedido. Si no, un "hasta
+  // donde llegan?" recibiria un "cuantas cajas queres?" como respuesta.
+  const enPedido =
+    !pedidoYaCreado &&
+    !consultaEnMedio &&
+    (analysis.intent === "buy" ||
+      analysis.intent === "confirm_order" ||
+      conversation.status === "collecting_order_data" ||
+      pedido.cantidad !== null ||
+      Boolean(pedido.direccion.texto));
+
+  if (enPedido) {
+    const cerrado = await avanzarPedido({
       supabase,
+      adapter,
+      inbound,
       conversationId,
-      {
-        status: "collecting_order_data",
-        draft_order: {
-          ...(conversation.draftOrder ?? {}),
-          direccion: { ...resuelta, ultimaPregunta: hueco }
-        }
-      },
+      conversation,
+      analysis,
+      pedido,
+      draftPrevio,
+      isTest,
       now
-    );
-    await adapter.send(inbound.threadId, pregunta);
-    await recordOutbound(supabase, conversationId, inbound.channel, pregunta, "transactional_reply", now);
-    return;
-  }
+    });
 
-  const conDireccion = mergeAddress(conRespuesta, dicha);
-
-  let direccion = conDireccion;
-
-  if (conDireccion.texto && conDireccion.texto !== draftPrevio.texto) {
-    // La zona va en un campo aparte, pero Google la necesita en la misma
-    // consulta: "Libertador 2809" solo es ambiguo de verdad, hay una calle
-    // Libertador en media provincia. Con la localidad, deja de serlo.
-    const zona = typeof analysis.extracted.delivery_zone === "string"
-      ? analysis.extracted.delivery_zone.trim()
-      : "";
-    const consulta = zona && !conDireccion.texto.toLowerCase().includes(zona.toLowerCase())
-      ? `${conDireccion.texto}, ${zona}`
-      : conDireccion.texto;
-
-    direccion = await resolverDireccion(conDireccion, consulta);
-  }
-
-  const huecoDireccion = direccion.texto ? nextAddressGap(direccion) : null;
-
-  if (huecoDireccion) {
-    const pregunta = buildAddressQuestion(huecoDireccion, direccion);
-
-    await updateConversationStatus(
-      supabase,
-      conversationId,
-      {
-        status: "collecting_order_data",
-        current_intent: analysis.intent,
-        ai_confidence: analysis.confidence,
-        draft_order: {
-          ...(conversation.draftOrder ?? {}),
-          direccion: {
-            ...direccion,
-            ultimaPregunta: huecoDireccion,
-            repeticiones: countRepetition(draftPrevio, huecoDireccion)
-          }
-        }
-      },
-      now
-    );
-    await adapter.send(inbound.threadId, pregunta);
-    await recordOutbound(supabase, conversationId, inbound.channel, pregunta, "transactional_reply", now);
-    return;
-  }
-
-  // Sin hueco pendiente hay que soltar la ultima pregunta: si no, el proximo
-  // mensaje se sigue leyendo como respuesta a ella y un "efectivo" termina
-  // guardado como numero de departamento.
-  if (direccion !== draftPrevio || draftPrevio.ultimaPregunta) {
+    if (cerrado) {
+      return;
+    }
+  } else if (pedido !== pedidoPrevio) {
+    // Fuera del flujo igual hay que guardar lo que se extrajo, y soltar la ultima
+    // pregunta: si no, el proximo mensaje se sigue leyendo como respuesta a ella.
     await updateConversationStatus(
       supabase,
       conversationId,
       {
         draft_order: {
           ...(conversation.draftOrder ?? {}),
+          ...pedido,
+          ultimaPregunta: null,
           direccion: { ...direccion, ultimaPregunta: null }
         }
       },
@@ -388,7 +595,8 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   const action = decideNextAction({
     analysis,
     conversation,
-    // El pedido repetido y la creacion real llegan en la Fase 5, junto con el upsell.
+    // El pedido repetido llega mas adelante: la creacion desde cero la resuelve
+    // avanzarPedido, que no necesita el motor.
     repeatOrder: null,
     capabilities: deriveCapabilities(commercialContext),
     ...ENGINE_DEFAULTS
@@ -488,23 +696,3 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   );
 }
 
-// Resume para el modelo lo que ya esta confirmado del pedido. Va en castellano
-// y sin ids internos: es contexto para redactar, no datos para procesar.
-function resumirConfirmado(draftOrder: Record<string, unknown> | null) {
-  const direccion = draftOrder?.direccion as AddressDraft | undefined;
-
-  if (!direccion?.googlePlaceId) {
-    return null;
-  }
-
-  return {
-    direccion_confirmada: direccion.etiqueta ?? direccion.texto,
-    tipo_vivienda: direccion.esDepartamento === null
-      ? undefined
-      : direccion.esDepartamento
-        ? "departamento"
-        : "casa",
-    piso_depto: direccion.addressLine2 ?? undefined,
-    barrio_cerrado: direccion.gatedCommunityName ?? undefined
-  };
-}

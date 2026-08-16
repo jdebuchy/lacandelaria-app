@@ -103,6 +103,29 @@ const MOTIVOS: Record<string, string> = {
   order_ready: "un pedido listo para cargar"
 };
 
+// Lo unico que ve el cliente al derivar. Sin motivos ni jerga interna: saber que
+// el bot "no entendio" o que hubo "demasiados mensajes" no le sirve de nada y
+// suena a maquina rota. Solo necesita saber que alguien lo va a atender.
+const DESPEDIDA_HANDOFF = "dale, ya le paso tu mensaje al equipo y te contactan en un rato";
+
+async function avisarAlCliente(
+  supabase: ReturnType<typeof createAdminClient>,
+  adapter: ChannelAdapter,
+  inbound: InboundMessage,
+  conversationId: string,
+  now: string
+) {
+  await adapter.send(inbound.threadId, DESPEDIDA_HANDOFF);
+  await recordOutbound(
+    supabase,
+    conversationId,
+    inbound.channel,
+    DESPEDIDA_HANDOFF,
+    "human_handoff",
+    now
+  );
+}
+
 function avisoDeHandoff(motivo: string, quien: string | null, ultimoMensaje: string) {
   const razon = MOTIVOS[motivo] ?? "algo que no pudo resolver";
   const nombre = quien ? ` de ${quien}` : "";
@@ -164,6 +187,7 @@ export async function handleInboundMessage(inbound: InboundMessage) {
 
   if (gate.action === "handoff") {
     await markNeedsHuman(supabase, conversationId, gate.reason, now);
+    await avisarAlCliente(supabase, adapter, inbound, conversationId, now);
     await notifyAdmin(avisoDeHandoff(gate.reason, inbound.senderName, inbound.text));
     return;
   }
@@ -281,6 +305,7 @@ export async function handleInboundMessage(inbound: InboundMessage) {
 
   if (action.type === "handoff") {
     await markNeedsHuman(supabase, conversationId, action.reason, now);
+    await avisarAlCliente(supabase, adapter, inbound, conversationId, now);
     await notifyAdmin(avisoDeHandoff(action.reason, inbound.senderName, inbound.text));
     return;
   }
@@ -345,6 +370,7 @@ export async function handleInboundMessage(inbound: InboundMessage) {
     // La creacion real contra /api/internal/whatsapp/orders llega en la Fase 5.
     // Hasta entonces derivamos a una persona en vez de perder el pedido.
     await markNeedsHuman(supabase, conversationId, "order_ready", now);
+    await avisarAlCliente(supabase, adapter, inbound, conversationId, now);
     await notifyAdmin(avisoDeHandoff("order_ready", inbound.senderName, inbound.text));
     return;
   }

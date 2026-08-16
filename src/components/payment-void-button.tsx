@@ -54,26 +54,26 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
         type="button"
         onClick={() => setDialogOpen(true)}
         disabled={isPending}
-        className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 text-xs font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-8 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-3 text-meta font-medium text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Anulando..." : "Anular"}
       </button>
-      {feedback ? <p className="text-xs text-stone-500">{feedback}</p> : null}
+      {feedback ? <p className="text-meta text-ink-faint">{feedback}</p> : null}
 
       {dialogOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 px-4 py-5 backdrop-blur sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-paper-muted px-4 py-5 backdrop-blur-sm sm:items-center">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby={`void-payment-title-${paymentId}`}
-            className="w-full max-w-md rounded-3xl border border-stone-800 bg-stone-950 p-5 shadow-2xl shadow-black/50"
+            className="w-full max-w-md rounded-card border border-line bg-paper-muted p-5 shadow-2xl shadow-black/50"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id={`void-payment-title-${paymentId}`} className="text-lg font-semibold text-stone-50">
+                <h2 id={`void-payment-title-${paymentId}`} className="text-title font-semibold text-ink">
                   Anular pago
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-stone-400">
+                <p className="mt-1 text-body leading-6 text-ink-soft">
                   El movimiento queda en el historial como anulado y el estado del pedido se recalcula.
                 </p>
               </div>
@@ -82,20 +82,20 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 onClick={() => setDialogOpen(false)}
                 disabled={isPending}
                 aria-label="Cerrar"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-800 text-stone-400 transition hover:border-stone-600 hover:text-stone-100 disabled:opacity-60"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-ink-soft transition hover:border-line hover:text-ink disabled:opacity-60"
               >
                 x
               </button>
             </div>
 
-            <div className="mt-4 rounded-2xl bg-stone-900/70 p-3 text-sm">
-              <p className="font-medium text-stone-100">
+            <div className="mt-4 rounded-card bg-paper p-3 text-body">
+              <p className="font-medium text-ink">
                 {formatCurrency(amount)} · {getPaymentMethodLabel(method)}
               </p>
-              <p className="mt-1 text-xs text-stone-500">{receivedAt}</p>
+              <p className="mt-1 text-meta text-ink-faint">{receivedAt}</p>
             </div>
 
-            <label className="mt-4 grid gap-2 text-sm text-stone-300">
+            <label className="mt-4 grid gap-2 text-body text-ink-soft">
               Motivo
               <textarea
                 value={reason}
@@ -103,7 +103,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 rows={3}
                 maxLength={240}
                 placeholder="Ej: cargado por error, pedido equivocado, importe incorrecto"
-                className="resize-none rounded-2xl border border-stone-700 bg-stone-950 px-3 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-rose-300"
+                className="resize-none rounded-card border border-line bg-paper-muted px-3 py-3 text-body text-ink outline-hidden transition placeholder:text-ink-faint focus:border-danger-line"
               />
             </label>
 
@@ -112,7 +112,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 type="button"
                 onClick={() => setDialogOpen(false)}
                 disabled={isPending}
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancelar
               </button>
@@ -120,7 +120,7 @@ export function PaymentVoidButton({ amount, method, paymentId, receivedAt }: Pay
                 type="button"
                 onClick={handleVoidPayment}
                 disabled={isPending}
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-rose-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-rose-400 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center rounded-control bg-danger-bg px-4 text-body font-medium text-accent-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isPending ? "Anulando..." : "Confirmar anulacion"}
               </button>

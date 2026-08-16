@@ -15,3 +15,8 @@ supabase/.temp/
 # acá o exceptuarlo con `!scripts/<archivo>`.
 .tmp-*
 scripts/
+
+# Worktrees de git creados por el agente. Son repos embebidos: si entran al
+# índice, git los commitea como gitlink y el repo queda con una referencia rota
+# para cualquiera que lo clone.
+.claude/worktrees/

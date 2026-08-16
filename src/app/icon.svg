@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Paltas La Candelaria">
-  <rect width="512" height="512" fill="#14532d" />
+  <rect width="512" height="512" fill="#2e5d3c" />
   <path
     d="M256 88c44 0 74 42 82 98 10 64 34 100 34 136 0 58-52 102-116 102s-116-44-116-102c0-36 24-72 34-136 8-56 38-98 82-98z"
-    fill="#d9f99d"
+    fill="#c6d06b"
   />
-  <circle cx="256" cy="322" r="58" fill="#3f6212" />
+  <circle cx="256" cy="322" r="58" fill="#234a2f" />
 </svg>

@@ -124,26 +124,26 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
   }
 
   const inputClass =
-    "h-11 rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-100 outline-none transition focus:border-sky-400";
+    "h-11 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden transition focus:border-info-line";
 
   return (
     <section className="grid gap-5">
       <div className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold text-stone-50">Depósitos de salida</h2>
-        <p className="text-sm text-stone-400">
+        <h2 className="text-title font-semibold text-ink">Depósitos de salida</h2>
+        <p className="text-body text-ink-soft">
           Administrá domicilios que pueden funcionar como origen y destino de un viaje.
         </p>
       </div>
 
       {feedback.message ? (
-        <p className={`mt-4 text-sm ${feedback.success ? "text-emerald-300" : "text-rose-300"}`}>
+        <p className={`mt-4 text-body ${feedback.success ? "text-accent" : "text-danger-fg"}`}>
           {feedback.message}
         </p>
       ) : null}
 
-      <form onSubmit={handleCreate} className="mt-5 grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/60 p-4">
-        <p className="text-sm font-medium text-stone-100">Nuevo depósito</p>
-        <label className="grid gap-2 text-sm text-stone-300">
+      <form onSubmit={handleCreate} className="mt-5 grid gap-4 rounded-card border border-line bg-paper-muted p-4">
+        <p className="text-body font-medium text-ink">Nuevo depósito</p>
+        <label className="grid gap-2 text-body text-ink-soft">
           Nombre del depósito
           <input
             value={newDepot.label}
@@ -162,7 +162,7 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
           <button
             type="submit"
             disabled={pendingId === "new"}
-            className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-500 px-4 text-sm font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pendingId === "new" ? "Creando..." : "Crear depósito"}
           </button>
@@ -175,16 +175,16 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
             const form = forms[depot.id] ?? formStateFromDepot(depot);
 
             return (
-              <article key={depot.id} className="rounded-2xl border border-stone-800 bg-stone-950/60 p-4">
+              <article key={depot.id} className="rounded-card border border-line bg-paper-muted p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-stone-100">{depot.label}</p>
-                      <span className="rounded-full border border-stone-700 bg-stone-900 px-2.5 py-1 text-xs text-stone-300">
+                      <p className="text-body font-semibold text-ink">{depot.label}</p>
+                      <span className="rounded-control border border-line bg-paper px-2.5 py-1 text-meta text-ink-soft">
                         {depot.active ? "Activo" : "Inactivo"}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-stone-500">
+                    <p className="mt-1 text-meta text-ink-faint">
                       {formatLogisticsDepotAddress({
                         addressLine1: depot.address_line_1,
                         administrativeAreaLevel1: depot.administrative_area_level_1,
@@ -196,14 +196,14 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
                     type="button"
                     onClick={() => void handleUpdate(depot.id)}
                     disabled={pendingId === depot.id}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-4 text-sm font-medium text-stone-100 transition hover:border-stone-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-10 items-center justify-center rounded-control border border-line px-4 text-body font-medium text-ink transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pendingId === depot.id ? "Guardando..." : "Guardar"}
                   </button>
                 </div>
 
                 <div className="mt-4 grid gap-4">
-                  <label className="grid gap-2 text-sm text-stone-300">
+                  <label className="grid gap-2 text-body text-ink-soft">
                     Nombre del depósito
                     <input
                       value={form.label}
@@ -217,23 +217,23 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
                     onChange={(address) => updateForm(depot.id, { address })}
                     required
                   />
-                  <label className="grid gap-2 text-sm text-stone-300">
+                  <label className="grid gap-2 text-body text-ink-soft">
                     Google Place ID
                     <input
                       value={form.address.googlePlaceId}
                       readOnly
-                      className="h-10 rounded-xl border border-stone-800 bg-stone-950/70 px-3 text-sm text-stone-500 outline-none"
+                      className="h-10 rounded-control border border-line bg-paper-muted px-3 text-body text-ink-faint outline-hidden"
                       placeholder="Se completa al elegir una sugerencia"
                     />
                   </label>
                 </div>
 
-                <label className="mt-3 flex items-center gap-3 text-sm text-stone-300">
+                <label className="mt-3 flex items-center gap-3 text-body text-ink-soft">
                   <input
                     type="checkbox"
                     checked={form.active}
                     onChange={(event) => updateForm(depot.id, { active: event.target.checked })}
-                    className="h-4 w-4 rounded border-stone-600 bg-stone-950 text-sky-400 focus:ring-sky-400"
+                    className="h-4 w-4 rounded-control border-line bg-paper-muted text-info-fg focus:ring-info-fg"
                   />
                   Disponible para nuevos viajes
                 </label>
@@ -241,7 +241,7 @@ export function LogisticsDepotsManager({ depots }: LogisticsDepotsManagerProps) 
             );
           })
         ) : (
-          <div className="rounded-2xl border border-dashed border-stone-800 bg-stone-950/40 px-4 py-6 text-sm text-stone-400">
+          <div className="rounded-card border border-dashed border-line bg-paper-muted px-4 py-6 text-body text-ink-soft">
             Todavía no hay depósitos cargados.
           </div>
         )}

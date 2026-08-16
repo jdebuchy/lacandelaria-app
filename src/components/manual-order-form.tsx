@@ -328,23 +328,23 @@ export function ManualOrderForm({
       <form
         onSubmit={handleSubmit}
         autoComplete="off"
-        className="rounded-3xl border border-stone-800 bg-stone-900/70 p-4 sm:p-6"
+        className="rounded-card border border-line bg-paper p-4 sm:p-6"
       >
         <AutofillDecoy />
         <input type="hidden" name="customerId" value={selectedCustomer?.id ?? ""} />
 
         {!activeProducts.length ? (
-          <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-200">
+          <div className="mb-6 rounded-card border border-warn-line bg-warn-bg p-4 text-body text-warn-fg">
             No hay productos activos en el catálogo. Cargalos desde el panel antes de crear pedidos.
           </div>
         ) : null}
 
         <div className="grid gap-6">
-          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">1 · Cliente</p>
+          <section className="grid gap-4 rounded-card border border-line bg-paper-muted p-4">
+            <p className="text-meta text-ink-faint">1 · Cliente</p>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="grid flex-1 gap-2">
-                <label className="text-sm text-stone-300">Buscar cliente existente</label>
+                <label className="text-body text-ink-soft">Buscar cliente existente</label>
                 <input
                   value={lookupValue}
                   onChange={(event) => {
@@ -354,26 +354,26 @@ export function ManualOrderForm({
                     }
                   }}
                   placeholder="Nombre, telefono o Instagram"
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-sky-400"
+                  className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-info-line"
                 />
 
                 {results.length ? (
-                  <div className="rounded-2xl border border-stone-800 bg-stone-950/90 p-2">
+                  <div className="rounded-card border border-line bg-paper-muted p-2">
                     {results.map((customer) => (
                       <button
                         key={customer.id}
                         type="button"
                         onClick={() => applyCustomer(customer)}
-                        className="flex w-full items-start justify-between gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-900"
+                        className="flex w-full items-start justify-between gap-3 rounded-control px-3 py-3 text-left transition hover:bg-paper"
                       >
                         <div>
-                          <p className="text-sm font-medium text-stone-100">{customerDisplayName(customer)}</p>
-                          <p className="mt-1 text-xs text-stone-400">{formatWhatsAppPhone(customer.phone)}</p>
+                          <p className="text-body font-medium text-ink">{customerDisplayName(customer)}</p>
+                          <p className="mt-1 text-meta text-ink-soft">{formatWhatsAppPhone(customer.phone)}</p>
                           {customer.instagram ? (
-                            <p className="mt-1 text-xs text-stone-500">@{customer.instagram}</p>
+                            <p className="mt-1 text-meta text-ink-faint">@{customer.instagram}</p>
                           ) : null}
                         </div>
-                        <p className="max-w-56 text-right text-xs text-stone-500">
+                        <p className="max-w-56 text-right text-meta text-ink-faint">
                           {formatCustomerLookupAddress(customer)}
                         </p>
                       </button>
@@ -381,7 +381,7 @@ export function ManualOrderForm({
                   </div>
                 ) : null}
 
-                <p className="text-xs text-stone-500">
+                <p className="text-meta text-ink-faint">
                   Si el cliente ya existe, lo seleccionas y completamos la ficha. Si no, lo puedes crear sin salir del pedido.
                 </p>
               </div>
@@ -390,32 +390,32 @@ export function ManualOrderForm({
                 <button
                   type="button"
                   onClick={startNewCustomer}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm text-stone-200 transition hover:border-stone-500 hover:text-stone-50"
+                  className="inline-flex h-11 items-center justify-center rounded-control border border-line bg-paper-muted px-4 text-body text-ink transition hover:border-line-strong hover:text-ink"
                 >
                   Nuevo cliente
                 </button>
                 <button
                   type="button"
                   onClick={openCustomerModal}
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-stone-100 px-4 text-sm font-medium text-stone-950 transition hover:bg-white"
+                  className="inline-flex h-11 items-center justify-center rounded-control bg-ink px-4 text-body font-medium text-accent-fg transition hover:bg-white"
                 >
                   {hasCustomerData ? "Editar cliente" : "Cargar cliente"}
                 </button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4">
+            <div className="rounded-card border border-line bg-paper p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-base font-semibold text-stone-50">{customerTitle}</p>
+                    <p className="text-body font-semibold text-ink">{customerTitle}</p>
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs ${
+                      className={`rounded-control px-2.5 py-1 text-meta ${
                         selectedCustomer
-                          ? "bg-emerald-500/15 text-emerald-200"
+                          ? "bg-accent-soft text-accent"
                           : hasCustomerData
-                            ? "bg-sky-500/15 text-sky-200"
-                            : "bg-stone-800 text-stone-400"
+                            ? "bg-info-bg text-info-fg"
+                            : "bg-paper-raised text-ink-soft"
                       }`}
                     >
                       {selectedCustomer ? "Cliente existente" : hasCustomerData ? "Cliente nuevo" : "Sin cargar"}
@@ -423,19 +423,19 @@ export function ManualOrderForm({
                   </div>
 
                   {customerSummary.length ? (
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-300">
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-body text-ink-soft">
                       {customerSummary.map((item) => (
                         <span key={item}>{item}</span>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-2 text-sm text-stone-500">
+                    <p className="mt-2 text-body text-ink-faint">
                       Todavía no cargaste los datos del cliente. Puedes hacerlo sin perder el pedido.
                     </p>
                   )}
 
                   {deliveryNotes.trim() ? (
-                    <p className="mt-3 text-xs text-stone-500">Notas de entrega: {deliveryNotes}</p>
+                    <p className="mt-3 text-meta text-ink-faint">Notas de entrega: {deliveryNotes}</p>
                   ) : null}
                 </div>
 
@@ -446,7 +446,7 @@ export function ManualOrderForm({
                       clearSelectedCustomer();
                       setLookupValue("");
                     }}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 px-3 text-sm text-stone-300 transition hover:border-stone-500 hover:text-stone-100"
+                    className="inline-flex h-10 items-center justify-center rounded-control border border-line px-3 text-body text-ink-soft transition hover:border-line-strong hover:text-ink"
                   >
                     Desvincular
                   </button>
@@ -455,8 +455,8 @@ export function ManualOrderForm({
             </div>
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-2">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500 md:col-span-2">
+          <section className="grid gap-4 rounded-card border border-line bg-paper-muted p-4 md:grid-cols-2">
+            <p className="text-meta text-ink-faint md:col-span-2">
               2 · Productos
             </p>
 
@@ -471,29 +471,29 @@ export function ManualOrderForm({
             ) : null}
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-stone-800 bg-stone-950/50 p-4 md:grid-cols-2">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500 md:col-span-2">
+          <section className="grid gap-4 rounded-card border border-line bg-paper-muted p-4 md:grid-cols-2">
+            <p className="text-meta text-ink-faint md:col-span-2">
               3 · Entrega
             </p>
 
-            <label className="grid min-w-0 gap-2 text-sm text-stone-300">
+            <label className="grid min-w-0 gap-2 text-body text-ink-soft">
               Fecha tentativa de entrega
               <DateInput
                 name="deliveryDate"
                 value={deliveryDate}
                 onChange={setDeliveryDate}
-                className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+            <label className="grid gap-2 text-body text-ink-soft md:col-span-2">
               Notas internas del pedido
               <textarea
                 name="notes"
                 rows={4}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-none focus:border-emerald-400"
+                className="rounded-control border border-line bg-paper-muted px-4 py-3 text-body text-ink outline-hidden focus:border-accent"
               />
             </label>
           </section>
@@ -503,39 +503,39 @@ export function ManualOrderForm({
           <button
             type="submit"
             disabled={pending || !activeProducts.length}
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-emerald-500 px-5 text-base font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-12 items-center justify-center rounded-control bg-accent px-5 text-body font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Guardando..." : mode === "edit" ? "Guardar cambios" : "Crear pedido manual"}
           </button>
           <Link
             href="/panel/orders"
-            className="inline-flex h-12 items-center justify-center rounded-xl border border-stone-700 bg-stone-950 px-5 text-base text-stone-300 transition hover:border-stone-600 hover:text-stone-100"
+            className="inline-flex h-12 items-center justify-center rounded-control border border-line bg-paper-muted px-5 text-body text-ink-soft transition hover:border-line hover:text-ink"
           >
             Volver a pedidos
           </Link>
         </div>
 
         {state.message ? (
-          <p className={`mt-4 text-sm ${state.success ? "text-emerald-300" : "text-rose-300"}`}>
+          <p className={`mt-4 text-body ${state.success ? "text-accent" : "text-danger-fg"}`}>
             {state.message}
           </p>
         ) : null}
       </form>
 
       {isCustomerModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-stone-950/80 p-4 backdrop-blur-sm sm:items-center">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-stone-700 bg-stone-900 p-4 shadow-2xl sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-paper-muted p-4 backdrop-blur-xs sm:items-center">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-card border border-line bg-paper p-4 shadow-2xl sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-lg font-semibold text-stone-50">Datos del cliente</p>
-                <p className="mt-1 text-sm text-stone-400">
+                <p className="text-title font-semibold text-ink">Datos del cliente</p>
+                <p className="mt-1 text-body text-ink-soft">
                   Carga o corrige la ficha del cliente sin perder el contexto del pedido.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCustomerModalOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-stone-700 text-stone-300 transition hover:border-stone-500 hover:text-stone-100"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-control border border-line text-ink-soft transition hover:border-line-strong hover:text-ink"
                 aria-label="Cerrar modal de cliente"
               >
                 ×
@@ -543,7 +543,7 @@ export function ManualOrderForm({
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Nombre
                 <input
                   name="firstName"
@@ -554,12 +554,12 @@ export function ManualOrderForm({
                       clearSelectedCustomer();
                     }
                   }}
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                   placeholder="Ej: María"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Apellido
                 <input
                   name="lastName"
@@ -570,7 +570,7 @@ export function ManualOrderForm({
                       clearSelectedCustomer();
                     }
                   }}
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                   placeholder="Ej: González"
                 />
               </label>
@@ -586,7 +586,7 @@ export function ManualOrderForm({
                 }}
               />
 
-              <label className="grid gap-2 text-sm text-stone-300">
+              <label className="grid gap-2 text-body text-ink-soft">
                 Instagram
                 <input
                   name="instagram"
@@ -601,23 +601,23 @@ export function ManualOrderForm({
                     }
                   }}
                   placeholder="usuario"
-                  className="h-12 rounded-xl border border-stone-700 bg-stone-950 px-4 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="h-12 rounded-control border border-line bg-paper-muted px-4 text-body text-ink outline-hidden focus:border-accent"
                 />
-                <span aria-hidden="true" className="text-xs text-transparent">
+                <span aria-hidden="true" className="text-meta text-transparent">
                   .
                 </span>
               </label>
 
               <AddressInput required value={address} onChange={setAddress} className="md:col-span-2" />
 
-              <label className="grid gap-2 text-sm text-stone-300 md:col-span-2">
+              <label className="grid gap-2 text-body text-ink-soft md:col-span-2">
                 Notas de entrega del cliente
                 <textarea
                   name="deliveryNotes"
                   rows={3}
                   value={deliveryNotes}
                   onChange={(event) => setDeliveryNotes(event.target.value)}
-                  className="rounded-xl border border-stone-700 bg-stone-950 px-4 py-3 text-base text-stone-100 outline-none focus:border-emerald-400"
+                  className="rounded-control border border-line bg-paper-muted px-4 py-3 text-body text-ink outline-hidden focus:border-accent"
                 />
               </label>
             </div>
@@ -626,7 +626,7 @@ export function ManualOrderForm({
               <button
                 type="button"
                 onClick={() => setIsCustomerModalOpen(false)}
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-stone-100 px-5 text-base font-medium text-stone-950 transition hover:bg-white"
+                className="inline-flex h-12 items-center justify-center rounded-control bg-ink px-5 text-body font-medium text-accent-fg transition hover:bg-white"
               >
                 Listo
               </button>

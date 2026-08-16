@@ -135,17 +135,17 @@ export function DeliveryTripExecutionTable({
 
   if (!stops.length) {
     return (
-      <div className="rounded-3xl border border-dashed border-stone-800 bg-stone-900/60 px-6 py-10 text-sm text-stone-400">
+      <div className="rounded-card border border-dashed border-line bg-paper px-6 py-10 text-body text-ink-soft">
         El viaje todavía no tiene pedidos para operar.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/70">
+    <div className="overflow-hidden rounded-card border border-line bg-paper">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-stone-800 text-sm">
-          <thead className="bg-stone-950/70 text-left text-xs uppercase tracking-[0.16em] text-stone-500">
+        <table className="min-w-full divide-y divide-line text-body">
+          <thead className="bg-paper-muted text-left text-meta text-ink-faint">
             <tr>
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Cliente</th>
@@ -156,7 +156,7 @@ export function DeliveryTripExecutionTable({
               <th className="px-4 py-3">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-800">
+          <tbody className="divide-y divide-line">
             {stops.map((stop) => {
               const isUpdating = pendingStopId === stop.id || isPending;
               const paymentAmount = paymentAmounts[stop.id] ?? String(stop.cashPaymentBalanceAmount || "");
@@ -174,44 +174,44 @@ export function DeliveryTripExecutionTable({
 
               return (
                 <tr key={stop.id} className="align-top">
-                  <td className="px-4 py-4 text-stone-300">{stop.sequenceNumber}</td>
+                  <td className="px-4 py-4 text-ink-soft">{stop.sequenceNumber}</td>
                   <td className="px-4 py-4">
                     <div className="min-w-[180px]">
-                      <p className="font-medium text-stone-100">
-                        <span className="text-stone-500">{formatOrderNumber(stop.orderNumber)}</span>{" "}
+                      <p className="font-medium text-ink">
+                        <span className="text-ink-faint">{formatOrderNumber(stop.orderNumber)}</span>{" "}
                         {stop.customerName}
                       </p>
-                      <p className="mt-1 text-xs text-stone-500">{stop.customerPhone}</p>
+                      <p className="mt-1 text-meta text-ink-faint">{stop.customerPhone}</p>
                       {stop.notes ? (
-                        <p className="mt-2 text-xs text-stone-400">{stop.notes}</p>
+                        <p className="mt-2 text-meta text-ink-soft">{stop.notes}</p>
                       ) : null}
                     </div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="min-w-[220px]">
-                      <p className="text-stone-200">{stop.addressSummary}</p>
+                      <p className="text-ink">{stop.addressSummary}</p>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-stone-300">
+                  <td className="px-4 py-4 text-ink-soft">
                     <div className="min-w-[120px]">
                       <p>{getExpectedPaymentMethodLabel(stop.paymentMethodExpected)}</p>
-                      <p className="mt-1 text-xs text-stone-500">
+                      <p className="mt-1 text-meta text-ink-faint">
                         {formatCurrency(stop.paidAmount)} / {formatCurrency(stop.totalAmount)}
                       </p>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-stone-300">{formatCurrency(stop.totalAmount)}</td>
+                  <td className="px-4 py-4 text-ink-soft">{formatCurrency(stop.totalAmount)}</td>
                   <td className="px-4 py-4">
                     <div className="min-w-[160px]">
-                      <span className="inline-flex rounded-full border border-stone-700 bg-stone-950/80 px-3 py-1 text-xs text-stone-300">
+                      <span className="inline-flex rounded-control border border-line bg-paper-muted px-3 py-1 text-meta text-ink-soft">
                         {getDeliveryStatusLabel(stop.deliveryStatus)}
                       </span>
                       {stop.deliveryFailureReason ? (
-                        <p className="mt-2 text-xs text-rose-300">
+                        <p className="mt-2 text-meta text-danger-fg">
                           {getDeliveryFailureReasonLabel(stop.deliveryFailureReason)}
                         </p>
                       ) : null}
-                      <p className="mt-2 text-xs text-stone-500">Pedido {stop.orderStatus}</p>
+                      <p className="mt-2 text-meta text-ink-faint">Pedido {stop.orderStatus}</p>
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -221,7 +221,7 @@ export function DeliveryTripExecutionTable({
                           href={whatsappHref}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex h-9 items-center justify-center rounded-xl border border-stone-700 px-3 text-xs font-medium text-stone-100 transition hover:border-stone-500"
+                          className="inline-flex h-9 items-center justify-center rounded-control border border-line px-3 text-meta font-medium text-ink transition hover:border-line-strong"
                         >
                           Escribir cliente
                         </Link>
@@ -229,7 +229,7 @@ export function DeliveryTripExecutionTable({
                       {allowActions ? (
                         <>
                           {canCollectCash ? (
-                            <div className="grid gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3">
+                            <div className="grid gap-2 rounded-card border border-accent bg-accent-soft p-3">
                               <input
                                 type="number"
                                 min="0.01"
@@ -241,7 +241,7 @@ export function DeliveryTripExecutionTable({
                                     [stop.id]: event.target.value
                                   }))
                                 }
-                                className="h-10 rounded-xl border border-emerald-400/20 bg-stone-950 px-3 text-sm text-stone-100 outline-none transition focus:border-emerald-300"
+                                className="h-10 rounded-control border border-accent bg-paper-muted px-3 text-body text-ink outline-hidden transition focus:border-accent"
                                 placeholder="Monto en efectivo"
                               />
                               <div className="grid gap-2 sm:grid-cols-2">
@@ -260,7 +260,7 @@ export function DeliveryTripExecutionTable({
                                   disabled={
                                     isUpdating || !Number.isFinite(numericPaymentAmount) || numericPaymentAmount <= 0
                                   }
-                                  className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-500 px-3 text-xs font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                                  className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-3 text-meta font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                   Entregar y cobrar
                                 </button>
@@ -268,7 +268,7 @@ export function DeliveryTripExecutionTable({
                                   type="button"
                                   onClick={() => handleStatusChange(stop.id, "delivered", { note })}
                                   disabled={isUpdating}
-                                  className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-400/20 px-3 text-xs font-medium text-emerald-100 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                  className="inline-flex h-10 items-center justify-center rounded-control border border-accent px-3 text-meta font-medium text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                   Entregar sin cobrar
                                 </button>
@@ -279,7 +279,7 @@ export function DeliveryTripExecutionTable({
                               type="button"
                               onClick={() => handleStatusChange(stop.id, "delivered", { note })}
                               disabled={isUpdating}
-                              className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-500 px-3 text-xs font-medium text-stone-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-3 text-meta font-medium text-accent-fg transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               Marcar entregado
                             </button>
@@ -292,7 +292,7 @@ export function DeliveryTripExecutionTable({
                                 [stop.id]: event.target.value as DeliveryFailureReason
                               }))
                             }
-                            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-xs text-stone-100 outline-none transition focus:border-rose-300"
+                            className="h-10 rounded-control border border-line bg-paper-muted px-3 text-meta text-ink outline-hidden transition focus:border-danger-line"
                           >
                             {FAILURE_REASON_OPTIONS.map((option) => (
                               <option key={option} value={option}>
@@ -310,7 +310,7 @@ export function DeliveryTripExecutionTable({
                               }))
                             }
                             placeholder="Comentario"
-                            className="h-10 rounded-xl border border-stone-700 bg-stone-950 px-3 text-xs text-stone-100 outline-none transition focus:border-stone-500"
+                            className="h-10 rounded-control border border-line bg-paper-muted px-3 text-meta text-ink outline-hidden transition focus:border-line-strong"
                           />
                           <button
                             type="button"
@@ -321,13 +321,13 @@ export function DeliveryTripExecutionTable({
                               })
                             }
                             disabled={isUpdating}
-                            className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 px-3 text-xs font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-10 items-center justify-center rounded-control border border-danger-line bg-danger-bg px-3 text-meta font-medium text-danger-fg transition hover:bg-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             Marcar no entregado
                           </button>
                         </>
                       ) : null}
-                      {feedback[stop.id] ? <p className="text-xs text-stone-400">{feedback[stop.id]}</p> : null}
+                      {feedback[stop.id] ? <p className="text-meta text-ink-soft">{feedback[stop.id]}</p> : null}
                     </div>
                   </td>
                 </tr>

@@ -62,30 +62,30 @@ function ResolvedStop({
 
   return (
     <button
-      className="flex w-full items-center gap-3 px-4 py-3 text-left transition active:bg-stone-900"
+      className="flex w-full items-center gap-3 px-4 py-3 text-left transition active:bg-paper"
       id={stopHtmlId(stop.tripOrderId)}
       onClick={() => onOpen(stop.tripOrderId)}
       type="button"
     >
       <span
-        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-stone-950 ${
-          delivered ? "bg-emerald-500" : "bg-rose-500"
+        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-body font-bold text-accent-fg ${
+          delivered ? "bg-accent" : "bg-danger-bg"
         }`}
       >
         {delivered ? <CheckIcon /> : <CrossIcon />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-medium text-stone-400 line-through decoration-stone-700">
+        <span className="block truncate text-body font-medium text-ink-soft line-through decoration-line">
           {stop.addressLine || stop.addressSummary}
         </span>
-        <span className="block truncate text-[13px] text-stone-400">
+        <span className="block truncate text-meta text-ink-soft">
           {stop.customerName}
           {stop.deliveryFailureReason
             ? ` · ${getDeliveryFailureReasonLabel(stop.deliveryFailureReason)}`
             : ""}
         </span>
       </span>
-      <span className="shrink-0 text-xs font-semibold tabular-nums text-stone-400">
+      <span className="shrink-0 text-meta font-semibold tabular-nums text-ink-soft">
         {stop.sequenceNumber}
       </span>
     </button>
@@ -105,35 +105,35 @@ function PendingStop({
   return (
     <article className="px-4 py-4" id={stopHtmlId(stop.tripOrderId)}>
       <div className="flex items-start gap-3">
-        <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-stone-500 text-sm font-bold tabular-nums text-stone-300">
+        <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-line-strong text-body font-bold tabular-nums text-ink-soft">
           {stop.sequenceNumber}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-2xl font-bold uppercase leading-tight tracking-tight text-stone-50">
+            <h3 className="text-title font-bold uppercase leading-tight tracking-tight text-ink">
               {stop.addressLine || stop.addressSummary}
             </h3>
-            <span className="mt-1 shrink-0 text-sm font-semibold tabular-nums text-stone-400">
+            <span className="mt-1 shrink-0 text-body font-semibold tabular-nums text-ink-soft">
               {formatOrderNumber(stop.orderNumber)}
             </span>
           </div>
-          <p className="mt-1 text-[17px] text-stone-300">{stop.customerName}</p>
-          {stop.locality ? <p className="text-sm text-stone-400">{stop.locality}</p> : null}
+          <p className="mt-1 text-[17px] text-ink-soft">{stop.customerName}</p>
+          {stop.locality ? <p className="text-body text-ink-soft">{stop.locality}</p> : null}
           {stop.deliveryWindow ? (
-            <p className="mt-2 text-sm font-semibold tabular-nums text-sky-300">
+            <p className="mt-2 text-body font-semibold tabular-nums text-info-fg">
               Franja {stop.deliveryWindow}
             </p>
           ) : null}
           {stop.deliveryNotes ? (
-            <p className="mt-2 text-sm text-sky-300">⚑ {stop.deliveryNotes}</p>
+            <p className="mt-2 text-body text-info-fg">⚑ {stop.deliveryNotes}</p>
           ) : null}
           <p className="mt-3">
             {isPaid ? (
-              <span className="inline-flex items-center rounded-lg bg-stone-800 px-2.5 py-1 text-sm font-semibold text-stone-300">
+              <span className="inline-flex items-center rounded-control bg-paper-raised px-2.5 py-1 text-body font-semibold text-ink-soft">
                 Ya pagó
               </span>
             ) : (
-              <span className="inline-flex items-center rounded-lg bg-yellow-400 px-2.5 py-1 text-sm font-bold tabular-nums text-stone-950">
+              <span className="inline-flex items-center rounded-control bg-warn-bg px-2.5 py-1 text-body font-bold tabular-nums text-accent-fg">
                 A cobrar {formatCurrency(balance)}
               </span>
             )}
@@ -143,7 +143,7 @@ function PendingStop({
 
       <div className="mt-4 flex gap-2">
         <a
-          className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-stone-500 text-[15px] font-semibold text-stone-100 transition active:bg-stone-800"
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-control border border-line-strong text-body font-semibold text-ink transition active:bg-paper-raised"
           href={buildNavigationHref(stop)}
           rel="noreferrer"
           target="_blank"
@@ -151,7 +151,7 @@ function PendingStop({
           Navegar
         </a>
         <button
-          className="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-stone-100 text-[15px] font-bold text-stone-950 transition active:bg-white"
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-control bg-ink text-body font-bold text-accent-fg transition active:bg-white"
           onClick={() => onOpen(stop.tripOrderId)}
           type="button"
         >
@@ -165,14 +165,14 @@ function PendingStop({
 export function StopList({ onOpen, stops }: StopListProps) {
   if (!stops.length) {
     return (
-      <p className="px-4 py-10 text-center text-[15px] text-stone-400">
+      <p className="px-4 py-10 text-center text-body text-ink-soft">
         Este viaje no tiene paradas.
       </p>
     );
   }
 
   return (
-    <div className="divide-y divide-stone-800">
+    <div className="divide-y divide-line">
       {stops.map((stop) =>
         stop.deliveryStatus === "delivered" || stop.deliveryStatus === "failed" ? (
           <ResolvedStop key={stop.tripOrderId} onOpen={onOpen} stop={stop} />

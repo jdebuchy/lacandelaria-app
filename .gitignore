@@ -14,7 +14,17 @@ supabase/.temp/
 # Si algún día hace falta versionar un script de verdad, sacar `scripts/` de
 # acá o exceptuarlo con `!scripts/<archivo>`.
 .tmp-*
-scripts/
+# Va `scripts/*` y no `scripts/`: git no entra a un directorio ignorado, asi que
+# con la forma de directorio las excepciones de abajo no se aplicarian nunca.
+scripts/*
+
+# Excepcion: las herramientas del bot y de los canales no llevan datos de
+# clientes. Son operativas y hacen falta para trabajar (simular conversaciones,
+# renovar el token de Instagram, levantar el poller); si se pierden, hay que
+# reescribirlas. Los scripts de analisis con datos reales siguen ignorados.
+!scripts/bot-*.mjs
+!scripts/telegram-*.mjs
+!scripts/instagram-*.mjs
 
 # Worktrees de git creados por el agente. Son repos embebidos: si entran al
 # índice, git los commitea como gitlink y el repo queda con una referencia rota

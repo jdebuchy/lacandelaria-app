@@ -106,4 +106,10 @@ Los ejemplos que alimenten ese tono van **anonimizados** y **nunca a un archivo 
 
 **Baja confianza deriva a humano, y no debería.** Es el defecto que más veces se repitió durante las pruebas, con distintos disfraces: el bot trata "no entendí" como "esto necesita una persona". Un "Hola" suelto en medio de un pedido en curso llega al modelo sin contexto útil, vuelve con confianza baja y escala la conversación, dejando muda una compra que venía bien encaminada.
 
-Lo correcto es que baja confianza pida una aclaración ("perdon, no te segui, me lo repetis?") y que solo derive si se repite. Requiere una acción nueva en el motor y un contador de aclaraciones seguidas. Queda como el primer arreglo de la próxima tanda: es de una línea de diagnóstico y varias de diseño.
+Lo correcto es que baja confianza pida una aclaración ("perdon, no te segui, me lo repetis?") y que solo derive si se repite. Requiere una acción nueva en el motor y un contador de aclaraciones seguidas.
+
+**La extracción de datos sobrescribe sin criterio, y el modelo inventa direcciones.** Encontrado con `scripts/bot-simular.mjs` en la primera corrida del guion `pedido`. El cliente dijo "Av Libertador 2809, Capital Federal", después "departamento", después "4B"; lo que quedó guardado fue `"Castex 3342 4B"`, una calle que nunca se mencionó.
+
+Pasa porque el orquestador toma `extracted.delivery_address` de **cada** mensaje y pisa lo que había. Ante un "4B" suelto el modelo compone una dirección plausible en vez de omitir el campo, y cada pisada suma un intento fallido de validación, hasta que se agotan y el bot pregunta en círculos.
+
+Es el bug más caro de los abiertos: un pedido con dirección inventada llega al repartidor y se pierde la entrega. El arreglo tiene tres partes: no pisar una dirección ya validada por Google, exigir que el texto nuevo contenga calle y número antes de aceptarlo, y no volver a pedirle al modelo un dato que ya está en el draft.

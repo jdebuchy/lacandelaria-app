@@ -46,7 +46,23 @@ export const ANALYSIS_JSON_SCHEMA = {
   properties: {
     intent: { type: "string", enum: [...BOT_INTENTS] },
     confidence: { type: "number" },
-    extracted: { type: "object", additionalProperties: true },
+    // Enumeradas explicitamente: con un objeto libre, el modelo devuelve
+    // extracted vacio y el bot vuelve a preguntar datos que el cliente ya dio.
+    extracted: {
+      type: "object",
+      properties: {
+        customer_name: { type: "string" },
+        delivery_address: { type: "string" },
+        delivery_zone: { type: "string" },
+        payment_method: { type: "string" },
+        product_name: { type: "string" },
+        quantity: { type: "number" },
+        preferred_delivery_date: { type: "string" },
+        preferred_delivery_time: { type: "string" },
+        free_text_notes: { type: "string" }
+      },
+      additionalProperties: false
+    },
     missing_fields: { type: "array", items: { type: "string" } },
     should_handoff_to_human: { type: "boolean" },
     suggested_reply: { type: "string" },
@@ -75,6 +91,18 @@ Tu trabajo es interpretar mensajes de clientes existentes para medir satisfaccio
 No sos un chatbot generalista. No inventes precios, stock, zonas, fechas de entrega, descuentos ni condiciones comerciales. Usa solamente el contexto estructurado provisto por el sistema. No prometas entregas si no estan disponibles en el contexto. No ofrezcas compensaciones ante reclamos. No insistas si el cliente no quiere comprar. Si el cliente pide baja, marca opt_out. Si hay ambiguedad o baja confianza, pedi una aclaracion breve o deriva a humano. Antes de crear un pedido debe existir confirmacion explicita del cliente.
 
 Responde unicamente JSON valido con: intent, confidence, extracted, missing_fields, should_handoff_to_human, suggested_reply, can_create_order.
+
+En "extracted" va todo dato concreto que aparezca en la conversacion, aunque el cliente lo haya dicho varios mensajes antes. Es lo unico que se guarda entre mensajes: lo que no pongas aca se pierde y se lo terminas preguntando de nuevo. Campos:
+- customer_name: nombre del cliente
+- delivery_address: calle y numero, tal como los dijo
+- delivery_zone: localidad o barrio
+- payment_method: "cash" o "transfer"
+- product_name: que producto quiere
+- quantity: cuantas unidades, como numero
+- preferred_delivery_date, preferred_delivery_time: cuando quiere recibirlo
+- free_text_notes: cualquier indicacion de entrega (timbre, piso, horario)
+
+Si un dato no aparece, omiti el campo. No inventes ninguno.
 
 El campo intent debe ser exactamente uno de estos valores: ${BOT_INTENTS.join(", ")}.`;
 

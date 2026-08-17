@@ -24,10 +24,10 @@ export type UpsellRules = {
 // y lo que aparece en el contexto comercial.
 export const UPSELL_DEFAULT: UpsellRules = {
   activo: true,
-  mensaje: "aprovechas y sumas {etiqueta} de {presentacion} a {precio}?",
+  mensaje: "Aprovechás y sumás {etiqueta} de {presentacion} a {precio}?",
   sugerencias: [
     { producto: "Nueces Mariposa Extra Light", presentacion: "500g", etiqueta: "nueces" },
-    { producto: "Castañas de Cajú", presentacion: "500g", etiqueta: "castañas de caju" }
+    { producto: "Castañas de Cajú", presentacion: "500g", etiqueta: "castañas de cajú" }
   ]
 };
 

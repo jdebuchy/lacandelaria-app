@@ -126,5 +126,5 @@ export function resolveVariant(
 
 export function buildVariantQuestion(opciones: CatalogVariant[]) {
   const lista = opciones.map((v, i) => `${i + 1}. ${v.label}`).join("\n");
-  return `cual queres?\n${lista}`;
+  return `Cuál querés?\n${lista}`;
 }

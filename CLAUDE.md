@@ -102,4 +102,6 @@ Detalle de proveedores, variables y puesta en marcha: `README.md`. Plan de las f
 
 Español en UI y comentarios. Props de tipos en orden alfabético. Páginas son Server Components async con `requirePageRole(ROLES, path)` como primera línea; las APIs usan `requireApiRole`. Tests al lado del código (`src/lib/*.test.ts`).
 
+**Los comentarios van sin acentos; lo que lee una persona, no.** Identificadores y comentarios en `.ts` se escriben sin tildes, para no depender de la codificación del archivo. Eso es una convención de código y no aplica a los textos que ve el usuario: en la UI y en los mensajes del bot, "dirección" lleva tilde y las oraciones arrancan en mayúscula. Un mensaje sin acentos no se lee informal, se lee descuidado. La única licencia deliberada son los signos de apertura, que el bot no usa: ver `docs/bot-decisiones.md`.
+
 Los comentarios explican **por qué**, no qué. Si algo se ve raro pero es deliberado, dejá dicho qué se probó y por qué se descartó, o el próximo lo "arregla".

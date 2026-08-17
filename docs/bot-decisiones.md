@@ -161,3 +161,77 @@ Lo que decide cómo interpretar un mensaje es ahora `ultimaPregunta` a nivel del
 En una corrida de prueba, una llamada tardó 1008 segundos y el turno terminó sin respuesta. El cliente escribe y no le contesta nadie, que desde afuera se ve como que el bot lo dejó hablando solo. Peor: el mensaje siguiente se lee como respuesta a una pregunta que nunca se hizo, y la conversación entera se desfasa.
 
 El timeout bajó a 45 segundos y ahora hay un reintento. Es una limitación del proveedor `claude-cli`, que existe para prototipar con la suscripción; en producción va `anthropic-api`.
+
+---
+
+## Que el bot sepa cuánto hace que no hablan
+
+El draft del pedido no tenía noción de tiempo. Se guardaba en `conversations.draft_order` y se levantaba igual fuera de hace dos minutos o de hace una semana, así que una charla que quedaba a medias se retomaba en seco: el cliente escribía tres días después y Cande le contestaba "que piso y depto?".
+
+Antes de definir umbrales, la pregunta fue qué hace una persona. Un vendedor que atiende por WhatsApp hace tres cosas distintas, y ninguna es "seguir como si nada" ni "hacerse el amnésico".
+
+**Hace un rato:** sigue la frase donde la dejó. Si te preguntó el piso y volvés a los diez minutos con "4B", te dice "listo". Preguntarte si querés retomar sería raro.
+
+**Hace unas horas:** retoma diciendo en voz alta dónde quedaron, y en la misma frase avanza. *"hola Pepe! te decia, quedamos en 2 cajas para Castex 3342. seguimos con eso?"*
+
+**Ayer o antes:** se acuerda, pero no da nada por hecho. El pedido viejo deja de ser un pedido en curso y pasa a ser una sugerencia. *"hola Pepe! la ultima vez estabas por llevar 2 cajas. arrancamos con eso?"*
+
+**Nunca olvida quién sos.** El nombre y el teléfono no se preguntan de nuevo.
+
+De ahí salen las dos reglas del código:
+
+1. **Nunca actuar como si no hubiera pasado tiempo.** Si hubo un hueco, se nombra.
+2. **Un dato viejo se ofrece, no se asume.** Primero es estado, después es sugerencia, y nunca se convierte en un campo prellenado en silencio.
+
+**No es un menú.** La primera versión preguntaba "seguimos con eso o arrancamos de nuevo?", que es un formulario. Un vendedor no te ofrece dos opciones: retoma y avanza. Si el cliente quería otra cosa, lo dice solo, y `parseRetomar` lo entiende.
+
+**El pedido viejo no se borra en silencio.** Nadie se olvida de un pedido de ayer. Lo que no hace una persona es darlo por hecho. Por eso a las 24h el draft no se elimina: sale del pedido en curso y se ofrece, **solo si el cliente no dijo ya lo que quiere**. Si vuelve con "necesito 3 cajas", nadie le contesta hablando de anteayer: eso lo decide `trajoAlgoConcreto()`.
+
+**Una oferta que no se acepta es una oferta rechazada.** Si le ofrecimos el pedido de ayer y contesta cualquier otra cosa, ese pedido no queda flotando esperando pegarse al siguiente. Con un pedido de hace horas es al revés: sobrevive a una respuesta ambigua, porque todavía es el pedido en curso. Esa diferencia es lo único que guarda `retomarDesde`.
+
+### Los umbrales, que son consecuencia y no diseño
+
+| Hueco | El draft es | Qué hace |
+|---|---|---|
+| menos de 3h | estado activo | Sigue donde estaba. |
+| 3h a 24h | estado, pero se nombra | Retoma y avanza en una frase. |
+| más de 24h | sugerencia | Se ofrece, no se asume. |
+
+**Se miden horas transcurridas, no días de calendario.** Entre las 23:00 y la 01:00 pasaron dos horas, no "un día". Con el corte por fecha, dos horas de diferencia se tratarían como si hubiera pasado una semana.
+
+**Al reiniciar nunca se pierde el contacto.** La dirección depende de por qué se reinició: si el cliente pide arrancar de nuevo en la misma charla se conserva (la dio hace minutos), y si pasaron más de 24h no, porque dar por sentado a dónde va un pedido de ayer es asumir de más.
+
+**Un draft sin `actualizadoEn` cuenta como viejo.** Los que ya estaban guardados se curan solos en el primer mensaje, sin script de migración.
+
+### Dos cosas más que salieron del mismo problema
+
+**`hasOrderInProgress()` no miraba la fecha.** Bastaba con que `draft_order` no estuviera vacío, así que un "hola" sobre un pedido de la semana pasada salteaba el saludo y se iba derecho al modelo. Ahora un draft que ya es sugerencia no cuenta como pedido en curso.
+
+**El saludo no usaba el nombre.** Es la regla que más separa al equipo de un bot, medida sobre 1104 respuestas reales, y el saludo es la única respuesta que sale sin pasar por el modelo: si no la aplicaba ahí, no la aplicaba en ningún lado. Un cliente que vuelve a los tres días recibía "Hola! Soy Cande, de Paltas La Candelaria", como un desconocido.
+
+### Cómo se prueba
+
+`scripts/bot-envejecer-draft.mjs <horas>` retrasa el `actualizadoEn` del draft. Sin eso habría que esperar tres horas de verdad, o mover el reloj de la máquina.
+
+---
+
+## El tono es informal, la ortografía no
+
+Cande escribía todo en minúscula y sin acentos: "me pasas la direccion de entrega?", "cuantas cajas queres?". Las dos cosas venían de lugares distintos y solo una estaba bien.
+
+**Las minúsculas eran una regla medida.** El 52% de las respuestas reales del equipo arrancan en minúscula, así que la guía de tono decía "podés arrancar en minúscula, no fuerces la mayúscula inicial". Se midió bien, pero replicarlo no era necesario: es una marca de quien tipea rápido en el celular, no algo que el cliente valore.
+
+**La falta de acentos era un error mío, no una medición.** La convención del repo de escribir sin tildes es para **el código**: identificadores y comentarios en `.ts`. Se coló en los textos que lee el cliente, donde no aplica. "Direccion" en un mensaje no se lee informal, se lee descuidado.
+
+Ahora se escribe con acentos y con mayúscula al empezar cada oración. Todo lo demás del tono medido queda igual: corto (mediana de 63 caracteres), voseo, saludo por el nombre, precios en palabras, sin emojis, una pregunta por vez.
+
+**Los signos de apertura siguen sin usarse, y es la única licencia.** Cero de 1104 respuestas del equipo usan `¿` o `¡`. Se escribe "Cuántas querés?", nunca "¿Cuántas querés?". En un chat el signo de apertura lee formal, no correcto.
+
+### Dónde vive esto
+
+En dos lugares, y hay que tocar los dos:
+
+- **Los textos fijos**, los que salen sin pasar por el modelo: `buildAddressQuestion` y `buildOrderQuestion`, `resumenPedido`, `mensajeParaRetomar`, `avisoDePedidoCreado`, `CANNED_REPLIES` y los mensajes de `engine.ts`.
+- **La guía de tono**, en `commercial_settings` con la key `tone_guide`, que es lo que gobierna todo lo que redacta el modelo.
+
+De los dos, la guía pesa más, y adentro de la guía pesan más **los ejemplos que las reglas**: el modelo copia su largo, su registro y su ortografía. Tener seis ejemplos escritos sin acentos y en minúscula empujaba a escribir mal aunque la regla dijera lo contrario. Los ejemplos se reescribieron con la ortografía que se quiere ver.

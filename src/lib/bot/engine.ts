@@ -15,10 +15,10 @@ const CONTEXT_DEPENDENT = new Set(["ask_price", "ask_delivery", "ask_products"])
 
 const CLOSING_INTENTS = new Set(["not_interested", "not_now", "cancel_order"]);
 
-const OPT_OUT_BODY = "Listo, ya registramos tu baja para no enviarte mas mensajes.";
+const OPT_OUT_BODY = "Listo, ya registramos tu baja para no enviarte más mensajes.";
 const ORDER_CREATED_BODY =
-  "Tu pedido quedo registrado. Te vamos a contactar si necesitamos coordinar algun detalle.";
-const DEFAULT_REPLY = "Gracias por responder. Te seguimos por aca si necesitas algo.";
+  "Tu pedido quedó registrado. Te vamos a contactar si necesitamos coordinar algún detalle.";
+const DEFAULT_REPLY = "Gracias por responder. Te seguimos por acá si necesitás algo.";
 
 export type RepeatOrder = {
   payload: Record<string, unknown>;

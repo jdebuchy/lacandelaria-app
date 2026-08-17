@@ -101,7 +101,7 @@ describe("resolveVariant", () => {
 describe("buildVariantQuestion", () => {
   it("numera las opciones para que el cliente elija", () => {
     expect(buildVariantQuestion([CAJA_GRANDE, CAJA_CHICA])).toBe(
-      "cual queres?\n1. Caja de 4kg\n2. Caja de 4kg chica"
+      "Cuál querés?\n1. Caja de 4kg\n2. Caja de 4kg chica"
     );
   });
 });

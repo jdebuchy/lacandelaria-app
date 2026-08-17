@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { EMPTY_ADDRESS_DRAFT } from "./address";
 import type { CatalogVariant } from "./catalog";
 import { EMPTY_ORDER_DRAFT, type OrderDraft } from "./order-draft";
-import { avisoDePedidoCreado, resumenPedido, totalDelPedido } from "./summary";
+import {
+  avisoDePedidoCreado,
+  mensajeParaRetomar,
+  resumenPedido,
+  totalDelPedido
+} from "./summary";
 
 const CAJA: CatalogVariant = {
   id: "caja-4kg",
@@ -40,7 +45,7 @@ describe("resumenPedido", () => {
   it("dice que se lleva, a donde va y cuanto sale", () => {
     const resumen = resumenPedido([{ variante: CAJA, cantidad: 1 }], draft());
 
-    expect(resumen).toBe("te anoto caja de 4kg a Castex 3342 4B, 25 mil en efectivo. confirmo asi?");
+    expect(resumen).toBe("Te anoto caja de 4kg a Castex 3342 4B, 25 mil en efectivo. Confirmo así?");
   });
 
   it("suma el upsell al resumen y al total", () => {
@@ -77,13 +82,46 @@ describe("resumenPedido", () => {
 describe("avisoDePedidoCreado", () => {
   it("saluda por el nombre y da el numero de pedido", () => {
     expect(avisoDePedidoCreado(124, "Pepe")).toBe(
-      "listo Pepe, te lo anote (pedido #124). te avisamos cuando salga el reparto"
+      "Listo Pepe, te lo anoté (pedido #124). Te avisamos cuando salga el reparto"
     );
   });
 
   it("funciona igual sin nombre ni numero", () => {
     expect(avisoDePedidoCreado(null, null)).toBe(
-      "listo, te lo anote. te avisamos cuando salga el reparto"
+      "Listo, te lo anoté. Te avisamos cuando salga el reparto"
+    );
+  });
+});
+
+describe("mensajeParaRetomar", () => {
+  const aMedias = draft({ cantidad: 2, nombre: "Pepe" });
+
+  // No es un menu de dos opciones: es una frase que ya empuja para adelante, y
+  // si el cliente queria otra cosa lo dice solo.
+  it("a las pocas horas retoma y avanza", () => {
+    expect(mensajeParaRetomar(aMedias, "dormido")).toBe(
+      "Hola Pepe! Te decía, quedamos en 2 cajas para Castex 3342 4B. Seguimos con eso?"
+    );
+  });
+
+  // Al dia siguiente ya no es un pedido en curso: se ofrece.
+  it("al dia siguiente lo ofrece en vez de darlo por hecho", () => {
+    expect(mensajeParaRetomar(aMedias, "sugerencia")).toBe(
+      "Hola Pepe! La última vez estabas por llevar 2 cajas para Castex 3342 4B. Arrancamos con eso?"
+    );
+  });
+
+  it("funciona sin nombre y con una sola caja", () => {
+    expect(mensajeParaRetomar(draft({ cantidad: 1 }), "dormido")).toBe(
+      "Hola! Te decía, quedamos en 1 caja para Castex 3342 4B. Seguimos con eso?"
+    );
+  });
+
+  it("no inventa un resumen que no tiene", () => {
+    const vacio = draft({ direccion: EMPTY_ADDRESS_DRAFT });
+
+    expect(mensajeParaRetomar(vacio, "dormido")).toBe(
+      "Hola! Seguimos con el pedido que estábamos armando?"
     );
   });
 });

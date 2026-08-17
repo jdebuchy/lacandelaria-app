@@ -53,18 +53,52 @@ export function resumenPedido(items: PedidoItem[], draft: OrderDraft) {
   const pago = describirPago(draft.metodoPago);
   const direccion = describirDireccion(draft);
 
-  const partes = [`te anoto ${lista}`];
+  const partes = [`Te anoto ${lista}`];
 
   if (direccion) {
     partes.push(`a ${direccion}`);
   }
 
-  return `${partes.join(" ")}, ${[total, pago].filter(Boolean).join(" ")}. confirmo asi?`;
+  return `${partes.join(" ")}, ${[total, pago].filter(Boolean).join(" ")}. Confirmo así?`;
+}
+
+// Lo que diria una persona que se acuerda: nombra donde quedaron y en la misma
+// frase avanza. No es un menu de dos opciones ("seguimos o arrancamos de nuevo")
+// porque nadie atiende asi; si el cliente queria otra cosa, lo dice solo.
+//
+// La diferencia entre las dos formas es cuanta autoridad tiene lo guardado. A las
+// pocas horas todavia es el pedido en curso y se retoma. Al dia siguiente ya es
+// una sugerencia, y se ofrece.
+export function mensajeParaRetomar(draft: OrderDraft, estado: "dormido" | "sugerencia") {
+  const saludo = draft.nombre ? `Hola ${draft.nombre}!` : "Hola!";
+  const partes: string[] = [];
+
+  if (draft.cantidad) {
+    partes.push(draft.cantidad === 1 ? "1 caja" : `${draft.cantidad} cajas`);
+  }
+
+  const direccion = describirDireccion(draft);
+
+  if (direccion) {
+    partes.push(`para ${direccion}`);
+  }
+
+  const quedamos = partes.join(" ");
+
+  if (estado === "dormido") {
+    return quedamos
+      ? `${saludo} Te decía, quedamos en ${quedamos}. Seguimos con eso?`
+      : `${saludo} Seguimos con el pedido que estábamos armando?`;
+  }
+
+  return quedamos
+    ? `${saludo} La última vez estabas por llevar ${quedamos}. Arrancamos con eso?`
+    : `${saludo} Contame qué necesitás`;
 }
 
 export function avisoDePedidoCreado(orderNumber: number | null, nombre: string | null) {
-  const saludo = nombre ? `listo ${nombre}` : "listo";
+  const saludo = nombre ? `Listo ${nombre}` : "Listo";
   const numero = orderNumber ? ` (pedido #${orderNumber})` : "";
 
-  return `${saludo}, te lo anote${numero}. te avisamos cuando salga el reparto`;
+  return `${saludo}, te lo anoté${numero}. Te avisamos cuando salga el reparto`;
 }

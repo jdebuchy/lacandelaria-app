@@ -3,6 +3,7 @@ import { EMPTY_ADDRESS_DRAFT, type AddressDraft } from "./address";
 import {
   EMPTY_ORDER_DRAFT,
   buildOrderQuestion,
+  estadoDelDraft,
   gapKey,
   interpretOrderAnswer,
   isOrderComplete,
@@ -13,9 +14,13 @@ import {
   parseCantidad,
   parseMetodoPago,
   parseNombre,
+  parseRetomar,
   parseSiNo,
   parseTelefono,
+  reiniciarPedido,
   resumirConfirmado,
+  sinEco,
+  trajoAlgoConcreto,
   type OrderDraft
 } from "./order-draft";
 
@@ -99,6 +104,13 @@ describe("parseNombre", () => {
     expect(parseNombre("Castex 3342")).toBeNull();
     expect(parseNombre("a")).toBeNull();
     expect(parseNombre("")).toBeNull();
+  });
+
+  // Paso en una prueba real: el bot pregunto "a nombre de quien te lo anoto?",
+  // el cliente dijo "hola", y el pedido quedo a nombre de "hola".
+  it("un saludo no es un nombre", () => {
+    expect(parseNombre("hola")).toBeNull();
+    expect(parseNombre("buenas tardes")).toBeNull();
   });
 });
 
@@ -233,8 +245,8 @@ describe("nextOrderGap", () => {
       telefono: "5491155554444"
     });
 
-    expect(nextOrderGap(listo, true)).toEqual({ tipo: "upsell" });
-    expect(nextOrderGap({ ...listo, upsellOfrecido: true }, true)).toEqual({ tipo: "confirmacion" });
+    expect(nextOrderGap(listo, { upsellDisponible: true })).toEqual({ tipo: "upsell" });
+    expect(nextOrderGap({ ...listo, upsellOfrecido: true }, { upsellDisponible: true })).toEqual({ tipo: "confirmacion" });
   });
 
   // El corte de repeticiones existe porque insistir garantiza el bucle. Pero un
@@ -288,7 +300,7 @@ describe("interpretOrderAnswer", () => {
 });
 
 describe("buildOrderQuestion", () => {
-  it("pregunta de a una cosa, corto y sin signos de apertura", () => {
+  it("pregunta de a una cosa, corto, bien escrito y sin signos de apertura", () => {
     const preguntas = [
       buildOrderQuestion({ tipo: "cantidad" }, draft()),
       buildOrderQuestion({ tipo: "pago" }, draft()),
@@ -298,14 +310,15 @@ describe("buildOrderQuestion", () => {
 
     for (const pregunta of preguntas) {
       expect(pregunta).not.toContain("¿");
-      expect(pregunta[0]).toBe(pregunta[0].toLowerCase());
+      // El tono es informal, la ortografia no: mayuscula inicial y acentos.
+      expect(pregunta[0]).toBe(pregunta[0].toUpperCase());
       expect(pregunta.length).toBeLessThan(60);
     }
   });
 
   it("delega las preguntas de direccion", () => {
     expect(buildOrderQuestion({ tipo: "direccion", gap: "tipo_vivienda" }, draft())).toBe(
-      "es casa o departamento?"
+      "Es casa o departamento?"
     );
   });
 });
@@ -341,5 +354,172 @@ describe("pareceConsulta", () => {
     expect(pareceConsulta("4B")).toBe(false);
     expect(pareceConsulta("2 cajas")).toBe(false);
     expect(pareceConsulta("")).toBe(false);
+  });
+});
+
+describe("estadoDelDraft", () => {
+  const arranque = "2026-08-16T12:00:00.000Z";
+
+  function hace(horas: number) {
+    return new Date(new Date(arranque).getTime() - horas * 3_600_000).toISOString();
+  }
+
+  it("sin nada que retomar no hay estado", () => {
+    expect(estadoDelDraft(draft(), arranque)).toBe("vacio");
+    expect(estadoDelDraft(draft({ nombre: "Pepe", actualizadoEn: hace(1) }), arranque)).toBe("vacio");
+  });
+
+  it("recien hablado sigue siendo el pedido en curso", () => {
+    expect(estadoDelDraft(draft({ cantidad: 2, actualizadoEn: hace(0.5) }), arranque)).toBe("activo");
+    expect(estadoDelDraft(draft({ cantidad: 2, actualizadoEn: hace(2.9) }), arranque)).toBe("activo");
+  });
+
+  it("a las pocas horas hay que nombrar el hueco", () => {
+    expect(estadoDelDraft(draft({ cantidad: 2, actualizadoEn: hace(3) }), arranque)).toBe("dormido");
+    expect(estadoDelDraft(draft({ cantidad: 2, actualizadoEn: hace(20) }), arranque)).toBe("dormido");
+  });
+
+  it("pasado un dia deja de ser un pedido en curso", () => {
+    expect(estadoDelDraft(draft({ cantidad: 2, actualizadoEn: hace(24) }), arranque)).toBe("sugerencia");
+    expect(estadoDelDraft(draft({ cantidad: 2, actualizadoEn: hace(72) }), arranque)).toBe("sugerencia");
+  });
+
+  // Los drafts guardados antes de que existiera el campo se curan solos en el
+  // primer mensaje, sin script de migracion.
+  it("un draft sin fecha cuenta como viejo", () => {
+    expect(estadoDelDraft(draft({ cantidad: 2 }), arranque)).toBe("sugerencia");
+  });
+
+  it("un pedido ya creado no se retoma", () => {
+    const creado = draft({ cantidad: 2, actualizadoEn: hace(4), createdOrderId: "order-1" });
+    expect(estadoDelDraft(creado, arranque)).toBe("vacio");
+  });
+
+  it("nombrar el hueco le gana a cualquier dato que falte", () => {
+    const aMedias = draft({ cantidad: 2, actualizadoEn: hace(5) });
+
+    expect(nextOrderGap(aMedias)).toEqual({ tipo: "direccion", gap: "calle" });
+    expect(nextOrderGap(aMedias, { estado: "dormido" })).toEqual({ tipo: "retomar" });
+    expect(nextOrderGap(aMedias, { estado: "sugerencia" })).toEqual({ tipo: "retomar" });
+  });
+});
+
+describe("reiniciarPedido", () => {
+  const lleno = draft({
+    cantidad: 2,
+    metodoPago: "cash",
+    nombre: "Pepe",
+    telefono: "5491155554444",
+    producto: "Paltas",
+    upsellOfrecido: true,
+    confirmado: true,
+    direccion: direccionLista(),
+    createdOrderId: "order-1"
+  });
+
+  // Es la misma persona: volver a pedirle el nombre y el telefono se lee como
+  // que no lo escuchamos.
+  it("nunca pierde el contacto", () => {
+    for (const conservarDireccion of [true, false]) {
+      const limpio = reiniciarPedido(lleno, { conservarDireccion });
+
+      expect(limpio.nombre).toBe("Pepe");
+      expect(limpio.telefono).toBe("5491155554444");
+      expect(limpio.cantidad).toBeNull();
+      expect(limpio.metodoPago).toBeNull();
+      expect(limpio.confirmado).toBe(false);
+      expect(limpio.createdOrderId).toBeNull();
+    }
+  });
+
+  it("conserva la direccion solo cuando se le pide", () => {
+    expect(reiniciarPedido(lleno, { conservarDireccion: true }).direccion.googlePlaceId).toBe("place-1");
+    expect(reiniciarPedido(lleno, { conservarDireccion: false }).direccion.googlePlaceId).toBeNull();
+  });
+});
+
+describe("parseRetomar", () => {
+  it("entiende que quiere seguir", () => {
+    expect(parseRetomar("si")).toBe("seguir");
+    expect(parseRetomar("dale")).toBe("seguir");
+    expect(parseRetomar("seguimos")).toBe("seguir");
+    expect(parseRetomar("si, eso mismo")).toBe("seguir");
+  });
+
+  it("entiende que quiere arrancar de nuevo", () => {
+    expect(parseRetomar("no")).toBe("de_cero");
+    expect(parseRetomar("arrancamos de nuevo")).toBe("de_cero");
+    expect(parseRetomar("de cero")).toBe("de_cero");
+    expect(parseRetomar("otra cosa")).toBe("de_cero");
+  });
+
+  // "si, de cero" tiene las dos cosas. Gana empezar de nuevo, que es lo que el
+  // cliente esta pidiendo: parseSiNo aca leeria un si.
+  it("ante un mensaje con las dos cosas, gana empezar de nuevo", () => {
+    expect(parseRetomar("si, arrancamos de nuevo")).toBe("de_cero");
+    expect(parseRetomar("dale, de cero")).toBe("de_cero");
+  });
+
+  it("no adivina cuando la respuesta es otra cosa", () => {
+    expect(parseRetomar("cuanto sale?")).toBeNull();
+    expect(parseRetomar("")).toBeNull();
+  });
+});
+
+describe("trajoAlgoConcreto", () => {
+  // Si el cliente ya dijo lo que quiere, sacarle un pedido de anteayer es
+  // hablarle de otra cosa.
+  it("reconoce cuando el cliente ya dijo lo que necesita", () => {
+    expect(trajoAlgoConcreto({ quantity: 3 }, draft())).toBe(true);
+    expect(trajoAlgoConcreto({ delivery_address: "Castex 3342" }, draft())).toBe(true);
+  });
+
+  // El modelo completa product_name aunque el mensaje sea un saludo, asi que no
+  // se puede usar para decidir esto.
+  it("un saludo no cuenta, ni con producto adivinado", () => {
+    expect(trajoAlgoConcreto({}, draft())).toBe(false);
+    expect(trajoAlgoConcreto({ product_name: "Paltas" }, draft())).toBe(false);
+    expect(trajoAlgoConcreto({ quantity: 2809 }, draft())).toBe(false);
+  });
+
+  // El prompt le pide al modelo repetir todo dato que aparezca en la
+  // conversacion, aunque sea de varios mensajes atras. Sin comparar contra lo
+  // guardado, un "hola" pelado devolvia la cantidad y la direccion de siempre y
+  // esto daba true para siempre: el hueco no se nombraba nunca.
+  it("no confunde el eco del modelo con un dato nuevo", () => {
+    const previo = draft({ cantidad: 2, direccion: direccionLista() });
+
+    expect(trajoAlgoConcreto({ quantity: 2 }, previo)).toBe(false);
+    expect(trajoAlgoConcreto({ delivery_address: "Castex 3342" }, previo)).toBe(false);
+    expect(trajoAlgoConcreto({ quantity: 3 }, previo)).toBe(true);
+    expect(trajoAlgoConcreto({ delivery_address: "Cabello 3373" }, previo)).toBe(true);
+  });
+});
+
+describe("sinEco", () => {
+  const viejo = draft({ cantidad: 3, metodoPago: "cash", nombre: "Pepe", direccion: direccionLista() });
+
+  // El caso real: se descarta el pedido de ayer, el modelo devuelve ese mismo
+  // pedido en "extracted", y el reinicio se deshace solo en el mismo mensaje.
+  it("saca lo que es repeticion del pedido que se descarto", () => {
+    const limpio = sinEco(
+      { quantity: 3, payment_method: "efectivo", customer_name: "Pepe", delivery_address: "Castex 3342" },
+      viejo
+    );
+
+    expect(limpio).toEqual({});
+  });
+
+  // "no, mejor 5 cajas" descarta el pedido viejo pero el 5 tiene que sobrevivir.
+  it("deja pasar lo que el cliente dijo de nuevo", () => {
+    const limpio = sinEco({ quantity: 5, delivery_address: "Cabello 3373" }, viejo);
+
+    expect(limpio).toEqual({ quantity: 5, delivery_address: "Cabello 3373" });
+  });
+
+  it("la zona se va con la direccion que repite", () => {
+    const limpio = sinEco({ delivery_address: "Castex 3342", delivery_zone: "CABA" }, viejo);
+
+    expect(limpio).toEqual({});
   });
 });

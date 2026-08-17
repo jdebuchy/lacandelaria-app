@@ -1,4 +1,5 @@
 import { normalizeArgentinaPhoneInput } from "@/lib/contact";
+import { isGreetingOnly, normalizar } from "./text";
 import {
   EMPTY_ADDRESS_DRAFT,
   MAX_REPETICIONES_PREGUNTA,
@@ -32,6 +33,16 @@ export type OrderDraft = {
   // memoria que tiene el bot entre mensajes, y lo que evita los bucles.
   ultimaPregunta: string | null;
   repeticiones: number;
+  // Cuando se toco el pedido por ultima vez. Sin esto el bot retoma una charla de
+  // hace tres dias como si no hubiera pasado nada.
+  actualizadoEn: string | null;
+  // Desde que antiguedad se pregunto si retomaba. Cambia que pasa con la
+  // respuesta: un pedido de hace horas sobrevive a una respuesta ambigua, uno de
+  // ayer no, porque era una oferta y no un pedido en curso.
+  retomarDesde: "dormido" | "sugerencia" | null;
+  // Lo escribe create-order cuando el pedido ya existe. Vive en el mismo jsonb,
+  // asi que tenerlo tipado evita leer el objeto crudo en dos lugares.
+  createdOrderId: string | null;
 };
 
 export const EMPTY_ORDER_DRAFT: OrderDraft = {
@@ -47,8 +58,86 @@ export const EMPTY_ORDER_DRAFT: OrderDraft = {
   upsellVariantId: null,
   confirmado: false,
   ultimaPregunta: null,
-  repeticiones: 0
+  repeticiones: 0,
+  actualizadoEn: null,
+  retomarDesde: null,
+  createdOrderId: null
 };
+
+// El draft vive como jsonb, asi que hay que rearmarlo con forma de OrderDraft en
+// cada lectura. Estaba escrito a mano en handle-inbound; ahora lo necesita
+// tambien el gate, y una sola version evita que se separen.
+export function hydrateOrderDraft(crudo: Record<string, unknown> | null | undefined): OrderDraft {
+  const fuente = (crudo ?? {}) as Partial<OrderDraft>;
+
+  return {
+    ...EMPTY_ORDER_DRAFT,
+    ...fuente,
+    direccion: { ...EMPTY_ADDRESS_DRAFT, ...(fuente.direccion ?? {}) }
+  };
+}
+
+// Cuanto puede pasar antes de que retomar en seco se note. Tres horas es un
+// almuerzo o una reunion: mas que eso, seguir la frase donde quedo se lee raro.
+export const HORAS_PARA_NOMBRAR = 3;
+
+// Pasado un dia el pedido deja de ser un pedido en curso. No se olvida, pero se
+// ofrece en vez de darse por hecho.
+export const HORAS_PARA_SUGERENCIA = 24;
+
+export type EstadoDelDraft = "vacio" | "activo" | "dormido" | "sugerencia";
+
+function tieneAlgoQueRetomar(draft: OrderDraft) {
+  if (draft.createdOrderId) {
+    return false;
+  }
+
+  return draft.cantidad !== null || Boolean(draft.direccion.texto);
+}
+
+// Cuanta autoridad tiene lo que quedo guardado. No mide dias de calendario: entre
+// las 23:00 y la 01:00 pasaron dos horas, no "un dia".
+export function estadoDelDraft(draft: OrderDraft, now: string): EstadoDelDraft {
+  if (!tieneAlgoQueRetomar(draft)) {
+    return "vacio";
+  }
+
+  // Un draft sin fecha es de antes de que existiera este campo. Tratarlo como
+  // sugerencia hace que los que ya estan guardados se curen solos en el primer
+  // mensaje, sin script de migracion.
+  if (!draft.actualizadoEn) {
+    return "sugerencia";
+  }
+
+  const horas = (new Date(now).getTime() - new Date(draft.actualizadoEn).getTime()) / 3_600_000;
+
+  if (!Number.isFinite(horas)) {
+    return "sugerencia";
+  }
+
+  if (horas >= HORAS_PARA_SUGERENCIA) {
+    return "sugerencia";
+  }
+
+  return horas >= HORAS_PARA_NOMBRAR ? "dormido" : "activo";
+}
+
+// Vacia el pedido pero nunca el contacto: es la misma persona, y volver a pedirle
+// el nombre y el telefono se lee como que no lo escuchamos.
+export function reiniciarPedido(
+  draft: OrderDraft,
+  opciones: { conservarDireccion: boolean }
+): OrderDraft {
+  return {
+    ...EMPTY_ORDER_DRAFT,
+    nombre: draft.nombre,
+    telefono: draft.telefono,
+    actualizadoEn: draft.actualizadoEn,
+    direccion: opciones.conservarDireccion
+      ? { ...draft.direccion, ultimaPregunta: null, repeticiones: 0 }
+      : EMPTY_ADDRESS_DRAFT
+  };
+}
 
 // Un pedido de mas de 50 cajas no es un cliente escribiendo por Telegram: es el
 // modelo interpretando mal un numero suelto (una altura, un piso, un horario).
@@ -62,13 +151,6 @@ export function parseCantidad(valor: unknown): number | null {
   }
 
   return numero >= 1 && numero <= MAX_CAJAS_RAZONABLE ? numero : null;
-}
-
-function normalizar(texto: string) {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
 }
 
 export function parseMetodoPago(valor: unknown): "cash" | "transfer" | null {
@@ -128,6 +210,12 @@ export function parseNombre(valor: unknown): string | null {
     return null;
   }
 
+  // Un saludo contestando "a nombre de quien te lo anoto?" no es un nombre.
+  // Sin esto el pedido quedaba a nombre de "hola".
+  if (isGreetingOnly(limpio)) {
+    return null;
+  }
+
   return limpio;
 }
 
@@ -154,6 +242,103 @@ export function parseSiNo(texto: string): boolean | null {
   }
 
   return afirma ? true : null;
+}
+
+// "de nuevo" y "de cero" no son negaciones, asi que parseSiNo las lee como null y
+// el bot seguiria con el pedido viejo. Por eso esta pregunta tiene su propio
+// parser, y la negacion se chequea primero: "si, arrancamos de nuevo" tiene las
+// dos cosas y gana empezar de nuevo.
+const EMPEZAR_DE_CERO =
+  /\b(de cero|desde cero|de nuevo|nuevamente|otra vez|otra cosa|empecemos|empezar|olvidate|olvidalo|cambio|cambiar|no)\b/;
+const SEGUIR_IGUAL =
+  /\b(segui|seguimos|sigamos|seguir|continuemos|continuar|si|sip|dale|eso|ese|esa|mismo|misma|obvio|claro|confirmo|perfecto)\b/;
+
+export function parseRetomar(texto: string): "seguir" | "de_cero" | null {
+  const limpio = normalizar(texto.trim());
+
+  if (!limpio) {
+    return null;
+  }
+
+  if (EMPEZAR_DE_CERO.test(limpio)) {
+    return "de_cero";
+  }
+
+  return SEGUIR_IGUAL.test(limpio) ? "seguir" : null;
+}
+
+// Si el cliente ya dijo lo que quiere, sacarle un pedido de anteayer es hablarle
+// de otra cosa.
+//
+// Se compara contra lo que ya habia, y no se mira solo si "extracted" trae algo:
+// el prompt le pide al modelo repetir todo dato que aparezca en la conversacion,
+// aunque sea de varios mensajes atras. Sin la comparacion, un "hola" pelado
+// devolvia la cantidad y la direccion de siempre y esto daba true para siempre.
+//
+// Tampoco mira el producto, porque el modelo completa product_name aun cuando el
+// cliente no lo nombro.
+export function trajoAlgoConcreto(
+  extracted: Record<string, unknown>,
+  guardado: OrderDraft
+): boolean {
+  const cantidad = parseCantidad(extracted.quantity);
+
+  if (cantidad !== null && cantidad !== guardado.cantidad) {
+    return true;
+  }
+
+  const direccion = extracted.delivery_address;
+
+  if (typeof direccion !== "string" || !direccion.trim()) {
+    return false;
+  }
+
+  const dicha = normalizar(direccion);
+
+  return dicha !== normalizar(guardado.direccion.texto ?? "") && dicha !== normalizar(guardado.direccion.etiqueta ?? "");
+}
+
+// Despues de descartar un pedido viejo, lo que el modelo "extrajo" suele ser el
+// eco de ese mismo pedido: el prompt le pide repetir todo dato que aparezca en la
+// conversacion, aunque sea de varios mensajes atras. Sin sacarlo, el reinicio se
+// deshace solo en el mismo mensaje que lo pidio.
+//
+// Solo se descarta lo que coincide con lo viejo. Si el cliente dijo "no, mejor 5
+// cajas", el 5 sobrevive.
+export function sinEco(
+  extracted: Record<string, unknown>,
+  viejo: OrderDraft
+): Record<string, unknown> {
+  const limpio: Record<string, unknown> = { ...extracted };
+
+  if (parseCantidad(extracted.quantity) === viejo.cantidad) {
+    delete limpio.quantity;
+  }
+
+  if (parseMetodoPago(extracted.payment_method) === viejo.metodoPago) {
+    delete limpio.payment_method;
+  }
+
+  if (parseNombre(extracted.customer_name) === viejo.nombre) {
+    delete limpio.customer_name;
+  }
+
+  if (typeof extracted.product_name === "string" && extracted.product_name.trim() === viejo.producto) {
+    delete limpio.product_name;
+  }
+
+  const dicha = typeof extracted.delivery_address === "string" ? normalizar(extracted.delivery_address) : "";
+
+  if (
+    dicha &&
+    (dicha === normalizar(viejo.direccion.texto ?? "") ||
+      dicha === normalizar(viejo.direccion.etiqueta ?? ""))
+  ) {
+    delete limpio.delivery_address;
+    delete limpio.delivery_zone;
+  }
+
+  return limpio;
 }
 
 const PALABRAS_DE_PREGUNTA =
@@ -242,6 +427,10 @@ export function resumirConfirmado(draft: OrderDraft): Record<string, unknown> | 
 }
 
 export type OrderGap =
+  // Paso tiempo desde la ultima vez. Antes de seguir con cualquier dato hay que
+  // nombrar el hueco: retomar en seco es lo que delata que del otro lado no hay
+  // nadie.
+  | { tipo: "retomar" }
   | { tipo: "direccion"; gap: AddressGap }
   | { tipo: "cantidad" }
   | { tipo: "pago" }
@@ -271,6 +460,7 @@ export function gapFromKey(clave: string | null): OrderGap | null {
   }
 
   switch (clave) {
+    case "retomar":
     case "cantidad":
     case "pago":
     case "nombre":
@@ -293,9 +483,25 @@ function agotada(draft: OrderDraft, gap: OrderGap) {
 // Los datos imprescindibles (cantidad y direccion) bloquean si el cliente no
 // contesta; los demas se saltean y los completa una persona. Preguntar tres
 // veces lo mismo pierde la venta, y un pedido sin direccion no se puede repartir.
-export function nextOrderGap(draft: OrderDraft, upsellDisponible = false): OrderGap | null {
+export type NextGapOptions = {
+  upsellDisponible?: boolean;
+  // Cuanta autoridad tiene lo guardado. Lo calcula quien tiene el reloj: aca
+  // adentro no puede haber Date.now() o el test depende de la hora de la maquina.
+  estado?: EstadoDelDraft;
+};
+
+export function nextOrderGap(draft: OrderDraft, opciones: NextGapOptions = {}): OrderGap | null {
+  const { upsellDisponible = false, estado = "activo" } = opciones;
+
   if (draft.confirmado) {
     return null;
+  }
+
+  // Nombrar el hueco va antes que cualquier dato que falte. Preguntar "que piso
+  // y depto?" a alguien que escribio hace tres dias es la definicion de hablarle
+  // a nadie.
+  if (estado === "dormido" || estado === "sugerencia") {
+    return { tipo: "retomar" };
   }
 
   if (draft.cantidad === null) {
@@ -344,25 +550,29 @@ export function nextOrderGap(draft: OrderDraft, upsellDisponible = false): Order
   return { tipo: "confirmacion" };
 }
 
-// Los textos siguen el tono medido del equipo: cortos, sin signos de apertura,
-// en minuscula y de a una pregunta por vez.
+// Los textos siguen el tono medido del equipo: cortos, de a una pregunta por vez
+// y sin signos de apertura, que es la unica licencia ortografica que se toma.
+// Los acentos y la mayuscula inicial si van: sin ellos se lee descuidado, no
+// cercano. Ojo que la regla del repo de escribir sin acentos es para el codigo,
+// no para lo que lee el cliente.
 export function buildOrderQuestion(gap: OrderGap, draft: OrderDraft): string {
   switch (gap.tipo) {
     case "direccion":
       return buildAddressQuestion(gap.gap, draft.direccion);
     case "cantidad":
-      return "cuantas cajas queres?";
+      return "Cuántas cajas querés?";
     case "pago":
-      return "lo pagas en efectivo o por transferencia?";
+      return "Lo pagás en efectivo o por transferencia?";
     case "nombre":
-      return "a nombre de quien te lo anoto?";
+      return "A nombre de quién te lo anoto?";
     case "telefono":
-      return "me pasas un telefono para el reparto?";
+      return "Me pasás un teléfono para el reparto?";
+    case "retomar":
     case "upsell":
     case "confirmacion":
     case "bloqueado":
-      // Estos tres los arma quien tiene el catalogo o deriva a una persona: el
-      // texto necesita precios o no es una pregunta.
+      // Estos los arma quien tiene el catalogo o el resumen de lo que habia: el
+      // texto necesita precios, o no es una pregunta.
       return "";
   }
 }
@@ -401,6 +611,11 @@ export function interpretOrderAnswer(gap: OrderGap, texto: string): Partial<Orde
       const respuesta = parseSiNo(texto);
       return respuesta === true ? { confirmado: true } : {};
     }
+
+    case "retomar":
+      // Esta la resuelve handle-inbound con parseRetomar: reiniciar el pedido
+      // necesita saber cuanto tiempo paso, y eso no vive en el draft.
+      return {};
 
     default:
       return {};

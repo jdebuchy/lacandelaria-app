@@ -22,16 +22,29 @@ import { resolveVariant } from "./order-items";
 import {
   EMPTY_ORDER_DRAFT,
   buildOrderQuestion,
+  estadoDelDraft,
   gapFromKey,
   gapKey,
+  hydrateOrderDraft,
   interpretOrderAnswer,
   mergeOrderDraft,
   nextOrderGap,
   pareceConsulta,
+  parseRetomar,
+  reiniciarPedido,
   resumirConfirmado,
+  sinEco,
+  trajoAlgoConcreto,
+  type EstadoDelDraft,
   type OrderDraft
 } from "./order-draft";
-import { avisoDePedidoCreado, describirDireccion, resumenPedido, type PedidoItem } from "./summary";
+import {
+  avisoDePedidoCreado,
+  describirDireccion,
+  mensajeParaRetomar,
+  resumenPedido,
+  type PedidoItem
+} from "./summary";
 import { parseUpsellRules, selectUpsell } from "./upsell";
 import { telegramAdapter } from "./channels/telegram";
 import type { ChannelAdapter } from "./channels/types";
@@ -53,6 +66,7 @@ import {
   updateConversationStatus
 } from "./conversations";
 import { ENGINE_DEFAULTS, decideNextAction } from "./engine";
+import { esComandoDeReinicio, pidioArrancarDeNuevo } from "./text";
 import { GATE_DEFAULTS, evaluateGate, truncateForLlm } from "./gate";
 import { getLlmProvider } from "./llm";
 import type { BotAnalysis, ConversationState, InboundMessage } from "./types";
@@ -147,7 +161,7 @@ const MOTIVOS: Record<string, string> = {
 // Lo unico que ve el cliente al derivar. Sin motivos ni jerga interna: saber que
 // el bot "no entendio" o que hubo "demasiados mensajes" no le sirve de nada y
 // suena a maquina rota. Solo necesita saber que alguien lo va a atender.
-const DESPEDIDA_HANDOFF = "dale, ya le paso tu mensaje al equipo y te contactan en un rato";
+const DESPEDIDA_HANDOFF = "Dale, ya le paso tu mensaje al equipo y te contactan en un rato";
 
 async function avisarAlCliente(
   supabase: ReturnType<typeof createAdminClient>,
@@ -195,6 +209,10 @@ type AvanceDePedido = {
   analysis: BotAnalysis;
   pedido: OrderDraft;
   draftPrevio: AddressDraft;
+  estado: EstadoDelDraft;
+  // El cliente pidio arrancar de nuevo. Se le dice que lo escuchamos antes de la
+  // pregunta que sigue: si no, parece que el mensaje se perdio.
+  reinicio: boolean;
   isTest: boolean;
   now: string;
 };
@@ -224,7 +242,10 @@ async function avanzarPedido(entrada: AvanceDePedido): Promise<boolean> {
   }
 
   const upsell = selectUpsell(parseUpsellRules(reglasCrudas), entrada.pedido, variantes, [principal.id]);
-  const gap = nextOrderGap(entrada.pedido, Boolean(upsell));
+  const gap = nextOrderGap(entrada.pedido, {
+    upsellDisponible: Boolean(upsell),
+    estado: entrada.estado
+  });
 
   const items: PedidoItem[] = [];
 
@@ -293,7 +314,10 @@ async function avanzarPedido(entrada: AvanceDePedido): Promise<boolean> {
   let pedido = entrada.pedido;
   let texto: string;
 
-  if (gap.tipo === "upsell" && upsell) {
+  if (gap.tipo === "retomar" && entrada.estado !== "activo" && entrada.estado !== "vacio") {
+    texto = mensajeParaRetomar(pedido, entrada.estado);
+    pedido = { ...pedido, retomarDesde: entrada.estado };
+  } else if (gap.tipo === "upsell" && upsell) {
     texto = upsell.mensaje;
     pedido = { ...pedido, upsellOfrecido: true, upsellVariantId: upsell.variante.id };
   } else if (gap.tipo === "confirmacion") {
@@ -304,6 +328,10 @@ async function avanzarPedido(entrada: AvanceDePedido): Promise<boolean> {
 
   if (!texto) {
     return false;
+  }
+
+  if (entrada.reinicio) {
+    texto = `Dale, arrancamos de nuevo. ${texto}`;
   }
 
   const clave = gapKey(gap);
@@ -319,6 +347,10 @@ async function avanzarPedido(entrada: AvanceDePedido): Promise<boolean> {
         ...(conversation.draftOrder ?? {}),
         ...pedido,
         ultimaPregunta: clave,
+        // La pregunta que retoma no refresca la fecha del pedido en curso: la
+        // refresca igual porque el cliente esta hablando ahora, y si vuelve a
+        // desaparecer el draft vuelve a envejecer desde este momento.
+        actualizadoEn: now,
         // El contador vive por pregunta: sin esto, dos preguntas distintas
         // comparten el corte y el bot se rinde antes de tiempo.
         repeticiones: entrada.pedido.ultimaPregunta === clave ? entrada.pedido.repeticiones + 1 : 0,
@@ -379,6 +411,13 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   // La allowlist corta antes de escribir nada: un desconocido no deja rastro
   // en la base ni consume presupuesto.
   if (gate.action === "canned_reply" && gate.reason === "not_allowed") {
+    // Se loguea el id porque es la unica forma de saber a quien sumar a la
+    // allowlist: el bloqueo pasa antes de crear la conversacion, asi que en la
+    // base no queda nada. Sin esto hay que ir a buscarlo a un bot de terceros.
+    console.warn(
+      `[bot] chat fuera de la allowlist: ${inbound.threadId}${inbound.senderName ? ` (${inbound.senderName})` : ""}`
+    );
+
     await adapter.send(inbound.threadId, gate.body);
     return;
   }
@@ -387,6 +426,32 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   const isNew = await recordInbound(supabase, conversationId, inbound, now);
 
   if (!isNew) {
+    return;
+  }
+
+  // Corre antes de mirar la decision del gate a proposito: el comando sirve
+  // justo cuando la conversacion quedo trabada, que es cuando el gate la esta
+  // ignorando por silenciada o derivada a una persona.
+  if (isTest && esComandoDeReinicio(inbound.text)) {
+    await updateConversationStatus(
+      supabase,
+      conversationId,
+      {
+        status: "idle",
+        draft_order: {},
+        requires_human: false,
+        current_intent: null,
+        off_topic_strikes: 0,
+        bot_muted_until: null
+      },
+      now
+    );
+
+    const listo = "Listo, arrancamos de cero. Contame qué necesitás";
+
+    await adapter.send(inbound.threadId, listo);
+    await recordOutbound(supabase, conversationId, inbound.channel, listo, "canned_reply", now);
+
     return;
   }
 
@@ -404,6 +469,27 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   if (gate.action === "canned_reply") {
     await adapter.send(inbound.threadId, gate.body);
     await recordOutbound(supabase, conversationId, inbound.channel, gate.body, "canned_reply", now);
+
+    // Cuando el saludo termino ofreciendo el pedido viejo, hay que dejar anotado
+    // que se pregunto: si no, la respuesta del cliente llega sin contexto y el
+    // "dale" se pierde.
+    const draftDelSaludo = hydrateOrderDraft(existing?.draftOrder);
+
+    if (gate.reason === "greeting" && estadoDelDraft(draftDelSaludo, now) === "sugerencia") {
+      await updateConversationStatus(
+        supabase,
+        conversationId,
+        {
+          draft_order: {
+            ...(existing?.draftOrder ?? {}),
+            ultimaPregunta: "retomar",
+            retomarDesde: "sugerencia",
+            actualizadoEn: now
+          }
+        },
+        now
+      );
+    }
 
     if (gate.countsAsStrike && existing) {
       await bumpOffTopicStrike(
@@ -433,11 +519,11 @@ export async function handleInboundMessage(inbound: InboundMessage) {
 
   // Lo que ya se sabe del pedido. Va al prompt para que el modelo no vuelva a
   // pedir lo que el cliente ya dijo.
-  const pedidoPrevio: OrderDraft = {
-    ...EMPTY_ORDER_DRAFT,
-    ...((conversation.draftOrder ?? {}) as Partial<OrderDraft>),
-    direccion: (conversation.draftOrder?.direccion as AddressDraft | undefined) ?? EMPTY_ADDRESS_DRAFT
-  };
+  const guardado = hydrateOrderDraft(conversation.draftOrder);
+
+  // Cuanta autoridad tiene lo guardado. Un pedido de hace tres horas todavia es
+  // el pedido en curso; uno de ayer es una sugerencia.
+  const estadoGuardado = estadoDelDraft(guardado, now);
 
   const provider = getLlmProvider();
   const dejarDeEscribir = keepTyping(adapter, inbound.threadId);
@@ -452,7 +538,10 @@ export async function handleInboundMessage(inbound: InboundMessage) {
         conversationStatus: conversation.status,
         messageBody: truncateForLlm(inbound.text, GATE_DEFAULTS.maxTextLength),
         recentMessages,
-        confirmado: resumirConfirmado(pedidoPrevio)
+        // Un pedido que ya es sugerencia no se le pasa al modelo como confirmado:
+        // si lo lee como cerrado, deja de pedir lo que falta y da por hecha una
+        // direccion de ayer.
+        confirmado: estadoGuardado === "sugerencia" ? null : resumirConfirmado(guardado)
       }),
       maxTokens: botConfig.llmMaxTokens,
       jsonSchema: ANALYSIS_JSON_SCHEMA as unknown as Record<string, unknown>
@@ -471,21 +560,65 @@ export async function handleInboundMessage(inbound: InboundMessage) {
   // Recoleccion del pedido. Corre antes del motor: si hay un dato pendiente, la
   // pregunta por ese dato le gana a la respuesta generica del modelo, que tiende
   // a pedir todo junto y a volver a pedir lo que el cliente ya dijo.
-  const draftPrevio = pedidoPrevio.direccion;
+  const gapPrevio = gapFromKey(guardado.ultimaPregunta);
+
+  // Si el cliente ya dijo lo que quiere, sacarle un pedido de anteayer es
+  // hablarle de otra cosa.
+  const trajoDatos = trajoAlgoConcreto(analysis.extracted, guardado);
+
+  // De donde arranca este mensaje. Lo normal es seguir con lo guardado; cambia
+  // cuando el pedido viejo dejo de tener autoridad.
+  let base = guardado;
+  let respondioRetomar = false;
+
+  // "arranquemos de nuevo" vale en cualquier momento, no solo como respuesta a la
+  // pregunta de retomar. Es lo que diria una persona, y ademas es la unica forma
+  // que tiene el cliente de destrabar una charla que se le fue de las manos.
+  const pidioReinicio = pidioArrancarDeNuevo(inbound.text);
+
+  if (pidioReinicio) {
+    base = reiniciarPedido(guardado, { conservarDireccion: true });
+  } else if (gapPrevio?.tipo === "retomar") {
+    respondioRetomar = true;
+    const respuesta = parseRetomar(inbound.text);
+
+    if (guardado.retomarDesde === "sugerencia" && respuesta !== "seguir") {
+      // Una oferta que no se acepta es una oferta rechazada. Si le ofrecimos el
+      // pedido de ayer y contesta cualquier otra cosa, ese pedido no queda
+      // flotando esperando pegarse al que venga.
+      base = reiniciarPedido(guardado, { conservarDireccion: false });
+    } else if (respuesta === "de_cero") {
+      // Arrancar de nuevo en la misma charla no borra la direccion: la dio hace
+      // minutos y sigue siendo la de hoy.
+      base = reiniciarPedido(guardado, { conservarDireccion: true });
+    }
+
+    base = { ...base, retomarDesde: null };
+  } else if (estadoGuardado === "sugerencia" && trajoDatos) {
+    base = reiniciarPedido(guardado, { conservarDireccion: false });
+  }
+
+  // Solo se nombra el hueco si el cliente no vino ya diciendo lo que quiere.
+  const estado: EstadoDelDraft =
+    respondioRetomar || trajoDatos || pidioReinicio ? "activo" : estadoGuardado;
+
+  const draftPrevio = base.direccion;
+
+  // Cuando se descarto el pedido viejo hay que descartar tambien su eco: el
+  // modelo repite en "extracted" todo dato que haya aparecido en la conversacion,
+  // asi que sin esto el reinicio se deshace solo en el mismo mensaje.
+  const extraido = base === guardado ? analysis.extracted : sinEco(analysis.extracted, guardado);
 
   // Dos fuentes por mensaje: lo que el modelo extrajo, y la respuesta a lo ultimo
   // que se pregunto. La segunda hace falta porque un "efectivo" suelto solo
   // significa algo si veniamos de preguntar como paga.
-  const gapPrevio = gapFromKey(pedidoPrevio.ultimaPregunta);
-  const conExtraido = mergeOrderDraft(pedidoPrevio, analysis.extracted);
+  const conExtraido = mergeOrderDraft(base, extraido);
   let pedido: OrderDraft =
     gapPrevio && gapPrevio.tipo !== "direccion"
       ? { ...conExtraido, ...interpretOrderAnswer(gapPrevio, inbound.text) }
       : conExtraido;
 
-  const dicha = typeof analysis.extracted.delivery_address === "string"
-    ? analysis.extracted.delivery_address
-    : null;
+  const dicha = typeof extraido.delivery_address === "string" ? extraido.delivery_address : null;
 
   // La respuesta a la pregunta de direccion se interpreta con su propio modulo:
   // un "departamento" suelto solo tiene sentido con esa referencia. Manda la
@@ -520,9 +653,7 @@ export async function handleInboundMessage(inbound: InboundMessage) {
       // La zona va en un campo aparte, pero Google la necesita en la misma
       // consulta: "Libertador 2809" solo es ambiguo de verdad, hay una calle
       // Libertador en media provincia. Con la localidad, deja de serlo.
-      const zona = typeof analysis.extracted.delivery_zone === "string"
-        ? analysis.extracted.delivery_zone.trim()
-        : "";
+      const zona = typeof extraido.delivery_zone === "string" ? extraido.delivery_zone.trim() : "";
       const consulta = zona && !conDireccion.texto.toLowerCase().includes(zona.toLowerCase())
         ? `${conDireccion.texto}, ${zona}`
         : conDireccion.texto;
@@ -535,7 +666,7 @@ export async function handleInboundMessage(inbound: InboundMessage) {
 
   // Un pedido ya creado cierra el hilo: sin esto, cualquier mensaje posterior
   // vuelve a entrar al flujo y el cliente recibe otra vez "te lo anote".
-  const pedidoYaCreado = typeof conversation.draftOrder?.createdOrderId === "string";
+  const pedidoYaCreado = Boolean(guardado.createdOrderId);
 
   // Una pregunta en medio del pedido se contesta. Sin esto, un "cuanto sale la
   // chica?" recibia como respuesta la siguiente pregunta del formulario, que es
@@ -567,6 +698,8 @@ export async function handleInboundMessage(inbound: InboundMessage) {
       analysis,
       pedido,
       draftPrevio,
+      estado,
+      reinicio: pidioReinicio,
       isTest,
       now
     });
@@ -574,9 +707,16 @@ export async function handleInboundMessage(inbound: InboundMessage) {
     if (cerrado) {
       return;
     }
-  } else if (pedido !== pedidoPrevio) {
+  } else if (pedido !== guardado) {
     // Fuera del flujo igual hay que guardar lo que se extrajo, y soltar la ultima
     // pregunta: si no, el proximo mensaje se sigue leyendo como respuesta a ella.
+    //
+    // Salvo cuando lo que hubo fue una consulta en medio del pedido. Ahi la
+    // pregunta sigue pendiente: le contestamos lo que nos preguntaron y despues
+    // el cliente contesta lo nuestro. Borrarla hacia que un "depto" despues de
+    // "hacen envios a Salta?" se leyera como si nadie hubiera preguntado nada.
+    const pendiente = consultaEnMedio ? guardado.ultimaPregunta : null;
+
     await updateConversationStatus(
       supabase,
       conversationId,
@@ -584,8 +724,12 @@ export async function handleInboundMessage(inbound: InboundMessage) {
         draft_order: {
           ...(conversation.draftOrder ?? {}),
           ...pedido,
-          ultimaPregunta: null,
-          direccion: { ...direccion, ultimaPregunta: null }
+          ultimaPregunta: pendiente,
+          actualizadoEn: now,
+          direccion: {
+            ...direccion,
+            ultimaPregunta: consultaEnMedio ? direccion.ultimaPregunta : null
+          }
         }
       },
       now

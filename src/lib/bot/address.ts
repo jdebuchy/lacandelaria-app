@@ -207,32 +207,35 @@ function siguienteFaltante(draft: AddressDraft): AddressGap | null {
   return null;
 }
 
-// Los textos siguen el tono medido del equipo: cortos, sin signos de apertura,
-// en minuscula y de a una pregunta por vez.
+// Los textos siguen el tono medido del equipo: cortos, de a una pregunta por vez
+// y sin signos de apertura, que es la unica licencia ortografica que se toma.
+// Los acentos y la mayuscula inicial si van: sin ellos se lee descuidado, no
+// cercano. Ojo que la regla del repo de escribir sin acentos es para el codigo,
+// no para lo que lee el cliente.
 export function buildAddressQuestion(gap: AddressGap, draft: AddressDraft): string {
   switch (gap) {
     case "calle":
-      return "me pasas la direccion de entrega?";
+      return "Me pasás la dirección de entrega?";
     case "confirmar_calle":
       if (draft.opciones?.length) {
         return buildAmbiguousQuestion(draft.opciones);
       }
 
       return draft.etiqueta
-        ? `te la dejo en ${draft.etiqueta}?`
-        : "no la encontre. me la pasas con la calle, la altura y la localidad?";
+        ? `Te la dejo en ${draft.etiqueta}?`
+        : "No la encontré. Me la pasás con la calle, la altura y la localidad?";
     case "tipo_vivienda":
-      return "es casa o departamento?";
+      return "Es casa o departamento?";
     case "piso_depto":
-      return "que piso y depto?";
+      return "Qué piso y depto?";
     case "nombre_barrio":
-      return "como se llama el barrio?";
+      return "Cómo se llama el barrio?";
   }
 }
 
 export function buildAmbiguousQuestion(opciones: PlaceSuggestion[]) {
   const lista = opciones.map((o, i) => `${i + 1}. ${o.fullText}`).join("\n");
-  return `encontre varias, cual es?\n${lista}`;
+  return `Encontré varias, cuál es?\n${lista}`;
 }
 
 export function isAddressComplete(draft: AddressDraft) {

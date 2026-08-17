@@ -302,3 +302,73 @@ describe("truncateForLlm", () => {
     expect(truncateForLlm("a".repeat(20), 5)).toBe("aaaaa");
   });
 });
+
+describe("un pedido en curso tiene fecha de vencimiento", () => {
+  function draftDeHace(horas: number) {
+    return {
+      cantidad: 2,
+      actualizadoEn: new Date(new Date(AHORA).getTime() - horas * 3_600_000).toISOString()
+    };
+  }
+
+  it("un pedido de hace un rato deja pasar el saludo al modelo", () => {
+    const decision = evaluateGate(
+      entrada({
+        text: "hola",
+        conversation: conversacion({ status: "collecting_order_data", draftOrder: draftDeHace(0.5) })
+      })
+    );
+
+    expect(decision.action).toBe("allow");
+  });
+
+  // El bug: bastaba con que draft_order no estuviera vacio, asi que un "hola"
+  // sobre un pedido de la semana pasada se iba derecho al modelo, como si la
+  // charla nunca se hubiera cortado. Ahora lo contesta el gate, gratis, y de
+  // paso ofrece el pedido viejo en vez de darlo por hecho.
+  it("un pedido de hace dos dias se ofrece, sin gastar una llamada al modelo", () => {
+    const decision = evaluateGate(
+      entrada({
+        text: "hola",
+        conversation: conversacion({ status: "collecting_order_data", draftOrder: draftDeHace(48) })
+      })
+    );
+
+    expect(decision.action).toBe("canned_reply");
+    expect(decision).toMatchObject({
+      reason: "greeting",
+      body: "Hola! La última vez estabas por llevar 2 cajas. Arrancamos con eso?"
+    });
+  });
+
+  it("un draft sin fecha, de antes de que existiera el campo, cuenta como viejo", () => {
+    const decision = evaluateGate(
+      entrada({
+        text: "hola",
+        conversation: conversacion({ status: "collecting_order_data", draftOrder: { cantidad: 2 } })
+      })
+    );
+
+    expect(decision).toMatchObject({ reason: "greeting" });
+    expect(decision).toMatchObject({ action: "canned_reply" });
+  });
+
+  // Saludar por el nombre es la regla que mas separa al equipo de un bot, y el
+  // saludo es la unica respuesta que sale sin pasar por el modelo.
+  it("el saludo usa el nombre cuando lo sabemos", () => {
+    const decision = evaluateGate(
+      entrada({ text: "hola", conversation: conversacion({ draftOrder: { nombre: "Pepe" } }) })
+    );
+
+    expect(decision).toMatchObject({
+      reason: "greeting",
+      body: "Hola Pepe! Contame qué necesitás y te ayudo con tu pedido."
+    });
+  });
+
+  it("sin nombre guardado sigue el saludo de siempre", () => {
+    const decision = evaluateGate(entrada({ text: "hola", conversation: conversacion() }));
+
+    expect(decision).toMatchObject({ reason: "greeting", body: CANNED_REPLIES.greeting });
+  });
+});

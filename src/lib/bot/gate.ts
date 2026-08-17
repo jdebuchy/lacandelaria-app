@@ -1,3 +1,6 @@
+import { estadoDelDraft, hydrateOrderDraft } from "./order-draft";
+import { mensajeParaRetomar } from "./summary";
+import { isGreetingOnly, normalizar as normalize, palabrasDe } from "./text";
 import type { ConversationState, GateDecision } from "./types";
 
 export const GATE_DEFAULTS = {
@@ -22,27 +25,35 @@ export const GATE_DEFAULTS = {
 // escrita a mano: son las unicas que el cliente puede recibir con el LLM apagado.
 export const CANNED_REPLIES = {
   notAllowed:
-    "Hola! Soy Cande, de Paltas La Candelaria. Todavia estoy en pruebas por aca. Escribinos por WhatsApp y te atendemos.",
+    "Hola! Soy Cande, de Paltas La Candelaria. Todavía estoy en pruebas por acá. Escribinos por WhatsApp y te atendemos.",
   offTopic:
-    "Soy Cande, de Paltas La Candelaria. Por aca te ayudo con pedidos de paltas: precios, cantidades y entregas. Contame que necesitas.",
+    "Soy Cande, de Paltas La Candelaria. Por acá te ayudo con pedidos de paltas: precios, cantidades y entregas. Contame qué necesitás.",
   budgetExhausted: "Recibimos tus mensajes. En un rato te contesta alguien del equipo.",
-  greeting: "Hola! Soy Cande, de Paltas La Candelaria. Contame que necesitas y te ayudo con tu pedido."
+  greeting: "Hola! Soy Cande, de Paltas La Candelaria. Contame qué necesitás y te ayudo con tu pedido."
 };
 
-// Un saludo pelado no le da al modelo con que trabajar: devuelve baja confianza
-// y eso derivaba la conversacion a humano en el primer mensaje. Como casi toda
-// conversacion real arranca con "hola", lo contestamos nosotros y esperamos.
-const GREETINGS = new Set([
-  "hola", "holaa", "holaaa", "buenas", "buen", "buenos", "dia", "dias", "tarde",
-  "tardes", "noche", "noches", "hey", "ey", "que", "tal", "como", "estas", "andas",
-  "saludos", "hi", "hello", "ola", "holis", "buenass"
-]);
+// Saludar por el nombre es la regla que mas separa al equipo de un bot, medida
+// sobre 1104 respuestas reales. El saludo es la unica respuesta que sale sin
+// pasar por el modelo, asi que si no la aplica aca, no la aplica en ningun lado.
+//
+// Y si el cliente dejo un pedido a medias hace mas de un dia, el saludo es el
+// momento de ofrecerlo. Sale igual de barato: el texto es deterministico, no lo
+// redacta el modelo.
+export function buildGreeting(conversation: ConversationState | null, now: string) {
+  const draft = hydrateOrderDraft(conversation?.draftOrder);
 
-export function isGreetingOnly(text: string) {
-  const words = normalize(text).split(/[^a-z0-9]+/).filter(Boolean);
+  if (estadoDelDraft(draft, now) === "sugerencia") {
+    return mensajeParaRetomar(draft, "sugerencia");
+  }
 
-  return words.length > 0 && words.length <= 4 && words.every((word) => GREETINGS.has(word));
+  return draft.nombre
+    ? `Hola ${draft.nombre}! Contame qué necesitás y te ayudo con tu pedido.`
+    : CANNED_REPLIES.greeting;
 }
+
+// Se reexporta porque los tests del gate y varios llamadores lo usan desde aca
+// desde antes de que la forma del mensaje viviera en su propio modulo.
+export { isGreetingOnly };
 
 // Estados en los que el cliente esta armando un pedido: ahi cualquier texto es
 // relevante (una direccion, un horario, un "dale") y no puede frenarlo el lexico.
@@ -64,18 +75,8 @@ const DOMAIN_LEXICON = [
 
 const DOMAIN_LEXICON_SET = new Set(DOMAIN_LEXICON);
 
-function normalize(text: string) {
-  // Los combining marks van escapados: escritos literales, un editor o un
-  // copy-paste los reordena y el regex deja de matchear sin que nadie lo note.
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
-}
-
 export function hasDomainSignal(text: string) {
-  const words = normalize(text).split(/[^a-z0-9]+/).filter(Boolean);
-  return words.some((word) => DOMAIN_LEXICON_SET.has(word));
+  return palabrasDe(text).some((word) => DOMAIN_LEXICON_SET.has(word));
 }
 
 function isBlank(text: string) {
@@ -83,16 +84,24 @@ function isBlank(text: string) {
   return !/[\p{L}\p{N}]/u.test(text);
 }
 
-function hasOrderInProgress(conversation: ConversationState | null) {
+// "En curso" tiene fecha de vencimiento. Antes bastaba con que draft_order no
+// estuviera vacio, asi que un "hola" sobre un pedido de la semana pasada saltaba
+// el saludo y se iba derecho al modelo, como si la charla nunca se hubiera
+// cortado.
+function hasOrderInProgress(conversation: ConversationState | null, now: string) {
   if (!conversation) {
     return false;
   }
 
-  if (ORDER_IN_PROGRESS_STATUSES.has(conversation.status)) {
+  const estado = estadoDelDraft(hydrateOrderDraft(conversation.draftOrder), now);
+
+  if (estado === "activo" || estado === "dormido") {
     return true;
   }
 
-  return Boolean(conversation.draftOrder && Object.keys(conversation.draftOrder).length > 0);
+  // El status por si solo no alcanza cuando el draft ya es una sugerencia: una
+  // conversacion vieja se queda en collecting_order_data para siempre.
+  return estado !== "sugerencia" && ORDER_IN_PROGRESS_STATUSES.has(conversation.status);
 }
 
 function secondsBetween(from: string, to: string) {
@@ -171,7 +180,7 @@ export function evaluateGate(input: GateInput): GateDecision {
     }
   }
 
-  if (hasOrderInProgress(conversation)) {
+  if (hasOrderInProgress(conversation, now)) {
     return { action: "allow" };
   }
 
@@ -181,7 +190,7 @@ export function evaluateGate(input: GateInput): GateDecision {
     return {
       action: "canned_reply",
       reason: "greeting",
-      body: CANNED_REPLIES.greeting,
+      body: buildGreeting(conversation, now),
       countsAsStrike: false
     };
   }
